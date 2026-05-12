@@ -2869,6 +2869,61 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .repair-vision .rv-eyebrow { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
 .repair-vision p { font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.88); }
 .repair-vision p + p { margin-top: 12px; }
+
+/* ============ TIERS / ASCENSION ============ */
+.founding::after { content: ' ✦'; color: var(--gold); font-weight: 600; }
+.tier-pill {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+  padding: 6px 14px; border-radius: 100px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700;
+}
+.tier-pill.free { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-faint); }
+.tier-pill.pro { background: linear-gradient(135deg, rgba(251,191,36,0.16), rgba(167,139,250,0.14)); border: 1px solid rgba(251,191,36,0.4); color: var(--gold); }
+.tier-pill.proplus { background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(110,231,183,0.14)); border: 1px solid rgba(167,139,250,0.5); color: var(--violet); box-shadow: 0 0 18px rgba(167,139,250,0.2); }
+/* locked-feature tags (CSS-driven off body[data-tier]) */
+body[data-tier="free"] #soundSphereOpenBtn::after { content: ' · Pro'; font-size: 9px; letter-spacing: 1px; opacity: 0.7; }
+body[data-tier="free"] #instCreateBtn .create-instrument-sub::after,
+body[data-tier="pro"] #instCreateBtn .create-instrument-sub::after { content: ''; }
+.lib-gate { display: none; flex-direction: column; align-items: center; text-align: center; padding: 34px 22px; gap: 12px; }
+.lib-gate .lg-glyph { font-size: 40px; opacity: 0.5; }
+.lib-gate .lg-text { font-family: Georgia, serif; font-style: italic; font-size: 14px; color: var(--text-dim); max-width: 280px; line-height: 1.55; }
+body[data-tier="free"] #content-universal > .lib-section-title,
+body[data-tier="free"] #content-universal > .preset-list { display: none !important; }
+body[data-tier="free"] #content-universal .lib-gate { display: flex; }
+.locked-row {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 12px; border-radius: 16px;
+  background: var(--card); border: 1px dashed var(--border-hi); cursor: pointer; backdrop-filter: blur(20px);
+}
+.locked-row .lr-glyph { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-faint); background: rgba(255,255,255,0.04); }
+.locked-row .lr-name { font-size: 13px; font-weight: 600; }
+.locked-row .lr-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+
+/* The "you've ascended" upgrade overlay */
+.ascend-up-overlay {
+  position: fixed; inset: 0; height: 100vh; height: 100dvh;
+  z-index: 520;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 32px 24px; overflow: hidden;
+  background: radial-gradient(circle at 50% 30%, var(--up-c1, rgba(251,191,36,0.2)), transparent 55%), radial-gradient(circle at 50% 90%, var(--up-c2, rgba(167,139,250,0.18)), transparent 55%), #030305;
+}
+.ascend-up-overlay.show { display: flex; animation: gateIn 0.7s var(--ease); }
+.ascend-up-overlay .up-particles { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.ascend-up-overlay .up-particle { position: absolute; bottom: -10px; width: 5px; height: 5px; border-radius: 50%; background: var(--up-p, var(--gold)); box-shadow: 0 0 12px var(--up-p, var(--gold)); opacity: 0; animation: particleDrift 5s ease-out forwards; }
+.ascend-up-glyph {
+  font-size: 84px; font-weight: 100; line-height: 1; margin-bottom: 14px; position: relative; z-index: 1;
+  background: linear-gradient(135deg, var(--gold), var(--violet), var(--mint));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 36px rgba(251,191,36,0.5));
+  animation: glyphBreathe 3s ease-in-out infinite, verdictIn 1s var(--pop);
+}
+.ascend-up-eyebrow { font-size: 11px; letter-spacing: 8px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 10px; position: relative; z-index: 1; }
+.ascend-up-title { font-size: 40px; font-weight: 200; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 8px; position: relative; z-index: 1; }
+.ascend-up-sub { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 26px; position: relative; z-index: 1; }
+.ascend-up-list { list-style: none; padding: 0; margin: 0 auto 30px; max-width: 340px; text-align: left; position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; }
+.ascend-up-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.45; color: rgba(255,255,255,0.88); opacity: 0; transform: translateY(8px); }
+.ascend-up-list li.in { opacity: 1; transform: translateY(0); transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.ascend-up-list li .ul-mark { color: var(--mint); flex-shrink: 0; }
+.ascend-up-enter { position: relative; z-index: 1; opacity: 0; transform: translateY(8px); transition: opacity 0.6s var(--ease) 0.2s, transform 0.6s var(--ease) 0.2s; }
+.ascend-up-enter.in { opacity: 1; transform: translateY(0); }
 </style>
 </head>
 <body>
@@ -3148,6 +3203,8 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       <div id="awayCardSlot"></div>
       <!-- Wave received (anti-DM) -->
       <div id="waveCardSlot"></div>
+      <!-- Your Council (Pro Plus) — the three true selves closest to your path -->
+      <div id="councilSlot"></div>
       <!-- Kindred — true selves on a similar highest path; comes into focus as you get closer to yourself -->
       <div id="kindredSlot"></div>
 
@@ -3394,6 +3451,11 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       <div class="lib-content" id="content-universal" style="display:none;">
         <div class="lib-section-title">Planetary</div><div class="preset-list" id="planetaryList"></div>
         <div class="lib-section-title">Earth & Elements</div><div class="preset-list" id="elementalList"></div>
+        <div class="lib-gate" id="universalGate">
+          <div class="lg-glyph">☉</div>
+          <div class="lg-text">The planetary, sacred and elemental tones open with Resonance Pro. The free room keeps the Solfeggio, the chakras and the sacred few — this is the rest of the sky.</div>
+          <button class="btn primary" id="universalUnlockBtn">Open with Pro →</button>
+        </div>
       </div>
       <div class="lib-content" id="content-custom" style="display:none;">
         <div class="lib-instruments-section">
@@ -3432,6 +3494,7 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         <div class="profile-name" id="profileName">Soul</div>
         <div class="profile-handle">Resonating at <span style="color:var(--mint);" id="profileFreqDisp">432 Hz</span></div>
         <div class="profile-tier" id="profileTier">◎ Initiated</div>
+        <div><span class="tier-pill free" id="tierPill" style="cursor:pointer;">Free</span></div>
       </div>
       <div id="trueSelfYouSlot"></div>
       <div class="profile-level-card">
@@ -3758,37 +3821,37 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
   <div class="sheet-body">
     <div class="pro-mark">◈</div>
     <h1 class="sheet-h1" style="text-align:center;">Go <em>all the way</em> in.</h1>
-    <p class="sheet-lede" style="text-align:center;">The free room is real and it stays free. Pro is for when the work gets serious — when you want every frequency, your own voice from day one, and nothing in the way.</p>
+    <p class="sheet-lede" style="text-align:center;">The free room is real and it stays free — the true self, the closeness, the transmission, your kindred. Pro and Pro Plus open the full instrument: every frequency, every tool, your voice from day one. (Payments aren't live yet — tonight, upgrading is on the house. Tap it.)</p>
 
     <div class="tier-cards-wrap">
-      <div class="tier-buy featured">
+      <div class="tier-buy featured" data-plan="pro">
         <div class="tier-flag">Most chosen</div>
-        <div class="tier-buy-name">Pro</div>
+        <div class="tier-buy-name">Resonance Pro</div>
         <div class="tier-buy-price"><span class="amt">$15</span><span class="per">/ month</span></div>
         <div class="tier-feats">
-          <div class="tier-feat"><span class="tf-mark">✦</span><div>Every frequency — Solfeggio, planetary, sacred, elemental — and the Sound Sphere, unlocked</div></div>
-          <div class="tier-feat"><span class="tf-mark">✦</span><div>Unlimited memories &amp; constellations</div></div>
-          <div class="tier-feat"><span class="tf-mark">✦</span><div>Craft unlimited instruments and beats</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>The Sound Sphere — the infinite instrument — unlocked</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>The full frequency library: planetary, sacred, elemental, and all the rest</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Craft your own instruments</div></div>
           <div class="tier-feat"><span class="tf-mark">✦</span><div>Your inner self speaks in your true voice from day one — no waiting on trust</div></div>
-          <div class="tier-feat"><span class="tf-mark">✦</span><div>Guided ascension journeys</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Every memory kept — no cap</div></div>
           <div class="tier-feat"><span class="tf-mark">✦</span><div>No interruptions, ever</div></div>
         </div>
-        <button class="tier-buy-cta" data-plan="pro">Begin Pro</button>
+        <button class="tier-buy-cta" id="ctaPro" data-plan="pro">Begin Pro</button>
       </div>
 
-      <div class="tier-buy council">
-        <div class="tier-flag">100 seats</div>
-        <div class="tier-buy-name">Council</div>
+      <div class="tier-buy council" data-plan="proplus">
+        <div class="tier-flag">The whole instrument</div>
+        <div class="tier-buy-name">Resonance Pro Plus</div>
         <div class="tier-buy-price"><span class="amt">$500</span><span class="per">/ year</span></div>
         <div class="tier-feats">
           <div class="tier-feat"><span class="tf-mark">✦</span><div>Everything in Pro</div></div>
-          <div class="tier-feat"><span class="tf-mark">✦</span><div>A private circle of one hundred — the people building this alongside us</div></div>
-          <div class="tier-feat"><span class="tf-mark">✦</span><div>A direct line to the council</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>The Beat Maker — the 16-step sequencer — unlocked</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Your Council — the three true selves closest to your path, always in view</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>A founding glyph beside your name, everywhere</div></div>
           <div class="tier-feat"><span class="tf-mark">✦</span><div>Early access to every new tier before anyone else</div></div>
           <div class="tier-feat"><span class="tf-mark">✦</span><div>A vote on what gets built</div></div>
-          <div class="tier-feat"><span class="tf-mark">✦</span><div>A founding glyph beside your name, forever</div></div>
         </div>
-        <button class="tier-buy-cta" data-plan="council">Request a seat</button>
+        <button class="tier-buy-cta" id="ctaProPlus" data-plan="proplus">Begin Pro Plus</button>
       </div>
     </div>
 
@@ -3906,6 +3969,17 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
   </div>
 </div>
 
+<!-- ================= ASCENSION (upgrade) ================= -->
+<div class="ascend-up-overlay" id="ascendUpOverlay">
+  <div class="up-particles" id="ascendUpParticles"></div>
+  <div class="ascend-up-glyph" id="ascendUpGlyph">◈</div>
+  <div class="ascend-up-eyebrow" id="ascendUpEyebrow">Resonance Pro</div>
+  <div class="ascend-up-title">You've ascended.</div>
+  <div class="ascend-up-sub">Everything just opened.</div>
+  <ul class="ascend-up-list" id="ascendUpList"></ul>
+  <button class="btn primary ascend-up-enter" id="ascendUpEnterBtn">Enter</button>
+</div>
+
 <!-- ================= STEP OUT (screen-off ritual) ================= -->
 <div class="stepout-overlay" id="stepOutOverlay">
   <div class="stepout-dot"></div>
@@ -3952,7 +4026,7 @@ function toast(message, type) {
 }
 
 // =================== SETTINGS (state) ===================
-const DEFAULT_SETTINGS = { volume: 80, notify: false, theme: 'violet', quietMetrics: false };
+const DEFAULT_SETTINGS = { volume: 80, notify: false, theme: 'violet', quietMetrics: false, tier: 'free' };
 let appSettings = Object.assign({}, DEFAULT_SETTINGS);
 function loadSettings() { try { const v = JSON.parse(localStorage.getItem('resonance_settings') || 'null'); if (v && typeof v === 'object') appSettings = Object.assign({}, DEFAULT_SETTINGS, v); } catch (e) {} }
 function saveSettings() { try { localStorage.setItem('resonance_settings', JSON.stringify(appSettings)); } catch (e) {} }
@@ -5632,7 +5706,7 @@ function saveMemory(freq, label) {
     modes: (typeof activeModeNames === 'function') ? activeModeNames() : []
   };
   memories.unshift(mem);
-  if (memories.length > 30) memories.pop();
+  if (memories.length > ((typeof isPro === 'function' && isPro()) ? 60 : 12)) memories.pop();
   persistMemories();
   renderMemories();
   return mem;
@@ -6313,7 +6387,10 @@ function openInstrumentCreator() {
   document.getElementById('instModal').classList.add('show');
 }
 
-document.getElementById('instCreateBtn').addEventListener('click', openInstrumentCreator);
+document.getElementById('instCreateBtn').addEventListener('click', () => {
+  if (typeof isPro === 'function' && !isPro()) { toast('Crafting your own instruments is part of Resonance Pro', 'warn'); if (typeof openPaywall === 'function') openPaywall(); return; }
+  openInstrumentCreator();
+});
 document.getElementById('instModalClose').addEventListener('click', () => {
   document.getElementById('instModal').classList.remove('show');
   stopAudition();
@@ -6766,7 +6843,10 @@ function closeBeatMaker() {
 }
 
 // Wire UI
-document.getElementById('beatCreateBtn').addEventListener('click', () => openBeatMaker());
+document.getElementById('beatCreateBtn').addEventListener('click', () => {
+  if (typeof isProPlus === 'function' && !isProPlus()) { toast('The Beat Maker is part of Resonance Pro Plus', 'warn'); if (typeof openPaywall === 'function') openPaywall(); return; }
+  openBeatMaker();
+});
 document.getElementById('beatCloseBtn').addEventListener('click', closeBeatMaker);
 document.getElementById('beatPlayBtn').addEventListener('click', () => {
   if (beatPlaying) stopBeat();
@@ -7092,7 +7172,10 @@ function ssClose() {
   if (vig) vig.classList.remove('edge');
 }
 
-document.getElementById('soundSphereOpenBtn').addEventListener('click', ssOpen);
+document.getElementById('soundSphereOpenBtn').addEventListener('click', () => {
+  if (typeof isPro === 'function' && !isPro()) { toast('The Sound Sphere — the infinite instrument — opens with Resonance Pro', 'warn'); if (typeof openPaywall === 'function') openPaywall(); return; }
+  ssOpen();
+});
 document.getElementById('soundSphereCloseBtn').addEventListener('click', ssClose);
 const ssCanvas = document.getElementById('ssCanvas');
 ssCanvas.addEventListener('pointerdown', ssHandleDown);
@@ -7564,6 +7647,7 @@ window.addEventListener('resize', () => {
 
 // =================== RESONANCE PRO (paywall mockup) ===================
 function openPaywall() {
+  if (typeof refreshPaywall === 'function') refreshPaywall();
   document.getElementById('settingsOverlay').classList.remove('show');
   document.getElementById('paywallOverlay').classList.add('show');
   document.getElementById('paywallOverlay').scrollTop = 0;
@@ -7572,14 +7656,11 @@ function closePaywall() { document.getElementById('paywallOverlay').classList.re
 document.getElementById('proRowBtn').addEventListener('click', openPaywall);
 document.getElementById('paywallCloseBtn').addEventListener('click', closePaywall);
 document.getElementById('paywallSkipBtn').addEventListener('click', closePaywall);
+document.getElementById('universalUnlockBtn').addEventListener('click', openPaywall);
 document.querySelectorAll('#paywallOverlay .tier-buy-cta').forEach(btn => {
   btn.addEventListener('click', () => {
     const plan = btn.dataset.plan;
-    if (typeof floatGain === 'function') floatGain(plan === 'council' ? 'Seat requested ✦' : 'You’re on the list ✦');
-    toast(plan === 'council'
-      ? 'Council opens with 100 seats — you’ll be among the first contacted'
-      : 'Resonance Pro isn’t live yet — you’ll be the first to know when it is', 'ok');
-    setTimeout(closePaywall, 400);
+    if (typeof upgradeTo === 'function') upgradeTo(plan);
   });
 });
 
@@ -8300,6 +8381,7 @@ function renderKindred() {
   const focusNote = v.focusing ? `<div class="kindred-focus-note">They’re blurred because you are — to yourself. Each step toward your true self brings them into focus.</div>` : '';
   slot.innerHTML = `<div class="kindred-section">${header}<div class="kindred-list${v.focusing ? ' focusing' : ''}">${cardHtml || '<div class="kindred-empty">No one is on a path close enough to yours at this resolution yet. Get a little closer to yourself — the field re-sorts.</div>'}</div>${focusNote}${whole}</div>`;
   slot.querySelectorAll('.kindred-card').forEach(el => { el.addEventListener('click', () => { const k = cand[parseInt(el.dataset.ki)]; if (k) openKindredPath(k); }); });
+  if (typeof renderCouncil === 'function') renderCouncil();
 }
 let _kpathTarget = null;
 function openKindredPath(k) {
@@ -8373,6 +8455,132 @@ renderKindred();
     </div>`;
   document.getElementById('awayDismissBtn').addEventListener('click', () => { slot.innerHTML = ''; });
 })();
+
+// =================== TIERS / ASCENSION ===================
+// Free is the soul of it (true self, closeness, transmission, kindred). Pro & Pro Plus open
+// the full instrument. Tonight, "upgrading" is free — you tap, you ascend, and more of the app opens.
+function isPro() { return typeof appSettings !== 'undefined' && (appSettings.tier === 'pro' || appSettings.tier === 'proplus'); }
+function isProPlus() { return typeof appSettings !== 'undefined' && appSettings.tier === 'proplus'; }
+function tierName() { return (typeof appSettings === 'undefined') ? 'Free' : appSettings.tier === 'proplus' ? 'Pro Plus' : appSettings.tier === 'pro' ? 'Pro' : 'Free'; }
+
+function applyTierGates() {
+  const t = (typeof appSettings !== 'undefined' && appSettings.tier) || 'free';
+  if (document.body) document.body.dataset.tier = t;
+  const pill = document.getElementById('tierPill');
+  if (pill) { pill.className = 'tier-pill ' + t; pill.style.cursor = 'pointer'; pill.textContent = t === 'proplus' ? '✦ Pro Plus' : t === 'pro' ? '✦ Pro' : 'Free'; }
+  const proRow = document.getElementById('proRowBtn');
+  if (proRow) {
+    const nameEl = proRow.querySelector('.pro-row-name'), subEl = proRow.querySelector('.pro-row-sub'), glyphEl = proRow.querySelector('.pro-row-glyph');
+    if (t === 'proplus') { if (nameEl) nameEl.textContent = 'You’re Pro Plus ✦'; if (subEl) subEl.textContent = 'The whole instrument is yours. Tap to revisit it.'; if (glyphEl) glyphEl.textContent = '◉'; }
+    else if (t === 'pro') { if (nameEl) nameEl.textContent = 'You’re Pro ✦'; if (subEl) subEl.textContent = 'The full instrument is yours. Tap to see Pro Plus.'; if (glyphEl) glyphEl.textContent = '◈'; }
+    else { if (nameEl) nameEl.textContent = 'Resonance Pro'; if (subEl) subEl.textContent = 'Every frequency, your true voice, the full toolkit — from $15/mo (free tonight)'; if (glyphEl) glyphEl.textContent = '◈'; }
+  }
+  ['userGreetName', 'profileName'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('founding', t === 'proplus'); });
+  if (isPro() && typeof soulTrust !== 'undefined') { if (soulTrust < 100) { soulTrust = 100; if (typeof saveTrust === 'function') saveTrust(); } if (typeof updateTrustUI === 'function') updateTrustUI(); }
+  if (typeof renderCouncil === 'function') renderCouncil();
+}
+
+function refreshPaywall() {
+  const t = (typeof appSettings !== 'undefined' && appSettings.tier) || 'free';
+  const cp = document.getElementById('ctaPro'), cpp = document.getElementById('ctaProPlus');
+  if (cp) { if (t === 'pro') { cp.textContent = '✦ You’re here'; cp.disabled = false; } else if (t === 'proplus') { cp.textContent = '✦ Included'; cp.disabled = true; } else { cp.textContent = 'Begin Pro'; cp.disabled = false; } }
+  if (cpp) { if (t === 'proplus') { cpp.textContent = '✦ You’re here'; cpp.disabled = true; } else { cpp.textContent = t === 'pro' ? 'Step up to Pro Plus' : 'Begin Pro Plus'; cpp.disabled = false; } }
+}
+
+const ASCEND_UNLOCKS = {
+  pro: [
+    'The Sound Sphere — the infinite instrument',
+    'The full frequency library — planetary, sacred, elemental',
+    'Craft your own instruments',
+    'Your inner self, in its true voice, from now on',
+    'Every memory kept — no cap'
+  ],
+  proplus: [
+    'Everything in Pro — Sound Sphere, the full library, your true voice, unlimited memory',
+    'The Beat Maker — the 16-step sequencer',
+    'Your Council — the three true selves closest to your path, always in view',
+    'A founding glyph beside your name, everywhere'
+  ]
+};
+let _ascendTimers = [];
+async function showAscension(tier) {
+  const ov = document.getElementById('ascendUpOverlay'); if (!ov) return;
+  _ascendTimers.forEach(clearTimeout); _ascendTimers = [];
+  const isPP = tier === 'proplus';
+  ov.style.setProperty('--up-c1', isPP ? 'rgba(167,139,250,0.22)' : 'rgba(251,191,36,0.2)');
+  ov.style.setProperty('--up-c2', isPP ? 'rgba(110,231,183,0.18)' : 'rgba(167,139,250,0.18)');
+  ov.style.setProperty('--up-p', isPP ? 'var(--violet)' : 'var(--gold)');
+  document.getElementById('ascendUpGlyph').textContent = isPP ? '◉' : '◈';
+  document.getElementById('ascendUpEyebrow').textContent = isPP ? 'Resonance Pro Plus' : 'Resonance Pro';
+  const pc = document.getElementById('ascendUpParticles'); pc.innerHTML = '';
+  for (let i = 0; i < 36; i++) { const d = document.createElement('div'); d.className = 'up-particle'; d.style.left = (Math.random() * 100) + '%'; d.style.animationDelay = (Math.random() * 1.6) + 's'; d.style.animationDuration = (3.5 + Math.random() * 2) + 's'; const s = 4 + Math.random() * 5; d.style.width = s + 'px'; d.style.height = s + 'px'; pc.appendChild(d); }
+  const listEl = document.getElementById('ascendUpList'); listEl.innerHTML = '';
+  const items = ASCEND_UNLOCKS[isPP ? 'proplus' : 'pro'];
+  items.forEach(txt => { const li = document.createElement('li'); li.innerHTML = `<span class="ul-mark">✦</span><span>${txt}</span>`; listEl.appendChild(li); });
+  const enterBtn = document.getElementById('ascendUpEnterBtn'); enterBtn.classList.remove('in');
+  ov.classList.add('show');
+  listEl.querySelectorAll('li').forEach((li, i) => { _ascendTimers.push(setTimeout(() => li.classList.add('in'), 700 + i * 420)); });
+  _ascendTimers.push(setTimeout(() => enterBtn.classList.add('in'), 700 + items.length * 420 + 300));
+  try {
+    if (typeof ensureAudio === 'function') await ensureAudio();
+    if (typeof Tone !== 'undefined' && Tone.Synth) {
+      const syn = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.25, sustain: 0.25, release: 1.4 }, volume: -8 }).toDestination();
+      const notes = isPP ? ['C5', 'E5', 'G5', 'C6', 'E6', 'G6'] : ['C5', 'E5', 'G5', 'C6'];
+      notes.forEach((n, i) => { try { syn.triggerAttackRelease(n, '8n', '+' + (i * 0.14)); } catch (e) {} });
+      setTimeout(() => { try { syn.dispose(); } catch (e) {} }, 4500);
+    }
+  } catch (e) {}
+}
+function closeAscension() { document.getElementById('ascendUpOverlay').classList.remove('show'); _ascendTimers.forEach(clearTimeout); _ascendTimers = []; }
+document.getElementById('ascendUpEnterBtn').addEventListener('click', () => { closeAscension(); if (typeof toast === 'function') toast('Welcome to ' + tierName() + '. The full instrument is yours.', 'ok'); });
+
+function upgradeTo(t) {
+  if (t !== 'pro' && t !== 'proplus') return;
+  if (typeof appSettings === 'undefined') return;
+  if (appSettings.tier === 'proplus' && t === 'pro') { if (typeof closePaywall === 'function') closePaywall(); return; }
+  if (appSettings.tier === t) { if (typeof closePaywall === 'function') closePaywall(); return; }
+  appSettings.tier = t;
+  if (typeof saveSettings === 'function') saveSettings();
+  applyTierGates();
+  if (typeof renderKindred === 'function') renderKindred();
+  if (typeof renderTrueSelfCard === 'function') { renderTrueSelfCard(); renderTrueSelfYou(); }
+  if (typeof closePaywall === 'function') closePaywall();
+  setTimeout(() => showAscension(t), 220);
+  if (typeof floatGain === 'function') setTimeout(() => floatGain(t === 'proplus' ? 'Pro Plus ✦' : 'Pro ✦'), 420);
+}
+{ const el = document.getElementById('tierPill'); if (el) el.addEventListener('click', () => { if (typeof openPaywall === 'function') openPaywall(); }); }
+
+// --- Council (Pro Plus): the three true selves closest to your path ---
+function renderCouncil() {
+  const slot = document.getElementById('councilSlot'); if (!slot) return;
+  if (!isProPlus()) { slot.innerHTML = ''; return; }
+  const ts = (typeof ensureTrueSelf === 'function') ? ensureTrueSelf() : null;
+  if (!ts || typeof KINDRED_POOL === 'undefined') { slot.innerHTML = ''; return; }
+  const myC = (typeof closeness !== 'undefined') ? closeness : 50;
+  const nearest = KINDRED_POOL.slice()
+    .sort((a, b) => (Math.abs(a.freq - ts.freq) / 200 + Math.abs(a.closeness - myC) / 40) - (Math.abs(b.freq - ts.freq) / 200 + Math.abs(b.closeness - myC) / 40))
+    .slice(0, 3);
+  const colorOf = f => (typeof hzToColor === 'function') ? hzToColor(f)[2] : 'var(--violet)';
+  const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+  slot.innerHTML = `<div class="kindred-section">
+    <div class="kindred-head"><h2>Your Council</h2><div class="kh-sub" style="color:var(--violet);">Pro Plus · the three closest to your path</div></div>
+    <div class="kindred-list" style="padding-top:10px;">` + nearest.map((k, i) => {
+      const c = colorOf(k.freq);
+      const arch = (typeof TRUE_SELF_ARCHETYPES !== 'undefined' && TRUE_SELF_ARCHETYPES[k.num]) ? TRUE_SELF_ARCHETYPES[k.num].name : 'a soul';
+      const off = 119 * (1 - k.closeness / 100);
+      return `<div class="kindred-card" data-ci="${i}" style="--kn-c:${c}24; --kn-orb:${c};">
+        <div class="kindred-orb"><svg viewBox="0 0 44 44"><circle class="kn-track" cx="22" cy="22" r="19"></circle><circle class="kn-fill" cx="22" cy="22" r="19" style="stroke-dasharray:119; stroke-dashoffset:${off};"></circle></svg><div class="kn-core">${escapeHtml(k.name[0])}</div></div>
+        <div class="kindred-info"><div class="kindred-name">${escapeHtml(k.name)} ✦</div><div class="kindred-sub">${escapeHtml(arch)} · ${k.freq} Hz · ${quiet ? (k.closeness >= 70 ? 'far along' : 'on the way') : k.closeness + '% home'}</div><div class="kindred-line">“${escapeHtml(k.line)}”</div></div>
+        <div class="kindred-arrow">→</div>
+      </div>`;
+    }).join('') + `</div></div>`;
+  slot.querySelectorAll('.kindred-card').forEach(el => { el.addEventListener('click', () => { const k = nearest[parseInt(el.dataset.ci)]; if (k && typeof openKindredPath === 'function') openKindredPath(k); }); });
+}
+
+applyTierGates();
+renderCouncil();
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(applyTierGates, 1750));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(applyTierGates, 1750));
 
 renderLadder();
 </script>
