@@ -979,6 +979,162 @@ input[type="date"].signup-input {
 .const-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; gap: 10px; pointer-events: none; }
 .const-empty .ce-glyph { font-size: 56px; opacity: 0.35; }
 .const-empty .ce-text { font-family: Georgia, serif; font-style: italic; font-size: 15px; color: var(--text-dim); max-width: 280px; line-height: 1.55; }
+
+/* ============ FULL-SCREEN SHEETS (Pro / Invite / About) ============ */
+.sheet {
+  position: fixed; inset: 0; height: 100vh; height: 100dvh;
+  z-index: 340;
+  display: none; flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 18px 20px calc(40px + env(safe-area-inset-bottom, 0px));
+}
+.sheet.show { display: flex; animation: gateIn 0.45s var(--ease); }
+.sheet-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.sheet-eyebrow { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 4px; }
+.sheet-body { max-width: 460px; width: 100%; margin: 0 auto; }
+.sheet-h1 {
+  font-size: 40px; font-weight: 200; letter-spacing: -0.03em; line-height: 1.08;
+  margin: 16px 0 12px;
+}
+.sheet-h1 em { font-style: normal; color: var(--gold); }
+.sheet-lede { font-size: 15px; color: var(--text-dim); line-height: 1.6; margin-bottom: 8px; }
+
+/* --- Resonance Pro paywall --- */
+.pro-sheet { background: radial-gradient(circle at 50% -10%, rgba(251,191,36,0.14), transparent 55%), radial-gradient(circle at 50% 110%, rgba(167,139,250,0.12), transparent 55%), #050507; }
+.pro-mark {
+  font-size: 64px; line-height: 1; margin: 8px 0 14px; text-align: center;
+  background: linear-gradient(135deg, var(--gold), var(--violet), var(--mint));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 28px rgba(251,191,36,0.4));
+  animation: glyphBreathe 3.4s ease-in-out infinite;
+}
+.tier-cards-wrap { display: flex; flex-direction: column; gap: 14px; margin: 22px 0 18px; }
+.tier-buy {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border-hi);
+  border-radius: 22px;
+  padding: 22px 20px 20px;
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+}
+.tier-buy.featured {
+  border-color: rgba(251,191,36,0.45);
+  background: radial-gradient(circle at 100% 0%, rgba(251,191,36,0.16), transparent 55%), var(--card);
+  box-shadow: 0 0 36px rgba(251,191,36,0.18);
+}
+.tier-buy.council { border-color: rgba(167,139,250,0.4); background: radial-gradient(circle at 0% 100%, rgba(167,139,250,0.16), transparent 55%), var(--card); }
+.tier-flag { position: absolute; top: 0; right: 18px; background: var(--gold); color: #1a1206; font-size: 8.5px; letter-spacing: 2px; font-weight: 800; padding: 4px 9px; border-radius: 0 0 8px 8px; text-transform: uppercase; }
+.tier-buy.council .tier-flag { background: var(--violet); color: #14091f; }
+.tier-buy-name { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; color: var(--text-dim); margin-bottom: 6px; }
+.tier-buy.featured .tier-buy-name { color: var(--gold); }
+.tier-buy.council .tier-buy-name { color: var(--violet); }
+.tier-buy-price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+.tier-buy-price .amt { font-size: 40px; font-weight: 200; letter-spacing: -0.03em; line-height: 1; }
+.tier-buy-price .per { font-size: 12px; color: var(--text-faint); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+.tier-feats { display: flex; flex-direction: column; gap: 9px; margin-bottom: 18px; }
+.tier-feat { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; line-height: 1.45; color: rgba(255,255,255,0.85); }
+.tier-feat .tf-mark { color: var(--mint); flex-shrink: 0; margin-top: 1px; }
+.tier-buy.council .tier-feat .tf-mark { color: var(--violet); }
+.tier-buy-cta {
+  width: 100%; padding: 14px; border-radius: 100px;
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700;
+  background: linear-gradient(135deg, #fff, #d4d4d8); color: #000; cursor: pointer;
+  transition: transform 0.2s var(--pop), box-shadow 0.3s var(--ease);
+  box-shadow: 0 8px 28px rgba(255,255,255,0.08);
+}
+.tier-buy-cta:active { transform: scale(0.98); }
+.tier-buy.council .tier-buy-cta { background: linear-gradient(135deg, var(--violet), #7c5fd6); color: #fff; }
+.pro-foot { text-align: center; font-size: 12px; color: var(--text-faint); line-height: 1.6; margin-top: 6px; }
+.pro-skip { display: block; margin: 14px auto 0; background: none; border: none; color: var(--text-dim); font-size: 12px; letter-spacing: 1px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-family: inherit; }
+.pro-skip:hover { color: var(--text); }
+.pro-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(167,139,250,0.14));
+  border: 1px solid rgba(251,191,36,0.35); color: var(--gold);
+  padding: 5px 11px; border-radius: 100px; font-size: 11px; letter-spacing: 1.5px; font-weight: 700; text-transform: uppercase;
+  cursor: pointer; backdrop-filter: blur(20px);
+}
+.pro-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: radial-gradient(circle at 100% 0%, rgba(251,191,36,0.16), transparent 60%), var(--card);
+  border: 1px solid rgba(251,191,36,0.4);
+  border-radius: 18px; padding: 16px 18px; cursor: pointer;
+  transition: transform 0.2s var(--pop); backdrop-filter: blur(20px);
+}
+.pro-row:active { transform: scale(0.99); }
+.pro-row-glyph {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--gold), var(--violet));
+  display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff;
+  box-shadow: 0 0 20px rgba(251,191,36,0.3);
+}
+.pro-row-name { font-size: 14px; font-weight: 700; }
+.pro-row-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.pro-row-arrow { font-size: 18px; color: var(--text-faint); }
+
+/* --- Invite flow --- */
+.invite-sheet { background: radial-gradient(circle at 50% 20%, rgba(110,231,183,0.1), transparent 55%), #050507; }
+.invite-card {
+  border-radius: 24px; padding: 26px 22px; text-align: center;
+  background: radial-gradient(circle at 80% 10%, var(--iv-c1, rgba(167,139,250,0.3)), transparent 60%), radial-gradient(circle at 20% 100%, rgba(110,231,183,0.18), transparent 60%), var(--card);
+  border: 1px solid var(--border-hi); backdrop-filter: blur(24px);
+  margin: 20px 0 18px;
+}
+.invite-orb {
+  width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 16px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--iv-orb, var(--violet)) 50%, rgba(0,0,0,0.5));
+  box-shadow: 0 0 56px var(--iv-orb, var(--violet)); animation: pulse 4s ease-in-out infinite;
+}
+.invite-card-from { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 4px; }
+.invite-card-freq { font-size: 46px; font-weight: 200; letter-spacing: -0.03em; line-height: 1; }
+.invite-card-freq .u { font-size: 16px; color: var(--text-faint); margin-left: 2px; }
+.invite-card-state { font-family: Georgia, serif; font-style: italic; font-size: 15px; color: var(--text-dim); margin-top: 8px; }
+.invite-card-line { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 14px; line-height: 1.5; }
+.invite-name-input {
+  display: block; width: 100%; max-width: 340px; margin: 0 auto 14px;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border-hi); color: var(--text);
+  font-size: 15px; padding: 12px 16px; border-radius: 14px; text-align: center; outline: none; font-family: inherit;
+}
+.invite-name-input:focus { border-color: var(--mint); }
+.invite-link-box {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 14px;
+  padding: 12px 14px; margin-bottom: 14px;
+  font-family: ui-monospace, 'SF Mono', monospace; font-size: 11.5px; color: var(--text-dim);
+  word-break: break-all; line-height: 1.4;
+}
+.invite-actions { display: flex; gap: 10px; }
+.invite-actions .btn { flex: 1; }
+.invite-perk {
+  margin-top: 18px; padding: 14px 16px; border-radius: 14px;
+  background: rgba(255,255,255,0.03); border: 1px dashed var(--border-hi);
+  font-size: 12px; color: var(--text-dim); line-height: 1.5; text-align: center;
+}
+.invite-perk b { color: var(--mint); }
+
+/* --- About --- */
+.about-sheet { background: radial-gradient(circle at 50% 0%, rgba(167,139,250,0.1), transparent 55%), #050507; }
+.about-section-label { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin: 28px 0 12px; }
+.about-story { font-size: 16px; line-height: 1.7; color: rgba(255,255,255,0.88); }
+.about-story p { margin-bottom: 14px; }
+.about-manifesto { counter-reset: man; }
+.about-line {
+  display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px;
+}
+.about-line::before {
+  counter-increment: man; content: counter(man, decimal-leading-zero);
+  font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; color: var(--gold);
+  flex-shrink: 0; padding-top: 7px; font-weight: 700; letter-spacing: 1px;
+}
+.about-line div {
+  font-family: Georgia, "Times New Roman", serif; font-style: italic;
+  font-size: 19px; line-height: 1.45; color: var(--text);
+}
+.about-foot { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; text-align: center; line-height: 1.8; }
+
+/* welcome-from-invite moment glyph already handled by .moment */
 .section-poetic h2 {
   font-family: Georgia, "Times New Roman", serif;
   font-style: italic;
@@ -3221,6 +3377,17 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
     <button class="inner-self-close" id="settingsCloseBtn">✕</button>
   </div>
 
+  <div class="set-section" style="margin-top:20px;">
+    <div class="pro-row" id="proRowBtn">
+      <div class="pro-row-glyph">◈</div>
+      <div style="flex:1; min-width:0;">
+        <div class="pro-row-name">Resonance Pro</div>
+        <div class="pro-row-sub">Every frequency, your true voice, unlimited memory — from $15/mo</div>
+      </div>
+      <div class="pro-row-arrow">→</div>
+    </div>
+  </div>
+
   <div class="set-section">
     <div class="set-label">Sound</div>
     <div class="set-row">
@@ -3257,12 +3424,138 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
   </div>
 
   <div class="set-section">
+    <div class="set-label">Bring someone in</div>
+    <div class="set-row-sub" style="margin-bottom:12px;">Invite a friend with a link that opens Resonance on the exact frequency you're at right now.</div>
+    <div class="set-actions">
+      <button class="btn primary" id="setInviteBtn">Invite someone</button>
+    </div>
+  </div>
+
+  <div class="set-section">
     <div class="set-label">Your data</div>
     <div class="set-row-sub" style="margin-bottom:12px;">Everything you do here is stored only in this browser.</div>
     <div class="set-actions">
       <button class="btn" id="setExportBtn">Export JSON</button>
       <button class="btn" id="setResetBtn">Reset all data</button>
     </div>
+  </div>
+
+  <div class="set-section" style="border-top:1px solid var(--border); padding-top:18px;">
+    <div class="set-actions">
+      <button class="btn" id="setAboutBtn">About Resonance</button>
+    </div>
+    <div style="text-align:center; margin-top:14px; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text-faint); font-weight:600; line-height:1.9;">
+      Resonance · The Inner World<br>Built by Elliot · est. 2026
+    </div>
+  </div>
+</div>
+
+<!-- ================= RESONANCE PRO ================= -->
+<div class="sheet pro-sheet" id="paywallOverlay">
+  <div class="sheet-top">
+    <div><div class="sheet-eyebrow">Resonance Pro</div></div>
+    <button class="inner-self-close" id="paywallCloseBtn">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="pro-mark">◈</div>
+    <h1 class="sheet-h1" style="text-align:center;">Go <em>all the way</em> in.</h1>
+    <p class="sheet-lede" style="text-align:center;">The free room is real and it stays free. Pro is for when the work gets serious — when you want every frequency, your own voice from day one, and nothing in the way.</p>
+
+    <div class="tier-cards-wrap">
+      <div class="tier-buy featured">
+        <div class="tier-flag">Most chosen</div>
+        <div class="tier-buy-name">Pro</div>
+        <div class="tier-buy-price"><span class="amt">$15</span><span class="per">/ month</span></div>
+        <div class="tier-feats">
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Every frequency — Solfeggio, planetary, sacred, elemental — and the Sound Sphere, unlocked</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Unlimited memories &amp; constellations</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Craft unlimited instruments and beats</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Your inner self speaks in your true voice from day one — no waiting on trust</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Guided ascension journeys</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>No interruptions, ever</div></div>
+        </div>
+        <button class="tier-buy-cta" data-plan="pro">Begin Pro</button>
+      </div>
+
+      <div class="tier-buy council">
+        <div class="tier-flag">100 seats</div>
+        <div class="tier-buy-name">Council</div>
+        <div class="tier-buy-price"><span class="amt">$500</span><span class="per">/ year</span></div>
+        <div class="tier-feats">
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Everything in Pro</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>A private circle of one hundred — the people building this alongside us</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>A direct line to the council</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>Early access to every new tier before anyone else</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>A vote on what gets built</div></div>
+          <div class="tier-feat"><span class="tf-mark">✦</span><div>A founding glyph beside your name, forever</div></div>
+        </div>
+        <button class="tier-buy-cta" data-plan="council">Request a seat</button>
+      </div>
+    </div>
+
+    <div class="pro-foot">No ads. No selling your data. Cancel any time.<br>Payments aren't live yet — tell us you want in and you'll be first.</div>
+    <button class="pro-skip" id="paywallSkipBtn">Continue with the free room</button>
+  </div>
+</div>
+
+<!-- ================= INVITE / SHARE RESONANCE ================= -->
+<div class="sheet invite-sheet" id="inviteOverlay">
+  <div class="sheet-top">
+    <div><div class="sheet-eyebrow">Share Resonance</div></div>
+    <button class="inner-self-close" id="inviteCloseBtn">✕</button>
+  </div>
+  <div class="sheet-body">
+    <h1 class="sheet-h1">Bring <em>one person</em> in.</h1>
+    <p class="sheet-lede">When they open your link, Resonance meets them on this exact frequency — the one you're holding right now.</p>
+
+    <div class="invite-card" id="inviteCard">
+      <div class="invite-orb" id="inviteOrb"></div>
+      <div class="invite-card-from" id="inviteCardFrom">— is resonating at</div>
+      <div class="invite-card-freq"><span id="inviteCardFreq">432</span><span class="u">Hz</span></div>
+      <div class="invite-card-state" id="inviteCardState">The natural tuning.</div>
+      <div class="invite-card-line">They want you here.</div>
+    </div>
+
+    <div class="about-section-label" style="margin-top:0;">Sign it (optional)</div>
+    <input type="text" class="invite-name-input" id="inviteNameInput" placeholder="Your name" maxlength="40" autocomplete="given-name">
+
+    <div class="about-section-label">The link</div>
+    <div class="invite-link-box" id="inviteLinkBox">resonance.html?hz=432</div>
+    <div class="invite-actions">
+      <button class="btn primary" id="inviteCopyBtn">Copy link</button>
+      <button class="btn" id="inviteShareBtn">Share…</button>
+    </div>
+
+    <div class="invite-perk">Invite three people who stay, and <b>your first month of Pro is on us</b> — coming soon.</div>
+  </div>
+</div>
+
+<!-- ================= ABOUT ================= -->
+<div class="sheet about-sheet" id="aboutOverlay">
+  <div class="sheet-top">
+    <div><div class="sheet-eyebrow">About</div></div>
+    <button class="inner-self-close" id="aboutCloseBtn">✕</button>
+  </div>
+  <div class="sheet-body">
+    <h1 class="sheet-h1">Resonance is the room <em>between</em> the cushion and the code editor.</h1>
+
+    <div class="about-section-label">The story</div>
+    <div class="about-story">
+      <p>I'm Elliot — I started Resonance at twenty-one, after a decade split between meditation cushions and code editors, because nobody had built the room where those two lives meet.</p>
+      <p>Every platform I'd ever used was tuned to make me perform; I wanted the opposite — a place that only opens for the version of you that's actually doing the work.</p>
+      <p>So I'm building it slowly, on purpose, for the people who'd rather go deep than go viral.</p>
+    </div>
+
+    <div class="about-section-label">The manifesto</div>
+    <div class="about-manifesto">
+      <div class="about-line"><div>Frequency is not decoration. Everything that is, vibrates — and a state, like any wave, can be tuned.</div></div>
+      <div class="about-line"><div>The inward self is the only self with a key here; the one that performs gets no feed, no followers, no door.</div></div>
+      <div class="about-line"><div>Ascent is the only direction, and the only way up is in — through the body, the breath, and what you'd rather not look at.</div></div>
+      <div class="about-line"><div>You are not a user to be retained. You are a soul to be met — and met where you actually are.</div></div>
+      <div class="about-line"><div>Resonance exists so that going deep is, at last, the thing that wins.</div></div>
+    </div>
+
+    <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
   </div>
 </div>
 
@@ -6491,10 +6784,11 @@ function setModesExact(modes) {
   sync('harmonics', harmonicMode, () => document.getElementById('harmonicToggle').click());
   sync('breath', document.getElementById('breathToggle').classList.contains('active'), () => document.getElementById('breathToggle').click());
 }
-function buildShareUrl(hz, modes) {
+function buildShareUrl(hz, modes, from) {
   const base = location.origin + (location.pathname && location.pathname !== '/' ? location.pathname : '/resonance.html');
   let u = base + '?hz=' + hz;
   if (modes && modes.length) u += '&modes=' + modes.join(',');
+  if (from && from.trim()) u += '&from=' + encodeURIComponent(from.trim().slice(0, 40));
   return u;
 }
 async function copyTextFallback(text) {
@@ -6508,18 +6802,7 @@ async function copyTextFallback(text) {
     const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok;
   } catch (e) { return false; }
 }
-document.getElementById('shareFreqBtn').addEventListener('click', async () => {
-  const hz = parseInt(freqSlider.value);
-  const modes = activeModeNames();
-  const url = buildShareUrl(hz, modes);
-  const tail = (modes.length ? ' · ' + modes.join(' + ') : '');
-  if (navigator.share) {
-    try { await navigator.share({ title: 'RESONANCE', text: `I am resonating at ${hz} Hz`, url }); return; }
-    catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  const copied = await copyTextFallback(url);
-  toast(copied ? `Link copied · ${hz} Hz${tail}` : url, copied ? 'ok' : '');
-});
+document.getElementById('shareFreqBtn').addEventListener('click', () => { if (typeof openInvite === 'function') openInvite(); });
 
 // =================== URL PARAMS — open a shared frequency ===================
 (function loadSharedFromURL() {
@@ -6536,18 +6819,26 @@ document.getElementById('shareFreqBtn').addEventListener('click', async () => {
     else if (name === 'breath') { document.getElementById('breathToggle').classList.toggle('active', on); document.getElementById('breathGuide').classList.toggle('active', on); }
   };
   modes.forEach(m => setMode(m, true));
+  const fromName = (params.get('from') || '').trim().slice(0, 40);
   userFreq = hz;
   applyFrequency(hz);
   window.__pendingSharedHz = hz;
+  window.__invitedBy = fromName || null;
   // After the gate is dismissed, surface it on the Sync tab
   const onEnter = () => {
     if (window.__pendingSharedHz == null) return;
     const shz = window.__pendingSharedHz; window.__pendingSharedHz = null;
+    const by = window.__invitedBy; window.__invitedBy = null;
     setTimeout(() => {
       applyFrequency(shz);
       gotoTab('sync');
-      toast(`Shared frequency loaded · ${shz} Hz — tap Begin Sync`, 'ok');
-    }, 300);
+      if (by) {
+        const st = (typeof frequencyState === 'function') ? frequencyState(shz) : { long: '', color: '#a78bfa' };
+        moment(`${by} brought you here`, `They're resonating at ${shz} Hz — ${st.long || 'this is where they are.'} Begin where they are.`, st.color || '#6ee7b7', '◎');
+      } else {
+        toast(`Shared frequency loaded · ${shz} Hz — tap Begin Sync`, 'ok');
+      }
+    }, 350);
   };
   document.getElementById('enterInnerBtn').addEventListener('click', onEnter);
   document.getElementById('devSkipBtn').addEventListener('click', onEnter);
@@ -6882,6 +7173,96 @@ window.addEventListener('resize', () => {
   const ov = document.getElementById('constellationOverlay');
   if (ov && ov.classList.contains('show')) { const rect = constInitCanvas(); constBuildStars(rect.width, rect.height); }
 });
+
+// =================== RESONANCE PRO (paywall mockup) ===================
+function openPaywall() {
+  document.getElementById('settingsOverlay').classList.remove('show');
+  document.getElementById('paywallOverlay').classList.add('show');
+  document.getElementById('paywallOverlay').scrollTop = 0;
+}
+function closePaywall() { document.getElementById('paywallOverlay').classList.remove('show'); }
+document.getElementById('proRowBtn').addEventListener('click', openPaywall);
+document.getElementById('paywallCloseBtn').addEventListener('click', closePaywall);
+document.getElementById('paywallSkipBtn').addEventListener('click', closePaywall);
+document.querySelectorAll('#paywallOverlay .tier-buy-cta').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const plan = btn.dataset.plan;
+    if (typeof floatGain === 'function') floatGain(plan === 'council' ? 'Seat requested ✦' : 'You’re on the list ✦');
+    toast(plan === 'council'
+      ? 'Council opens with 100 seats — you’ll be among the first contacted'
+      : 'Resonance Pro isn’t live yet — you’ll be the first to know when it is', 'ok');
+    setTimeout(closePaywall, 400);
+  });
+});
+
+// =================== ABOUT ===================
+function openAbout() {
+  document.getElementById('settingsOverlay').classList.remove('show');
+  document.getElementById('aboutOverlay').classList.add('show');
+  document.getElementById('aboutOverlay').scrollTop = 0;
+}
+document.getElementById('setAboutBtn').addEventListener('click', openAbout);
+document.getElementById('aboutCloseBtn').addEventListener('click', () => document.getElementById('aboutOverlay').classList.remove('show'));
+
+// =================== INVITE / SHARE RESONANCE (deep flow) ===================
+let _inviteName = '';
+function inviteSenderDefault() {
+  if (_inviteName) return _inviteName;
+  if (typeof userProfile !== 'undefined' && userProfile.name) return userProfile.name.split(' ')[0];
+  return '';
+}
+function refreshInviteSheet() {
+  const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : parseInt(freqSlider.value);
+  const modes = activeModeNames();
+  const from = inviteSenderDefault();
+  const st = (typeof frequencyState === 'function') ? frequencyState(hz) : { long: 'Your resonance.', color: '#a78bfa' };
+  document.getElementById('inviteOrb').style.setProperty('--iv-orb', st.color || '#a78bfa');
+  const card = document.getElementById('inviteCard');
+  card.style.setProperty('--iv-c1', (st.color || '#a78bfa') + '4d');
+  document.getElementById('inviteCardFrom').textContent = (from ? from : 'Someone') + ' is resonating at';
+  document.getElementById('inviteCardFreq').textContent = hz;
+  document.getElementById('inviteCardState').textContent = st.long || 'Your resonance.';
+  const url = buildShareUrl(hz, modes, from);
+  document.getElementById('inviteLinkBox').textContent = url.replace(/^https?:\/\//, '');
+  document.getElementById('inviteLinkBox').dataset.url = url;
+}
+function openInvite() {
+  document.getElementById('settingsOverlay').classList.remove('show');
+  document.getElementById('inviteNameInput').value = inviteSenderDefault();
+  refreshInviteSheet();
+  document.getElementById('inviteOverlay').classList.add('show');
+  document.getElementById('inviteOverlay').scrollTop = 0;
+}
+document.getElementById('setInviteBtn').addEventListener('click', openInvite);
+document.getElementById('inviteCloseBtn').addEventListener('click', () => document.getElementById('inviteOverlay').classList.remove('show'));
+document.getElementById('inviteNameInput').addEventListener('input', e => { _inviteName = e.target.value.trim(); refreshInviteSheet(); });
+document.getElementById('inviteCopyBtn').addEventListener('click', async () => {
+  const url = document.getElementById('inviteLinkBox').dataset.url || ('https://' + document.getElementById('inviteLinkBox').textContent);
+  const ok = await copyTextFallback(url);
+  toast(ok ? 'Invite link copied — send it to one person' : url, ok ? 'ok' : '');
+  if (ok && typeof floatGain === 'function') floatGain('Invite ready ✦');
+});
+document.getElementById('inviteShareBtn').addEventListener('click', async () => {
+  const url = document.getElementById('inviteLinkBox').dataset.url || ('https://' + document.getElementById('inviteLinkBox').textContent);
+  const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : parseInt(freqSlider.value);
+  const from = inviteSenderDefault();
+  const text = (from ? from + ' wants you on this frequency.' : 'Come resonate with me.') + ' ' + hz + ' Hz.';
+  if (navigator.share) {
+    try { await navigator.share({ title: 'RESONANCE — The Inner World', text, url }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const ok = await copyTextFallback(url);
+  toast(ok ? 'Invite link copied' : url, ok ? 'ok' : '');
+});
+// Keep the invite sheet in sync if the user changes frequency while it's open
+(function () {
+  const _af = applyFrequency;
+  applyFrequency = function (hz, fromSlider) {
+    _af(hz, fromSlider);
+    const ov = document.getElementById('inviteOverlay');
+    if (ov && ov.classList.contains('show')) refreshInviteSheet();
+  };
+})();
 
 renderLadder();
 </script>
