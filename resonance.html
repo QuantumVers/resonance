@@ -4059,6 +4059,10 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <button class="btn primary" id="inviteCopyBtn">Copy link</button>
       <button class="btn" id="inviteShareBtn">Share…</button>
     </div>
+    <div class="invite-actions" style="margin-top:10px;">
+      <button class="btn" id="inviteCardBtn" style="flex:1;">Make a resonance card ✦</button>
+    </div>
+    <div class="set-row-sub" style="margin-top:8px; text-align:center;">A picture of where you are today — the one thing worth posting.</div>
 
     <div class="invite-perk">Invite three people who stay, and <b>your first month of Pro is on us</b> — coming soon.</div>
   </div>
@@ -4169,7 +4173,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="po-tagline" id="plateTagline">Living at your highest path</div>
   <div class="po-line" id="plateLine">—</div>
   <div class="po-meta" id="plateMeta"></div>
-  <button class="btn primary po-enter" id="plateEnterBtn">Carry it</button>
+  <div class="po-enter" style="display:flex; gap:10px;"><button class="btn primary" id="plateEnterBtn">Carry it</button><button class="btn" id="plateShareBtn">Share this ✦</button></div>
 </div>
 
 <!-- ================= ASCENSION (upgrade) ================= -->
@@ -8825,7 +8829,7 @@ function checkPlates(opts) {
   renderPlateShelf(); updatePlateMark();
   if (newPlate && !(opts && opts.silent)) setTimeout(() => showPlate(newPlate, s.daysAtHome), 350);
 }
-let _plateTimers = [];
+let _plateTimers = [], _shownPlateId = null;
 async function showPlate(plateId, daysAtHome) {
   const p = PLATE_BY_ID[plateId]; if (!p) return;
   const ov = document.getElementById('plateOverlay'); if (!ov) return;
@@ -8844,6 +8848,7 @@ async function showPlate(plateId, daysAtHome) {
   const _d = daysAtHome || p.days;
   document.getElementById('plateMeta').textContent = p.days ? ((_d === 1 ? 'one day' : _d + ' days') + ' at your highest path') : 'Among the first to walk all the way home';
   document.getElementById('plateEnterBtn').textContent = 'Carry it';
+  _shownPlateId = plateId;
   ov.classList.add('show');
   if (typeof floatGain === 'function') floatGain(p.name + ' ✦');
   try {
@@ -9302,6 +9307,134 @@ renderFieldStrip();
 setInterval(renderFieldStrip, 20000);
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderFieldStrip, 2200));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderFieldStrip, 2200));
+
+// =================== SHAREABLE CARDS (the one good thing to post) ===================
+// A beautiful image of where you are — your resonance, or a plate you earned — to take out
+// into the noisy world. The share text carries your invite deep link so it opens on your tone.
+var _CARD_SANS = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif';
+var _CARD_SERIF = 'Georgia, "Times New Roman", serif';
+var _CARD_MONO = 'ui-monospace, "SF Mono", Menlo, monospace';
+function _cardWrapText(ctx, text, x, y, maxW, lh) {
+  const words = String(text).split(' '); let line = '', yy = y;
+  for (let i = 0; i < words.length; i++) {
+    const test = line ? line + ' ' + words[i] : words[i];
+    if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, yy); line = words[i]; yy += lh; }
+    else line = test;
+  }
+  if (line) ctx.fillText(line, x, yy);
+  return yy;
+}
+function makeCardCanvas(opts) {
+  opts = opts || {};
+  const W = 1080, H = 1350;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  const isPlate = opts.kind === 'plate' && opts.plateId && (typeof PLATE_BY_ID !== 'undefined') && PLATE_BY_ID[opts.plateId];
+  const ts = (typeof ensureTrueSelf === 'function') ? ensureTrueSelf() : { freq: 432, archetype: 'a soul' };
+  const hz = opts.hz || ((typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432);
+  let accent = (typeof hzToColor === 'function') ? hzToColor(hz)[2] : '#a78bfa';
+  let plate = null;
+  if (isPlate) { plate = PLATE_BY_ID[opts.plateId]; const cm = { arrival: '#dadae6', hearth: '#f6c64a', pillar: '#b69cf5', beacon: '#5fe3cf', lighthouse: '#e9e9f6' }; accent = cm[opts.plateId] || accent; }
+  // background
+  ctx.fillStyle = '#020203'; ctx.fillRect(0, 0, W, H);
+  const g1 = ctx.createRadialGradient(W * 0.5, H * 0.34, 0, W * 0.5, H * 0.34, W * 0.95);
+  g1.addColorStop(0, accent + '33'); g1.addColorStop(0.45, accent + '12'); g1.addColorStop(1, 'rgba(2,2,3,0)');
+  ctx.fillStyle = g1; ctx.fillRect(0, 0, W, H);
+  const g2 = ctx.createRadialGradient(W * 0.5, H * 1.08, 0, W * 0.5, H * 1.08, W * 0.85);
+  g2.addColorStop(0, 'rgba(167,139,250,0.16)'); g2.addColorStop(1, 'rgba(2,2,3,0)');
+  ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center';
+  const cx = W / 2, oy = Math.round(H * 0.35), oR = Math.round(W * 0.205);
+  // top label
+  try { ctx.letterSpacing = '8px'; } catch (e) {}
+  ctx.fillStyle = accent; ctx.font = '700 26px ' + _CARD_SANS;
+  ctx.fillText(isPlate ? 'I REACHED' : 'RESONATING AT', cx, oy - oR - 64);
+  try { ctx.letterSpacing = '0px'; } catch (e) {}
+  // orb / medallion
+  ctx.save(); ctx.shadowColor = accent; ctx.shadowBlur = oR * 0.95;
+  if (isPlate) {
+    ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(cx, oy, oR, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+    const fg = ctx.createRadialGradient(cx - oR * 0.32, oy - oR * 0.32, 0, cx, oy, oR * 0.88);
+    fg.addColorStop(0, 'rgba(255,255,255,0.88)'); fg.addColorStop(0.55, accent); fg.addColorStop(1, 'rgba(35,28,12,0.7)');
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(cx, oy, oR * 0.88, 0, Math.PI * 2); ctx.fill();
+  } else {
+    const og = ctx.createRadialGradient(cx - oR * 0.32, oy - oR * 0.32, 0, cx, oy, oR);
+    og.addColorStop(0, 'rgba(255,255,255,0.72)'); og.addColorStop(0.4, accent); og.addColorStop(1, 'rgba(10,10,30,0.96)');
+    ctx.fillStyle = og; ctx.beginPath(); ctx.arc(cx, oy, oR, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+  if (isPlate) { ctx.fillStyle = (opts.plateId === 'lighthouse') ? '#ffffff' : 'rgba(22,16,6,0.85)'; ctx.font = '200 ' + Math.round(oR * 0.78) + 'px ' + _CARD_SANS; ctx.textBaseline = 'middle'; ctx.fillText(plate.glyph, cx, oy + oR * 0.03); ctx.textBaseline = 'alphabetic'; }
+  // text block
+  let y = oy + oR + 116;
+  if (isPlate) {
+    ctx.fillStyle = '#fafafa'; ctx.font = '200 92px ' + _CARD_SANS; ctx.fillText(plate.name, cx, y); y += 52;
+    try { ctx.letterSpacing = '6px'; } catch (e) {}
+    ctx.fillStyle = accent; ctx.font = '700 23px ' + _CARD_SANS; ctx.fillText(plate.tagline.toUpperCase(), cx, y); y += 70;
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+    const ps = (typeof plateState === 'function') ? plateState() : { daysAtHome: 0 };
+    const metaTxt = plate.days ? ((ps.daysAtHome || plate.days) + ' days at my highest path') : 'all the way home — and early';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'italic 36px ' + _CARD_SERIF; ctx.fillText(metaTxt, cx, y);
+  } else {
+    ctx.fillStyle = '#fafafa'; ctx.font = '100 210px ' + _CARD_SANS; ctx.fillText(String(hz), cx, y);
+    try { ctx.letterSpacing = '10px'; } catch (e) {}
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '600 28px ' + _CARD_SANS; ctx.fillText('HERTZ', cx, y + 46); y += 110;
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+    const st = (typeof frequencyState === 'function') ? frequencyState(hz) : { long: 'my resonance', short: 'my resonance' };
+    ctx.fillStyle = 'rgba(255,255,255,0.84)'; ctx.font = 'italic 40px ' + _CARD_SERIF;
+    y = _cardWrapText(ctx, st.long, cx, y, W - 220, 52) + 70;
+    const cl = (typeof closeness !== 'undefined') ? Math.round(closeness) : null;
+    try { ctx.letterSpacing = '4px'; } catch (e) {}
+    ctx.fillStyle = accent; ctx.font = '600 26px ' + _CARD_SANS;
+    ctx.fillText((ts.archetype + (cl != null ? '  ·  ' + cl + '% HOME' : '')).toUpperCase(), cx, y);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+    const hp = (typeof highestPlateId === 'function') ? highestPlateId() : null;
+    if (hp && typeof PLATE_BY_ID !== 'undefined' && PLATE_BY_ID[hp]) { ctx.fillStyle = 'rgba(255,255,255,0.62)'; ctx.font = '300 40px ' + _CARD_SANS; ctx.fillText(PLATE_BY_ID[hp].glyph, cx, y + 60); }
+  }
+  // footer
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '700 30px ' + _CARD_SANS;
+  ctx.fillText('R E S O N A N C E', cx, H - 112);
+  ctx.fillStyle = 'rgba(255,255,255,0.32)'; ctx.font = '500 23px ' + _CARD_MONO;
+  ctx.fillText('quantumvers.github.io/resonance', cx, H - 66);
+  return cv;
+}
+async function shareCard(kind) {
+  let opts;
+  if (kind && typeof kind === 'object' && kind.plate) opts = { kind: 'plate', plateId: kind.plate };
+  else opts = { kind: 'resonance', hz: (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432 };
+  let cv; try { cv = makeCardCanvas(opts); } catch (e) { if (typeof toast === 'function') toast('Couldn’t make the card', 'warn'); return; }
+  const blob = await new Promise(res => { try { cv.toBlob(res, 'image/png', 0.95); } catch (e) { res(null); } });
+  if (!blob) { if (typeof toast === 'function') toast('Couldn’t render the card here', 'warn'); return; }
+  const hz = opts.hz || ((typeof ensureTrueSelf === 'function') ? ensureTrueSelf().freq : 432);
+  const name = (typeof inviteSenderDefault === 'function') ? inviteSenderDefault() : '';
+  const url = (typeof buildShareUrl === 'function') ? buildShareUrl(hz, (typeof activeModeNames === 'function' ? activeModeNames() : []), name) : 'https://quantumvers.github.io/resonance/';
+  let text;
+  if (opts.kind === 'plate' && typeof PLATE_BY_ID !== 'undefined' && PLATE_BY_ID[opts.plateId]) {
+    const p = PLATE_BY_ID[opts.plateId];
+    text = (p.days ? 'I reached ' + p.name + ' — ' + p.tagline.toLowerCase() + '.' : 'I walked all the way home — ' + p.name + '.') + ' Come find your tone. → ' + url;
+  } else {
+    const st = (typeof frequencyState === 'function') ? frequencyState(hz) : { short: 'my resonance' };
+    text = 'I’m resonating at ' + hz + ' Hz today — ' + st.short + '. Come find yours. → ' + url;
+  }
+  const fname = (opts.kind === 'plate' ? 'resonance-plate-' + opts.plateId : 'resonance-' + hz + 'hz') + '.png';
+  try {
+    const file = new File([blob], fname, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], text: text, title: 'RESONANCE — The Inner World' }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+  } catch (e) {}
+  // fallback: download the image + copy the link
+  try {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname;
+    document.body.appendChild(a); a.click(); setTimeout(() => { try { URL.revokeObjectURL(a.href); } catch (e) {} a.remove(); }, 400);
+  } catch (e) {}
+  if (typeof copyTextFallback === 'function') copyTextFallback(text);
+  if (typeof toast === 'function') toast('Card saved — and the link is copied. Post it anywhere.', 'ok');
+  if (typeof floatGain === 'function') floatGain('A card to take out into the world ✦');
+}
+{ const b = document.getElementById('inviteCardBtn'); if (b) b.addEventListener('click', () => shareCard('resonance')); }
+{ const b = document.getElementById('plateShareBtn'); if (b) b.addEventListener('click', () => shareCard({ plate: _shownPlateId || ((typeof highestPlateId === 'function') ? highestPlateId() : 'arrival') })); }
 
 renderLadder();
 </script>
