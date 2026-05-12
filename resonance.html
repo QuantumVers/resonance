@@ -2857,6 +2857,18 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 }
 .kpath-overlap { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.85); text-align: left; margin: 4px 0 8px; }
 .kpath-overlap b { color: var(--mint); }
+
+/* ============ THE REPAIR ============ */
+.repair-sheet { background: radial-gradient(circle at 50% 0%, rgba(167,139,250,0.1), transparent 55%), radial-gradient(circle at 50% 100%, rgba(110,231,183,0.08), transparent 55%), #050507; }
+.repair-block { margin: 22px 0; padding-left: 16px; border-left: 2px solid var(--border-hi); }
+.repair-broke { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--pink); font-weight: 700; margin-bottom: 6px; }
+.repair-broke-text { font-size: 15px; color: var(--text-dim); line-height: 1.55; margin-bottom: 12px; }
+.repair-fixed { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 18px; color: var(--mint); line-height: 1.4; margin-bottom: 6px; }
+.repair-fixed-text { font-size: 14px; color: rgba(255,255,255,0.85); line-height: 1.6; }
+.repair-vision { margin-top: 28px; padding: 20px; border-radius: 18px; background: radial-gradient(circle at 100% 0%, rgba(251,191,36,0.12), transparent 60%), var(--card); border: 1px solid var(--border-hi); }
+.repair-vision .rv-eyebrow { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
+.repair-vision p { font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.88); }
+.repair-vision p + p { margin-top: 12px; }
 </style>
 </head>
 <body>
@@ -3728,6 +3740,7 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 
   <div class="set-section" style="border-top:1px solid var(--border); padding-top:18px;">
     <div class="set-actions">
+      <button class="btn" id="setRepairBtn">The Repair — why this exists</button>
       <button class="btn" id="setAboutBtn">About Resonance</button>
     </div>
     <div style="text-align:center; margin-top:14px; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text-faint); font-weight:600; line-height:1.9;">
@@ -3823,22 +3836,70 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
     <button class="inner-self-close" id="aboutCloseBtn">✕</button>
   </div>
   <div class="sheet-body">
-    <h1 class="sheet-h1">Resonance is the room <em>between</em> the cushion and the code editor.</h1>
+    <h1 class="sheet-h1">Resonance is what comes <em>after</em> social media.</h1>
 
     <div class="about-section-label">The story</div>
     <div class="about-story">
-      <p>I'm Elliot — I started Resonance at twenty-one, after a decade split between meditation cushions and code editors, because nobody had built the room where those two lives meet.</p>
-      <p>Every platform I'd ever used was tuned to make me perform; I wanted the opposite — a place that only opens for the version of you that's actually doing the work.</p>
-      <p>So I'm building it slowly, on purpose, for the people who'd rather go deep than go viral.</p>
+      <p>I'm Elliot — I started Resonance at twenty-one, after a decade split between meditation cushions and code editors, because I'd watched the apps everyone lives inside quietly take something from us, and nobody was building the thing that gives it back.</p>
+      <p>Resonance does one thing: at the gate it finds your true self, and then everything in it — the tones, the inner self, the field — is built to close the distance from the you that you are to the you that you are.</p>
+      <p>And the strange, good part is what that does outward: the closer you get to yourself, the more clearly you can see the people who are doing the same — and the road quietly brings the true selves on a path like yours into focus. I'm building it slowly, on purpose, so it stays true. This is the future. I just got here early.</p>
     </div>
 
     <div class="about-section-label">The manifesto</div>
     <div class="about-manifesto">
-      <div class="about-line"><div>Frequency is not decoration. Everything that is, vibrates — and a state, like any wave, can be tuned.</div></div>
-      <div class="about-line"><div>The inward self is the only self with a key here; the one that performs gets no feed, no followers, no door.</div></div>
-      <div class="about-line"><div>Ascent is the only direction, and the only way up is in — through the body, the breath, and what you'd rather not look at.</div></div>
-      <div class="about-line"><div>You are not a user to be retained. You are a soul to be met — and met where you actually are.</div></div>
-      <div class="about-line"><div>Resonance exists so that going deep is, at last, the thing that wins.</div></div>
+      <div class="about-line"><div>The damage was real. Attention fractured, the self performed away, comparison made the water — and connection sold by the pound. We're here to put it back.</div></div>
+      <div class="about-line"><div>There is one self with a key here: the inward one. The performing self gets no feed, no followers, no door.</div></div>
+      <div class="about-line"><div>The only metric that means anything is closeness to your true self. It isn't a competition. You can turn even that number off.</div></div>
+      <div class="about-line"><div>You don't get an audience here. You get kindred — true selves on a path like yours — and they come into focus only as you do the work on yourself.</div></div>
+      <div class="about-line"><div>You are not a user to be retained. You are a soul to be met — met where you are, and walked home.</div></div>
+    </div>
+
+    <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
+  </div>
+</div>
+
+<!-- ================= THE REPAIR ================= -->
+<div class="sheet repair-sheet" id="repairOverlay">
+  <div class="sheet-top">
+    <div><div class="sheet-eyebrow">The Repair</div></div>
+    <button class="inner-self-close" id="repairCloseBtn">✕</button>
+  </div>
+  <div class="sheet-body">
+    <h1 class="sheet-h1">Social media broke four things. We're <em>putting them back</em>.</h1>
+    <p class="sheet-lede">Every other platform you've used was tuned to take, gently, forever. Here is exactly what it took — and exactly what Resonance is for.</p>
+
+    <div class="repair-block">
+      <div class="repair-broke">It fractured your attention</div>
+      <div class="repair-broke-text">Every feed is engineered to keep you past the moment you'd have stopped. There is no bottom. That's the product.</div>
+      <div class="repair-fixed">We give it back whole.</div>
+      <div class="repair-fixed-text">The feed ends — visibly, on purpose. There's a wall that says <em>enough</em>. There's a button that turns the screen off with intention. The transmission is small, dated, and expires at midnight. You leave full, not hungry.</div>
+    </div>
+
+    <div class="repair-block">
+      <div class="repair-broke">It made you perform yourself away</div>
+      <div class="repair-broke-text">You curated a self for the feed until you couldn't always tell which one was real. The app rewarded the mask.</div>
+      <div class="repair-fixed">We meet the self you actually are.</div>
+      <div class="repair-fixed-text">At the gate we measured your true self — a frequency, an archetype, the work. The only "post" here is your resonance. There is no highlight reel. The inward self is the only one with a key, and the whole app is one walk: closing the distance to it.</div>
+    </div>
+
+    <div class="repair-block">
+      <div class="repair-broke">It made comparison the water</div>
+      <div class="repair-broke-text">Followers, likes, ratios — a leaderboard you never signed up for, running in the background of every glance.</div>
+      <div class="repair-fixed">We took the leaderboard out.</div>
+      <div class="repair-fixed-text">No followers. No likes. One number, and it isn't a contest: how close are you to yourself. And if even that's too much, Quiet Metrics turns every number into a word. The only thing that matters here was never a number.</div>
+    </div>
+
+    <div class="repair-block">
+      <div class="repair-broke">It turned connection into a commodity</div>
+      <div class="repair-broke-text">Strangers by the thousand, sorted by what keeps you scrolling. Connection optimized for engagement, not for you.</div>
+      <div class="repair-fixed">We make connection a resonance.</div>
+      <div class="repair-fixed-text">You don't get an audience. You get kindred — true selves becoming who they are, near where you're becoming who you are — and they come into focus only as you do the work on yourself. The closer you get to your true self, the more aligned the people the road brings you. That's the whole social mechanic. There is no algorithm. There's just resonance.</div>
+    </div>
+
+    <div class="repair-vision">
+      <div class="rv-eyebrow">And where it goes</div>
+      <p>This is the future: a layer of the internet where the metric is closeness-to-self, where connection happens because two people are becoming who they are near each other's highest path, and where the app's only real ambition is to be unnecessary more often.</p>
+      <p>The world is starving for this — for one place that isn't trying to keep you, that wants you whole, that connects true self to true self. We're building it slowly, on purpose, so it stays true. You're early. That's the best time to be here.</p>
     </div>
 
     <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
@@ -7531,6 +7592,15 @@ function openAbout() {
 document.getElementById('setAboutBtn').addEventListener('click', openAbout);
 document.getElementById('aboutCloseBtn').addEventListener('click', () => document.getElementById('aboutOverlay').classList.remove('show'));
 
+// =================== THE REPAIR ===================
+function openRepair() {
+  document.getElementById('settingsOverlay').classList.remove('show');
+  document.getElementById('repairOverlay').classList.add('show');
+  document.getElementById('repairOverlay').scrollTop = 0;
+}
+document.getElementById('setRepairBtn').addEventListener('click', openRepair);
+document.getElementById('repairCloseBtn').addEventListener('click', () => document.getElementById('repairOverlay').classList.remove('show'));
+
 // =================== INVITE / SHARE RESONANCE (deep flow) ===================
 let _inviteName = '';
 function inviteSenderDefault() {
@@ -7786,7 +7856,7 @@ function closeStepOut() {
 }
 document.getElementById('stepOutReturnBtn').addEventListener('click', closeStepOut);
 document.getElementById('stepOutBtn').addEventListener('click', openStepOut);
-document.getElementById('antiFeedFromWallBtn').addEventListener('click', () => { if (typeof openAntiFeed === 'function') openAntiFeed(); });
+document.getElementById('antiFeedFromWallBtn').addEventListener('click', () => { if (typeof openRepair === 'function') openRepair(); });
 renderTransmission();
 
 // =================== SOUL NOTES (anti-tweet) ===================
