@@ -3020,8 +3020,8 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Stats</h2></div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-value" id="statAlign">—</div><div class="stat-label">Alignment</div></div>
-        <div class="stat-card"><div class="stat-value">147</div><div class="stat-label">Sessions</div></div>
-        <div class="stat-card"><div class="stat-value">38h</div><div class="stat-label">Synced</div></div>
+        <div class="stat-card"><div class="stat-value" id="statSessions">0</div><div class="stat-label">Sessions</div></div>
+        <div class="stat-card"><div class="stat-value" id="statSynced">0m</div><div class="stat-label">Synced</div></div>
       </div>
       <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Awakenings</h2><span class="see-all" id="awkCountLabel">0 / 8</span></div>
       <div class="badge-grid" id="awakeningsGrid"></div>
@@ -3360,6 +3360,25 @@ function seedStreak(n) {
   saveStreak(); updateStreakUI();
 }
 loadStreak();
+
+// =================== STATS (sessions / synced time) ===================
+let appStats = { sessions: 0, syncedMs: 0 };
+function loadStats() { try { const v = JSON.parse(localStorage.getItem('resonance_stats') || 'null'); if (v && typeof v.sessions === 'number') appStats = v; } catch (e) {} }
+function saveStats() { try { localStorage.setItem('resonance_stats', JSON.stringify(appStats)); } catch (e) {} }
+function fmtDuration(ms) {
+  const mins = Math.floor(ms / 60000);
+  if (mins < 60) return mins + 'm';
+  const hrs = mins / 60;
+  return (hrs < 10 ? hrs.toFixed(1) : Math.round(hrs)) + 'h';
+}
+function updateStatsUI() {
+  const a = document.getElementById('statSessions'); if (a) a.textContent = appStats.sessions || 0;
+  const b = document.getElementById('statSynced'); if (b) b.textContent = fmtDuration(appStats.syncedMs || 0);
+}
+function recordSessionStart() { appStats.sessions = (appStats.sessions || 0) + 1; saveStats(); updateStatsUI(); }
+function recordSessionEnd(ms) { if (ms > 0) { appStats.syncedMs = (appStats.syncedMs || 0) + ms; saveStats(); updateStatsUI(); } }
+function seedStats() { appStats = { sessions: 12, syncedMs: 3600000 * 4.5 }; saveStats(); updateStatsUI(); }
+loadStats();
 
 // =================== STATE ===================
 let userPhoto = null;
@@ -4262,6 +4281,7 @@ function applyUserProfileToApp() {
   document.getElementById('profTradition').textContent = t.name;
   document.getElementById('profTraditionDivine').textContent = t.divine;
   updateStreakUI();
+  updateStatsUI();
 }
 
 document.getElementById('enterInnerBtn').addEventListener('click', () => {
@@ -4314,8 +4334,10 @@ document.getElementById('devSkipBtn').addEventListener('click', () => {
     seeds.forEach(s => memories.push({ id: Date.now() - s.offset, freq: s.freq, label: s.label, time: Date.now() - s.offset }));
     persistMemories();
     renderMemories();
+    if (typeof checkAwakenings === 'function') checkAwakenings();
   }
   if (!streakData.lastDay) seedStreak(5);
+  if (!appStats || !appStats.sessions) seedStats();
 });
 
 // =================== AUDIO ENGINE ===================
@@ -5197,10 +5219,12 @@ document.getElementById('manualPlay').addEventListener('click', () => {
     sessionStartFreq = parseInt(freqSlider.value);
     document.getElementById('heroSession').textContent = 'Active session';
     recordDailySync();
+    recordSessionStart();
     if (typeof unlockAwakening === 'function') unlockAwakening('firstSync');
   } else if (sessionStart) {
     // Ended a session — save memory if it lasted at least 20 seconds
     const duration = Date.now() - sessionStart;
+    recordSessionEnd(duration);
     if (duration > 20000) {
       const state = frequencyState(sessionStartFreq);
       saveMemory(sessionStartFreq, state.short + ' · ' + Math.round(duration/60000) + 'm');
@@ -6431,6 +6455,7 @@ window.addEventListener('resize', () => {
 renderBeatList();
 updateTrustUI();
 updateStreakUI();
+updateStatsUI();
 // Daily streak ticks when the user enters the inner world
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(recordDailySync, 1400));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(recordDailySync, 1400));
