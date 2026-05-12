@@ -2728,6 +2728,44 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 }
 .stepout-return.ready { opacity: 1; transform: translateY(0); pointer-events: auto; }
 .stepout-timer { margin-top: 26px; font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--text-faint); }
+
+/* ============ SOUL NOTES (anti-tweet) ============ */
+.soulnote-card {
+  margin: 22px 20px 0; padding: 18px 18px 16px; border-radius: 22px;
+  background: radial-gradient(circle at 0% 0%, rgba(110,231,183,0.12), transparent 55%), var(--card);
+  border: 1px solid rgba(110,231,183,0.28); backdrop-filter: blur(20px);
+}
+.soulnote-card .sn-kicker { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--mint); font-weight: 700; margin-bottom: 4px; }
+.soulnote-card .sn-sub { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 12px; }
+.soulnote-input {
+  display: block; width: 100%; background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-hi); color: var(--text); font-size: 15px;
+  padding: 12px 14px; border-radius: 14px; outline: none; font-family: inherit;
+  margin-bottom: 6px;
+}
+.soulnote-input:focus { border-color: var(--mint); }
+.soulnote-input::placeholder { color: var(--text-faint); }
+.soulnote-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.soulnote-count { font-size: 10px; letter-spacing: 1px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.soulnote-posted { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 16px; color: var(--text); line-height: 1.5; border-left: 2px solid var(--mint); padding-left: 14px; margin: 4px 0 10px; }
+.soulnote-posted-meta { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
+
+.fieldnotes { padding: 0 20px; }
+.fieldnote {
+  background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+  padding: 14px 16px; margin-bottom: 10px; backdrop-filter: blur(20px);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.fieldnote.landed { opacity: 0.35; }
+.fieldnote-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.fieldnote-glyph { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), var(--fn-c, var(--violet)), rgba(0,0,0,0.4)); box-shadow: 0 0 10px var(--fn-c, var(--violet)); }
+.fieldnote-meta { font-size: 11px; color: var(--text-faint); flex: 1; }
+.fieldnote-meta b { color: var(--mint); }
+.fieldnote-land { background: none; border: none; color: var(--text-faint); font-size: 11px; letter-spacing: 1px; cursor: pointer; font-family: inherit; padding: 4px 6px; }
+.fieldnote-land:hover { color: var(--mint); }
+.fieldnote.landed .fieldnote-land { color: var(--mint); }
+.fieldnote-line { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.88); }
+.fieldnotes-empty { font-family: Georgia, serif; font-style: italic; font-size: 13px; color: var(--text-faint); padding: 6px 0 4px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -7584,6 +7622,113 @@ document.getElementById('stepOutReturnBtn').addEventListener('click', closeStepO
 document.getElementById('stepOutBtn').addEventListener('click', openStepOut);
 document.getElementById('antiFeedFromWallBtn').addEventListener('click', () => { if (typeof openAntiFeed === 'function') openAntiFeed(); });
 renderTransmission();
+
+// =================== SOUL NOTES (anti-tweet) ===================
+// One line per day. Not a feed. It reaches souls near your frequency — the closest, not the most.
+// Gone in 24 hours. No likes. If it lands, you're simply told one person needed it.
+function soulNoteKey() { return 'resonance_soulnote_' + (typeof _dayKey === 'function' ? _dayKey() : 'd'); }
+function getSoulNote() { try { return JSON.parse(localStorage.getItem(soulNoteKey()) || 'null'); } catch (e) { return null; } }
+function setSoulNote(line, freq) { try { localStorage.setItem(soulNoteKey(), JSON.stringify({ line: line, t: Date.now(), freq: freq })); } catch (e) {} }
+function renderSoulNote() {
+  const slot = document.getElementById('soulNoteSlot'); if (!slot) return;
+  const existing = getSoulNote();
+  if (existing && existing.line) {
+    const when = new Date(existing.t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    slot.innerHTML = `
+      <div class="soulnote-card">
+        <div class="sn-kicker">Your line · today</div>
+        <div class="soulnote-posted">${escapeHtml(existing.line)}</div>
+        <div class="soulnote-posted-meta">Released at ${when}${existing.freq ? ' · from ' + existing.freq + ' Hz' : ''} · in the stream until midnight</div>
+      </div>`;
+    return;
+  }
+  slot.innerHTML = `
+    <div class="soulnote-card">
+      <div class="sn-kicker">Soul note · one a day</div>
+      <div class="sn-sub">Leave one line for the field. It won't be posted to a feed — it reaches whoever is near your frequency right now. Tomorrow it's gone. No likes, no replies.</div>
+      <input type="text" class="soulnote-input" id="soulNoteInput" maxlength="140" placeholder="one true line…">
+      <div class="soulnote-row">
+        <span class="soulnote-count" id="soulNoteCount">0 / 140</span>
+        <button class="btn primary" id="soulNoteReleaseBtn" disabled>Release it</button>
+      </div>
+    </div>`;
+  const input = document.getElementById('soulNoteInput');
+  const count = document.getElementById('soulNoteCount');
+  const relBtn = document.getElementById('soulNoteReleaseBtn');
+  input.addEventListener('input', () => {
+    count.textContent = input.value.length + ' / 140';
+    relBtn.disabled = input.value.trim().length < 3;
+  });
+  input.addEventListener('keypress', e => { if (e.key === 'Enter' && !relBtn.disabled) relBtn.click(); });
+  relBtn.addEventListener('click', () => {
+    const line = input.value.trim().slice(0, 140);
+    if (line.length < 3) return;
+    const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432;
+    setSoulNote(line, hz);
+    renderSoulNote();
+    if (typeof floatGain === 'function') floatGain('Released to the field');
+    setTimeout(() => toast('Somewhere, someone near ' + hz + ' Hz just read your line. That’s all you get to know.', 'ok'), 4500);
+  });
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+// "Lines in your field" — notes from souls near where you are. The closest, not the loudest.
+let _fieldNotesLanded = (function () { try { const v = JSON.parse(sessionStorage.getItem('resonance_landed') || '[]'); return new Set(Array.isArray(v) ? v : []); } catch (e) { return new Set(); } })();
+function _saveLanded() { try { sessionStorage.setItem('resonance_landed', JSON.stringify([..._fieldNotesLanded])); } catch (e) {} }
+function _noteId(n) { return n.who + ':' + n.freq + ':' + (n.line.length); }
+function renderFieldNotes() {
+  const slot = document.getElementById('fieldNotesSlot'); if (!slot) return;
+  const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432;
+  // notes within ~80 Hz of where you are, then the 3 nearest — re-sorts as you move
+  const near = SOUL_NOTE_POOL
+    .map(n => ({ n, d: Math.abs(n.freq - hz) }))
+    .filter(x => x.d <= 90)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, 3)
+    .map(x => x.n);
+  if (near.length === 0) {
+    slot.innerHTML = `
+      <div class="section-poetic"><h2>Lines in your field</h2><div class="sub">The closest, not the loudest</div></div>
+      <div class="fieldnotes"><div class="fieldnotes-empty">No one is leaving lines this close to ${hz} Hz right now. Move toward a named tone and the field re-sorts around you.</div></div>`;
+    return;
+  }
+  const colorOf = f => (typeof hzToColor === 'function') ? hzToColor(f)[2] : 'var(--violet)';
+  slot.innerHTML = `
+    <div class="section-poetic"><h2>Lines in your field</h2><div class="sub">The closest, not the loudest</div></div>
+    <div class="fieldnotes">` +
+    near.map(n => {
+      const landed = _fieldNotesLanded.has(_noteId(n));
+      return `<div class="fieldnote${landed ? ' landed' : ''}" data-nid="${_noteId(n)}" style="--fn-c:${colorOf(n.freq)};">
+        <div class="fieldnote-head">
+          <div class="fieldnote-glyph">${n.who}</div>
+          <div class="fieldnote-meta">someone · <b>${n.freq} Hz</b> · today</div>
+          <button class="fieldnote-land">${landed ? 'it landed ✦' : 'this landed'}</button>
+        </div>
+        <div class="fieldnote-line">${escapeHtml(n.line)}</div>
+      </div>`;
+    }).join('') + `</div>`;
+  slot.querySelectorAll('.fieldnote').forEach(el => {
+    el.querySelector('.fieldnote-land').addEventListener('click', () => {
+      const id = el.dataset.nid;
+      if (_fieldNotesLanded.has(id)) return;
+      _fieldNotesLanded.add(id); _saveLanded();
+      el.classList.add('landed');
+      el.querySelector('.fieldnote-land').textContent = 'it landed ✦';
+      if (typeof floatGain === 'function') floatGain('Sent back to them');
+    });
+  });
+}
+renderSoulNote();
+renderFieldNotes();
+// Re-sort the field notes around the user when their frequency settles
+(function () {
+  const _af = applyFrequency; let _t = null;
+  applyFrequency = function (hz, fromSlider) {
+    _af(hz, fromSlider);
+    if (_t) clearTimeout(_t);
+    _t = setTimeout(renderFieldNotes, 400);
+  };
+})();
 
 renderLadder();
 </script>
