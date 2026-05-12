@@ -3039,6 +3039,39 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 .converge-overlay .cvo-line { font-family: Georgia, serif; font-style: italic; font-size: 14px; color: var(--text-dim); margin-top: 12px; min-height: 22px; transition: opacity 0.8s var(--ease); }
 .converge-overlay .cvo-breathe { position: absolute; bottom: 84px; left: 0; right: 0; text-align: center; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; pointer-events: none; }
 .converge-overlay .cvo-controls { padding: 0 24px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; }
+.converge-overlay.gratitude .cvo-stage,
+.converge-overlay.gratitude .cvo-controls { display: none; }
+.converge-overlay .cvo-gratitude { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 24px calc(24px + env(safe-area-inset-bottom, 0px)); overflow-y: auto; min-height: 0; }
+.converge-overlay.gratitude .cvo-gratitude { display: flex; }
+.cvo-grat-orb { width: 64px; height: 64px; border-radius: 50%; margin-bottom: 22px; flex-shrink: 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--cg-c, var(--gold)) 55%, rgba(0,0,0,0.5)); box-shadow: 0 0 30px var(--cg-c, var(--gold)); animation: pulse 4s ease-in-out infinite; }
+.cvo-grat-kicker { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 12px; }
+.cvo-grat-prompt { font-size: 26px; font-weight: 200; letter-spacing: -0.02em; line-height: 1.25; max-width: 340px; margin-bottom: 22px; }
+.cvo-grat-input { display: block; width: 100%; max-width: 360px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-hi); color: var(--text); font-size: 16px; padding: 13px 16px; border-radius: 16px; outline: none; font-family: inherit; text-align: center; margin-bottom: 6px; }
+.cvo-grat-input:focus { border-color: var(--gold); }
+.cvo-grat-input::placeholder { color: var(--text-faint); }
+.cvo-grat-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+.cvo-grat-skip { background: none; border: none; color: var(--text-faint); font-size: 12px; letter-spacing: 1px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-family: inherit; }
+.cvo-grat-skip:hover { color: var(--text-dim); }
+.cvo-grat-mine { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 17px; color: var(--text); line-height: 1.4; border-left: 2px solid var(--gold); padding-left: 14px; max-width: 360px; margin-bottom: 18px; }
+.cvo-grat-list { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 10px; margin: 8px 0 18px; }
+.cvo-grat-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; text-align: left; font-size: 14px; line-height: 1.45; color: rgba(255,255,255,0.86); }
+.cvo-grat-item.mine { border-color: rgba(251,191,36,0.4); background: radial-gradient(circle at 0% 0%, rgba(251,191,36,0.1), transparent 55%), var(--card); }
+.cvo-grat-item .gi-by { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 4px; }
+.cvo-grat-item.mine .gi-by { color: var(--gold); }
+.cvo-grat-stream-head { font-family: Georgia, serif; font-style: italic; font-size: 18px; margin-bottom: 4px; }
+.cvo-grat-stream-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; margin-bottom: 16px; }
+
+/* gratitude card on the Hub */
+.gratitude-card {
+  margin: 12px 20px 0; padding: 18px 18px 16px; border-radius: 22px;
+  background: radial-gradient(circle at 0% 0%, rgba(251,191,36,0.12), transparent 55%), var(--card);
+  border: 1px solid rgba(251,191,36,0.28); backdrop-filter: blur(20px);
+}
+.gratitude-card .gc-kicker { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
+.gratitude-card .gc-mine { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 15px; color: var(--text); border-left: 2px solid var(--gold); padding-left: 12px; margin-bottom: 12px; line-height: 1.4; }
+.gratitude-card .gc-sample { font-size: 13px; color: var(--text-dim); line-height: 1.55; }
+.gratitude-card .gc-sample em { color: rgba(255,255,255,0.82); font-style: italic; font-family: Georgia, serif; }
+.gratitude-card .gc-btn { margin-top: 14px; }
 </style>
 </head>
 <body>
@@ -3314,6 +3347,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 
       <!-- The Convergence — once a day the whole field holds one tone together -->
       <div id="convergeSlot"></div>
+      <!-- After the convergence: what the field is grateful for -->
+      <div id="gratitudeSlot"></div>
       <!-- Your true self + how close you are to it -->
       <div id="trueSelfSlot"></div>
       <!-- While you were away (anti-FOMO) -->
@@ -4104,6 +4139,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="cvo-breathe">breathe with the field</div>
   </div>
   <div class="cvo-controls"><button class="btn" id="convLeaveBtn">Leave the convergence</button></div>
+  <div class="cvo-gratitude" id="convGratitude"></div>
 </div>
 
 <!-- ================= THE PLATE (award moment) ================= -->
@@ -8941,11 +8977,11 @@ function renderConvergeCard() {
   slot.className = '';
   slot.innerHTML = `<div class="converge-card${st === 'open' ? ' open' : ''}" style="--cv-c:${c}26; --cv-bd:${c}55; --cv-orb:${c}; --cv-glow:${c}44;">${inner}</div>`;
   const jb = document.getElementById('convJoinBtn'); if (jb) jb.addEventListener('click', () => openConverge(st === 'open' ? 'live' : 'late'));
-  const wb = document.getElementById('convWhatBtn'); if (wb) wb.addEventListener('click', () => toast('Once a day the whole field holds one tone — together, anonymously. The opposite of a feed: nothing to scroll, nothing to post, no one to be. Just the wave.', ''));
+  const wb = document.getElementById('convWhatBtn'); if (wb) wb.addEventListener('click', () => toast('Once a day the whole field holds one tone — together, anonymously. The opposite of a feed: nothing to scroll, nothing to post, no one to be. Just the wave. Afterward, everyone shares one thing they’re grateful for.', ''));
 }
 
 // --- the convergence experience ---
-let _convRaf = null, _convTickInt = null, _convMode = 'live', _convDots = [], _convStart = 0, _convLineInt = null;
+let _convRaf = null, _convTickInt = null, _convMode = 'live', _convDots = [], _convStart = 0, _convLineInt = null, _convStartedTone = false;
 const CONV_LINES = {
   live: ['one tone, all of you, right now', 'nobody is performing — everybody is here', 'breathe in for four. hold. out for four.', 'you are a single point in a single tone', 'this is the social part: disappearing into it together'],
   late: ['off the hour, on the tone', 'you, and the ones who come early or stay late', 'a wave doesn’t really mind clocks', 'breathe in for four. hold. out for four.', 'a little apart from the others — and still, somehow, with them']
@@ -9023,23 +9059,28 @@ async function openConverge(mode) {
     if (typeof applyFrequency === 'function') applyFrequency(f.hz);
     if (typeof startTone === 'function') startTone(f.hz, 'manual');
     const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Stop Sync'; mp.classList.add('active'); }
+    _convStartedTone = true;
   } catch (e) {}
   recordConvergence();
   renderConvergeCard();
   if (typeof moment === 'function') setTimeout(() => moment(_convMode === 'live' ? 'You joined the convergence' : 'You picked up the tone', _convMode === 'live' ? ('You and ' + (Math.max(8, convCount(Date.now())) - 1) + ' others, on ' + f.hz + ' Hz, at the same moment. Be no one for a few minutes. Just be in it.') : ('The field has its appointed hour for ' + f.hz + ' Hz — you’re holding it off the hour, with the early and the late ones. Still the same wave. Still, somehow, together.'), convDotColorHex(), '◉'), 600);
 }
+function convStopTone() {
+  if (_convStartedTone) { if (typeof stopAllTones === 'function') stopAllTones(); const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Begin Sync'; mp.classList.remove('active'); } _convStartedTone = false; }
+}
 function closeConverge() {
-  document.getElementById('convergeOverlay').classList.remove('show');
+  const ov = document.getElementById('convergeOverlay');
+  ov.classList.remove('show'); ov.classList.remove('gratitude');
   if (_convRaf) { cancelAnimationFrame(_convRaf); _convRaf = null; }
   if (_convTickInt) { clearInterval(_convTickInt); _convTickInt = null; }
   if (_convLineInt) { clearInterval(_convLineInt); _convLineInt = null; }
-  if (typeof stopAllTones === 'function') stopAllTones();
-  const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Begin Sync'; mp.classList.remove('active'); }
+  convStopTone();
   renderConvergeCard();
+  if (typeof renderGratitudeCard === 'function') renderGratitudeCard();
 }
 document.getElementById('convCloseBtn').addEventListener('click', closeConverge);
-document.getElementById('convLeaveBtn').addEventListener('click', closeConverge);
-window.addEventListener('resize', () => { if (document.getElementById('convergeOverlay').classList.contains('show')) { convInitCanvas(); } });
+document.getElementById('convLeaveBtn').addEventListener('click', () => { if (typeof showGratitudeStep === 'function') showGratitudeStep(); else closeConverge(); });
+window.addEventListener('resize', () => { if (document.getElementById('convergeOverlay').classList.contains('show') && !document.getElementById('convergeOverlay').classList.contains('gratitude')) { convInitCanvas(); } });
 renderConvergeCard();
 setInterval(renderConvergeCard, 30000);
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(() => {
@@ -9050,6 +9091,145 @@ document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout
   renderConvergeCard();
   if (convStatus(Date.now()) === 'open' && typeof moment === 'function') { const f = convFreqObj(); moment('The Convergence is open', 'Right now, ' + convCount(Date.now()) + ' souls are holding ' + f.hz + ' Hz together. Come.', (typeof hzToColor === 'function') ? hzToColor(f.hz)[2] : '#a78bfa', '◉'); }
 }, 2000));
+
+// =================== GRATITUDE (after the Convergence) ===================
+// After the field holds one tone together, everyone leaves one thing they're grateful for.
+// The opposite of a comment section: nothing to argue with, nothing to perform — just thanks, pooled.
+var GRATITUDE_POOL = [
+  'my knees, which still bend',
+  'the friend who texted first',
+  'coffee, and the quiet before anyone else is up',
+  'that the fear was smaller today than yesterday',
+  'this body, for carrying me here without being asked',
+  'the song that came on at exactly the right time',
+  'my mother’s voice on the phone, even when we don’t say much',
+  'that i said the hard thing and the world kept turning',
+  'rain. just rain.',
+  'the dog, who has no idea what a bad day is',
+  'the stranger who held the door and meant it',
+  'a full night’s sleep — it’s been a while',
+  'that i can still be surprised',
+  'the people in this app i’ll never meet, holding the same tone',
+  'warm water. honestly, warm water.',
+  'the work, which is hard, and mine',
+  'that grief and gratitude can sit in the same chair',
+  'my hands',
+  'the morning i didn’t reach for my phone first',
+  'an old friend who still picks up',
+  'the version of me from a year ago who didn’t give up',
+  'trees, doing their slow patient thing',
+  'that i felt something today, all the way through',
+  'this — the plain fact that there’s a “this”',
+  'the sky doing whatever the sky does',
+  'second chances. all of them.'
+];
+function gratKey() { return 'resonance_gratitude_' + ((typeof _dayKey === 'function') ? _dayKey() : 'd'); }
+function getMyGratitude() { try { const v = JSON.parse(localStorage.getItem(gratKey()) || 'null'); return (v && v.line) ? v : null; } catch (e) { return null; } }
+function setMyGratitude(line) { try { localStorage.setItem(gratKey(), JSON.stringify({ line: line, t: Date.now() })); } catch (e) {} }
+function gratGivenList() { try { const v = JSON.parse(localStorage.getItem('resonance_gratitudes_given') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+function recordGratitude() {
+  const list = gratGivenList(); const today = (typeof _dayKey === 'function') ? _dayKey() : 'd';
+  const first = list.indexOf(today) === -1;
+  if (first) { list.push(today); try { localStorage.setItem('resonance_gratitudes_given', JSON.stringify(list)); } catch (e) {} if (typeof addCloseness === 'function') addCloseness(1, 'gratitude'); }
+  if (first) {
+    const n = list.length;
+    if ((n === 3 || n === 7 || n === 21 || n === 50) && typeof moment === 'function') {
+      const lines = { 3: 'Three times now you’ve named a thing you’re grateful for, alongside the field. That’s a small muscle getting strong.', 7: 'Seven gratitudes given with the field. Gratitude is the practice that keeps the door from closing behind you. Keep it propped.', 21: 'Twenty-one. You’re one of the steady ones — the field’s gratitude is fuller because yours is in it.', 50: 'Fifty times you’ve added a thanks to the pile. Somewhere, that pile is the reason someone else kept going.' };
+      setTimeout(() => moment(n + ' gratitudes', lines[n], '#fbbf24', '✦'), 400);
+    }
+  }
+}
+function todayGratitudes() {
+  const out = [];
+  const mine = getMyGratitude();
+  if (mine) out.push({ text: mine.line, by: 'you', mine: true });
+  if (typeof GRATITUDE_POOL === 'undefined' || !GRATITUDE_POOL || !GRATITUDE_POOL.length) return out;
+  const ranked = GRATITUDE_POOL.map((t, i) => ({ t, k: (typeof _dayHash === 'function') ? _dayHash('grat' + i) : i })).sort((a, b) => a.k - b.k);
+  ranked.slice(0, 12).forEach(x => out.push({ text: x.t, by: 'someone', mine: false }));
+  return out;
+}
+function gratColorHex() { return (typeof hzToColor === 'function') ? hzToColor((typeof convFreqObj === 'function' ? convFreqObj().hz : 432))[2] : 'var(--gold)'; }
+function showGratitudeStep() {
+  const ov = document.getElementById('convergeOverlay'); ov.classList.add('show'); ov.classList.add('gratitude');
+  if (typeof convStopTone === 'function') convStopTone();
+  if (_convRaf) { cancelAnimationFrame(_convRaf); _convRaf = null; }
+  if (_convTickInt) { clearInterval(_convTickInt); _convTickInt = null; }
+  if (_convLineInt) { clearInterval(_convLineInt); _convLineInt = null; }
+  const panel = document.getElementById('convGratitude');
+  const mine = getMyGratitude();
+  if (mine) {
+    panel.innerHTML = `
+      <div class="cvo-grat-orb" style="--cg-c:${gratColorHex()};"></div>
+      <div class="cvo-grat-kicker">Today, you were grateful for</div>
+      <div class="cvo-grat-mine">${escapeHtml(mine.line)}</div>
+      <div class="cvo-grat-row" style="margin-top:0;"><button class="btn primary" id="gratSeeBtn">See what the field gave thanks for →</button></div>
+      <div class="cvo-grat-row"><button class="cvo-grat-skip" id="gratSkipBtn">close</button></div>`;
+    document.getElementById('gratSeeBtn').addEventListener('click', showGratitudeStream);
+    document.getElementById('gratSkipBtn').addEventListener('click', closeConverge);
+    return;
+  }
+  panel.innerHTML = `
+    <div class="cvo-grat-orb" style="--cg-c:${gratColorHex()};"></div>
+    <div class="cvo-grat-kicker">Before you go</div>
+    <div class="cvo-grat-prompt">One thing you’re grateful for, today.</div>
+    <input type="text" class="cvo-grat-input" id="gratInput" maxlength="140" placeholder="say it plainly…">
+    <div class="cvo-grat-row"><button class="btn primary" id="gratAddBtn" disabled>Add it to the field</button></div>
+    <div class="cvo-grat-row"><button class="cvo-grat-skip" id="gratSkipBtn">skip — just close</button></div>`;
+  const input = document.getElementById('gratInput');
+  const addBtn = document.getElementById('gratAddBtn');
+  input.addEventListener('input', () => { addBtn.disabled = input.value.trim().length < 3; });
+  input.addEventListener('keypress', e => { if (e.key === 'Enter' && !addBtn.disabled) addBtn.click(); });
+  addBtn.addEventListener('click', () => {
+    const line = input.value.trim().slice(0, 140); if (line.length < 3) return;
+    setMyGratitude(line); recordGratitude();
+    if (typeof floatGain === 'function') floatGain('Added to the field ✦');
+    showGratitudeStream();
+  });
+  document.getElementById('gratSkipBtn').addEventListener('click', closeConverge);
+  setTimeout(() => { try { input.focus(); } catch (e) {} }, 250);
+}
+function showGratitudeStream() {
+  const ov = document.getElementById('convergeOverlay'); ov.classList.add('show'); ov.classList.add('gratitude');
+  const panel = document.getElementById('convGratitude');
+  const items = todayGratitudes();
+  panel.innerHTML = `
+    <div class="cvo-grat-orb" style="--cg-c:${gratColorHex()};"></div>
+    <div class="cvo-grat-stream-head">What the field gave thanks for today</div>
+    <div class="cvo-grat-stream-sub">${items.length} small things · nothing to argue with</div>
+    <div class="cvo-grat-list">` + items.map(it => `<div class="cvo-grat-item${it.mine ? ' mine' : ''}"><div class="gi-by">${it.mine ? 'you' : 'someone'}</div>${escapeHtml(it.text)}</div>`).join('') + `</div>
+    <div class="cvo-grat-row" style="margin-top:0;"><button class="btn primary" id="gratDoneBtn">Carry it</button></div>`;
+  document.getElementById('gratDoneBtn').addEventListener('click', closeConverge);
+}
+function openGratitude(mode) {
+  _convStartedTone = false;
+  const ov = document.getElementById('convergeOverlay'); ov.classList.add('show'); ov.classList.add('gratitude');
+  if (mode === 'stream') showGratitudeStream(); else showGratitudeStep();
+}
+function renderGratitudeCard() {
+  const slot = document.getElementById('gratitudeSlot'); if (!slot) return;
+  const mine = getMyGratitude();
+  const others = todayGratitudes().filter(x => !x.mine);
+  const sample = others.slice(0, 2).map(x => `“<em>${escapeHtml(x.text)}</em>”`).join(' · ');
+  const restN = Math.max(0, others.length - 2);
+  const given = gratGivenList().length;
+  const givenLine = given > 0 ? `<div style="font-family:Georgia,serif; font-style:italic; font-size:11px; color:var(--text-faint); margin-top:10px;">You’ve given thanks with the field ${given === 1 ? 'once' : given + ' times'}.</div>` : '';
+  let inner, btnLabel, mode;
+  if (mine) {
+    inner = `<div class="gc-kicker">Today, you were grateful for</div><div class="gc-mine">${escapeHtml(mine.line)}</div><div class="gc-sample">The field also: ${sample}${restN ? ` · and ${restN} more` : ''}</div>${givenLine}`;
+    btnLabel = 'The field’s gratitude →'; mode = 'stream';
+  } else if (typeof convergedToday === 'function' && convergedToday()) {
+    inner = `<div class="gc-kicker">After the convergence</div><div class="gc-sample">You held the tone with the field. Now — one thing you’re grateful for. The field already started: ${sample}${restN ? ` · and ${restN} more` : ''}</div>${givenLine}`;
+    btnLabel = 'Leave your gratitude →'; mode = 'input';
+  } else {
+    inner = `<div class="gc-kicker">The field’s gratitude · today</div><div class="gc-sample">${sample}${restN ? ` · and ${restN} more small things` : ''}. Add yours whenever you’re ready.</div>${givenLine}`;
+    btnLabel = 'Add yours →'; mode = 'input';
+  }
+  slot.innerHTML = `<div class="gratitude-card">${inner}<button class="btn gc-btn" id="gratCardBtn">${btnLabel}</button></div>`;
+  document.getElementById('gratCardBtn').addEventListener('click', () => openGratitude(mode));
+}
+renderGratitudeCard();
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderGratitudeCard, 2100));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderGratitudeCard, 2100));
 
 renderLadder();
 </script>
