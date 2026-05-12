@@ -1,0 +1,2946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>RESONANCE — The Inner World</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<style>
+:root {
+  --bg: #050507;
+  --bg-2: #0d0d14;
+  --card: rgba(255,255,255,0.04);
+  --card-hi: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.08);
+  --border-hi: rgba(255,255,255,0.18);
+  --text: #fafafa;
+  --text-dim: rgba(255,255,255,0.55);
+  --text-faint: rgba(255,255,255,0.35);
+  --mint: #6ee7b7;
+  --violet: #a78bfa;
+  --pink: #fb7185;
+  --blue: #60a5fa;
+  --gold: #fbbf24;
+  --pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+}
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(167,139,250,0.15), transparent 50%),
+    radial-gradient(circle at 80% 90%, rgba(110,231,183,0.1), transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(96,165,250,0.06), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+#bgCanvas {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0; pointer-events: none; opacity: 0.45;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input { font-family: inherit; }
+
+/* ============ INITIATION GATE ============ */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(167,139,250,0.2), transparent 60%),
+    radial-gradient(circle at 50% 80%, rgba(251,191,36,0.1), transparent 60%),
+    #030305;
+  overflow: hidden;
+}
+.gate-step {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 32px 24px 60px;
+  animation: gateIn 0.7s var(--ease);
+}
+.gate-step.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.gate-step .gate-content { margin: auto 0; }
+@keyframes gateIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.gate-content {
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+}
+.gate-glyph {
+  font-size: 56px;
+  font-weight: 100;
+  letter-spacing: -0.04em;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--gold), var(--violet), var(--mint));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: glyphPulse 4s ease-in-out infinite;
+}
+@keyframes glyphPulse {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 20px rgba(167,139,250,0.3)); }
+  50% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(167,139,250,0.6)); }
+}
+.gate-label {
+  font-size: 11px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 32px;
+  font-weight: 600;
+}
+.gate-title {
+  font-size: 38px;
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 20px;
+}
+.gate-title em { font-style: normal; color: var(--gold); font-weight: 300; }
+.gate-text {
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.65;
+  max-width: 380px;
+  margin: 0 auto 36px;
+}
+.gate-text strong { color: var(--text); font-weight: 500; }
+.gate-divider {
+  width: 32px; height: 1px;
+  background: var(--border-hi);
+  margin: 24px auto;
+}
+.gate-btn {
+  background: linear-gradient(135deg, #fff, #d4d4d8);
+  color: #000;
+  padding: 16px 36px;
+  border-radius: 100px;
+  font-size: 13px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: all 0.3s var(--pop);
+  box-shadow: 0 8px 32px rgba(255,255,255,0.1);
+}
+.gate-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255,255,255,0.2); }
+.gate-btn:active { transform: scale(0.97); }
+.gate-btn.ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+.gate-btn.ghost:hover { color: var(--text); border-color: var(--border-hi); background: rgba(255,255,255,0.03); }
+
+.gate-list {
+  text-align: left;
+  margin: 0 auto 36px;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.gate-list-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.gate-list-item .num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(251,191,36,0.15);
+  color: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* PHOTO CAPTURE */
+.photo-frame {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  margin: 0 auto 28px;
+  position: relative;
+  overflow: hidden;
+  background: var(--card);
+  border: 2px solid var(--border-hi);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.photo-frame::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--gold), var(--violet), var(--mint), var(--gold));
+  z-index: -1;
+  animation: rotateBorder 8s linear infinite;
+}
+@keyframes rotateBorder { to { transform: rotate(360deg); } }
+.photo-frame video, .photo-frame img, .photo-frame canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-frame .placeholder {
+  font-size: 60px;
+  color: var(--text-faint);
+}
+.photo-input { display: none; }
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  box-shadow: 0 0 16px var(--gold);
+  animation: scanLine 2.5s ease-in-out infinite;
+  display: none;
+}
+.photo-frame.scanning .scan-line { display: block; }
+@keyframes scanLine {
+  0%, 100% { top: 10%; }
+  50% { top: 90%; }
+}
+
+/* FREQUENCY SCAN */
+.scan-orb-stage {
+  position: relative;
+  width: 200px; height: 200px;
+  margin: 0 auto 16px;
+}
+.scan-orb {
+  position: absolute;
+  inset: 30px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), var(--violet) 40%, rgba(20,10,40,0.95) 100%);
+  box-shadow: 0 0 60px var(--violet), inset 0 0 40px rgba(255,255,255,0.1);
+  animation: pulse 3s ease-in-out infinite;
+  transition: all 0.3s var(--ease);
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.scan-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+}
+.scan-readout {
+  font-size: 13px;
+  color: var(--mint);
+  margin-top: 8px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  min-height: 24px;
+}
+.scan-progress {
+  width: 100%;
+  max-width: 320px;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 100px;
+  margin: 24px auto 0;
+  overflow: hidden;
+}
+.scan-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--mint));
+  transition: width 0.3s linear;
+}
+
+/* CALCULATING */
+.calc-orb {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--gold), var(--violet), var(--mint), var(--blue), var(--gold));
+  padding: 3px;
+  margin: 0 auto 32px;
+  animation: rotateBorder 3s linear infinite;
+}
+.calc-orb > div {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+}
+.calc-status {
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  min-height: 20px;
+  font-weight: 600;
+}
+
+/* VERDICT */
+.verdict-glyph {
+  font-size: 96px;
+  font-weight: 100;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  margin-bottom: 8px;
+  animation: verdictIn 1s var(--pop);
+}
+.verdict-glyph.ascended {
+  background: linear-gradient(135deg, var(--gold), var(--mint), var(--violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 40px rgba(251,191,36,0.4));
+}
+@keyframes verdictIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+.verdict-label {
+  font-size: 11px;
+  letter-spacing: 8px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  font-weight: 700;
+}
+.verdict-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--card);
+  border: 1px solid var(--border-hi);
+  padding: 12px 20px;
+  border-radius: 100px;
+  margin-bottom: 28px;
+  backdrop-filter: blur(20px);
+}
+.verdict-score-val {
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--gold);
+}
+.verdict-score-lbl {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* PORTAL OPENING TRANSITION */
+.portal {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: radial-gradient(circle at 50% 50%, transparent 0%, transparent var(--portal-r, 0%), #030305 var(--portal-r, 0%));
+  pointer-events: none;
+  transition: --portal-r 1.4s var(--ease);
+}
+@property --portal-r {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 100%;
+}
+
+/* ============ APP (inner world, hidden by default) ============ */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 110px;
+  display: none;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+}
+.app.unlocked { display: block; opacity: 1; }
+
+.status-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 16px 20px 12px;
+  background: linear-gradient(180deg, rgba(5,5,7,0.92) 60%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.user-tag { display: flex; align-items: center; gap: 10px; }
+.avatar-mini {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--mint), var(--violet), var(--pink), var(--blue), var(--mint));
+  padding: 2px;
+}
+.avatar-mini > div {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--violet), #1a1a2e);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+  overflow: hidden;
+}
+.avatar-mini img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.greeting-row { display: flex; flex-direction: column; line-height: 1.2; }
+.greeting-row .greet { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); }
+.greeting-row .name { font-size: 15px; font-weight: 600; }
+.level-pill {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 6px 10px 6px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+}
+.level-badge {
+  background: linear-gradient(135deg, var(--gold), #f59e0b);
+  color: #1a1206;
+  font-weight: 800;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  box-shadow: 0 0 16px rgba(251,191,36,0.4);
+}
+.xp-bar { width: 72px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 100px; overflow: hidden; }
+.xp-fill { width: 64%; height: 100%; background: linear-gradient(90deg, var(--gold), var(--mint)); border-radius: 100px; }
+.streak {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(251,113,133,0.12);
+  border: 1px solid rgba(251,113,133,0.3);
+  padding: 6px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pink);
+}
+
+.page { display: none; animation: pageIn 0.4s var(--pop); }
+.page.active { display: block; }
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-h {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 20px 12px;
+}
+.section-h h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; color: var(--text-dim); }
+.section-h .see-all { font-size: 12px; color: var(--mint); font-weight: 500; }
+
+/* ============ FEED V2 — CINEMATIC ============ */
+.feed-v2 { padding-bottom: 24px; }
+
+.freq-hero {
+  position: relative;
+  margin: 12px 20px 8px;
+  padding: 32px 24px 28px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 80% 20%, var(--hero-c1, rgba(167,139,250,0.35)), transparent 60%),
+    radial-gradient(circle at 20% 90%, var(--hero-c2, rgba(110,231,183,0.2)), transparent 60%),
+    var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(30px);
+  overflow: hidden;
+  transition: background 1.2s var(--ease);
+}
+.freq-hero-label {
+  font-size: 10px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+  margin-bottom: 18px;
+  position: relative;
+}
+.freq-hero-value {
+  font-size: 84px;
+  font-weight: 100;
+  letter-spacing: -0.05em;
+  line-height: 0.9;
+  position: relative;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.freq-hero-value .hz-unit {
+  font-size: 13px;
+  color: var(--text-faint);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 6px;
+}
+.freq-hero-state {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 17px;
+  color: rgba(255,255,255,0.85);
+  margin-top: 12px;
+  letter-spacing: -0.01em;
+  position: relative;
+  line-height: 1.4;
+}
+.freq-hero-waveform {
+  margin-top: 18px;
+  width: 100%;
+  height: 32px;
+  display: block;
+  opacity: 0.55;
+}
+.freq-hero-meta {
+  display: flex; gap: 14px; margin-top: 4px;
+  position: relative;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.freq-hero-meta span { display: flex; align-items: center; gap: 6px; }
+.freq-hero-meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+
+/* MEMORIES STRIP */
+.section-poetic {
+  padding: 28px 20px 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.section-poetic h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.section-poetic .sub {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+.memories-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 20px 8px;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+.memories-strip::-webkit-scrollbar { display: none; }
+.memory-card {
+  flex-shrink: 0;
+  width: 120px;
+  height: 170px;
+  border-radius: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform 0.3s var(--pop);
+  backdrop-filter: blur(20px);
+}
+.memory-card:active { transform: scale(0.95); }
+.memory-card.capture {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(110,231,183,0.08));
+  border: 1.5px dashed rgba(255,255,255,0.2);
+}
+.memory-card.capture .cap-icon {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet), var(--mint));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  color: #fff;
+  font-weight: 300;
+  box-shadow: 0 0 20px rgba(167,139,250,0.4);
+}
+.memory-card.capture .cap-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+  text-align: center;
+  padding: 0 10px;
+}
+.memory-orb {
+  position: absolute;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--m-c, var(--violet)) 50%, rgba(0,0,0,0.4));
+  box-shadow: 0 0 30px var(--m-c, var(--violet));
+}
+.memory-info { position: absolute; bottom: 12px; left: 12px; right: 12px; }
+.memory-freq { font-size: 20px; font-weight: 300; letter-spacing: -0.02em; line-height: 1; }
+.memory-freq .u { font-size: 10px; color: var(--text-faint); margin-left: 2px; }
+.memory-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.memory-time { font-size: 9px; color: var(--text-faint); letter-spacing: 1px; text-transform: uppercase; margin-top: 6px; font-weight: 600; }
+
+/* TIERED FEED */
+.tier { padding: 4px 20px 8px; }
+.tier-header { display: flex; align-items: baseline; justify-content: space-between; padding: 22px 0 14px; }
+.tier-name { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 20px; font-weight: 400; letter-spacing: -0.01em; }
+.tier-meta { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
+.tier-attuned .tier-name { color: var(--mint); }
+.tier-near .tier-name { color: var(--text); }
+.tier-distant .tier-name { color: var(--text-dim); }
+
+.post-v2 {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 18px 20px;
+  backdrop-filter: blur(20px);
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s var(--ease);
+}
+.post-v2.attuned {
+  background: radial-gradient(circle at 100% 0%, rgba(110,231,183,0.12), transparent 60%), var(--card);
+  border-color: rgba(110,231,183,0.25);
+}
+.post-v2.near { opacity: 0.85; }
+.post-v2.distant { opacity: 0.55; padding: 12px 14px; border-radius: 16px; }
+.post-v2 .post-resonance { position: absolute; top: 14px; right: 16px; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.post-v2.attuned .post-resonance { color: var(--mint); }
+.post-v2.near .post-resonance { color: var(--text-dim); }
+.post-v2.distant .post-resonance { color: var(--text-faint); font-size: 10px; }
+.post-v2 .post-resonance .bar { width: 28px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 100px; overflow: hidden; }
+.post-v2 .post-resonance .bar-fill { height: 100%; background: currentColor; border-radius: 100px; }
+.post-v2 .post-h { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-right: 90px; }
+.post-v2 .post-av { width: 32px; height: 32px; border-radius: 50%; background: conic-gradient(from 45deg, var(--violet), var(--blue), var(--mint)); padding: 2px; flex-shrink: 0; }
+.post-v2 .post-av > div { width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle at 30% 30%, var(--blue), #1a1a2e); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; }
+.post-v2 .post-n { font-size: 13px; font-weight: 600; }
+.post-v2 .post-mr { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-faint); }
+.post-v2 .post-fm { color: var(--mint); font-weight: 600; }
+.post-v2.distant .post-mr { display: none; }
+.post-v2 .post-b { font-size: 14px; line-height: 1.5; margin-bottom: 12px; color: rgba(255,255,255,0.88); }
+.post-v2.attuned .post-b { font-size: 15px; }
+.post-v2.distant .post-b { font-size: 12px; opacity: 0.85; margin-bottom: 6px; }
+.post-v2 .post-acts { display: flex; gap: 16px; }
+.post-v2 .post-act { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-dim); transition: color 0.2s; }
+.post-v2 .post-act.liked { color: var(--pink); }
+.post-v2 .post-act svg { width: 16px; height: 16px; }
+.post-v2.distant .post-acts { display: none; }
+
+.tier-distant .tier-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tier-distant .post-v2 { margin-bottom: 0; }
+
+/* Memory modal */
+.mem-modal { position: fixed; inset: 0; z-index: 200; background: rgba(5,5,7,0.92); backdrop-filter: blur(30px); display: none; align-items: center; justify-content: center; padding: 24px; }
+.mem-modal.show { display: flex; animation: gateIn 0.4s var(--ease); }
+.mem-modal-card { background: var(--card); border: 1px solid var(--border-hi); border-radius: 28px; padding: 32px 24px; max-width: 340px; width: 100%; text-align: center; backdrop-filter: blur(30px); position: relative; }
+.mem-modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--text-dim); }
+.mem-modal-orb { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 20px; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--mm-c, var(--violet)) 50%, rgba(0,0,0,0.5)); box-shadow: 0 0 60px var(--mm-c, var(--violet)); animation: pulse 4s ease-in-out infinite; }
+.mem-modal-freq { font-size: 48px; font-weight: 200; letter-spacing: -0.03em; line-height: 1; }
+.mem-modal-state { font-family: Georgia, serif; font-style: italic; font-size: 16px; margin-top: 8px; color: var(--text-dim); }
+.mem-modal-time { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); margin-top: 14px; font-weight: 600; }
+.mem-modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: center; }
+
+.stories { display: flex; gap: 12px; overflow-x: auto; padding: 8px 20px 4px; scrollbar-width: none; }
+.stories::-webkit-scrollbar { display: none; }
+.story { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 68px; }
+.story-ring {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--mint), var(--violet), var(--pink), var(--mint));
+  padding: 2.5px;
+  position: relative;
+}
+.story-ring > div {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--violet), #1a1a2e);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 18px;
+}
+.story-live {
+  position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+  background: var(--pink); color: #fff;
+  font-size: 8px; font-weight: 800; letter-spacing: 1px;
+  padding: 2px 6px; border-radius: 100px;
+  border: 2px solid var(--bg);
+}
+.story-name { font-size: 10px; color: var(--text-dim); text-align: center; max-width: 68px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.story-freq { font-size: 9px; color: var(--mint); font-weight: 600; }
+.story.you .story-ring { background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05)); }
+.story.you .story-ring > div { background: rgba(255,255,255,0.05); }
+.story.you .story-ring > div::after { content: '+'; font-size: 24px; font-weight: 300; }
+
+.quest {
+  margin: 12px 20px 0;
+  background: radial-gradient(circle at 100% 0%, rgba(251,191,36,0.18), transparent 60%), var(--card);
+  border: 1px solid rgba(251,191,36,0.25);
+  border-radius: 22px;
+  padding: 16px 18px;
+  backdrop-filter: blur(20px);
+}
+.quest-icon { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--gold), #f59e0b); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 12px; box-shadow: 0 0 24px rgba(251,191,36,0.3); }
+.quest-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 4px; }
+.quest-name { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+.quest-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; line-height: 1.4; }
+.quest-progress { display: flex; align-items: center; gap: 10px; }
+.quest-bar { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+.quest-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--gold), var(--mint)); transition: width 0.5s var(--ease); }
+.quest-reward { font-size: 11px; color: var(--gold); font-weight: 700; }
+
+.feed-list { display: flex; flex-direction: column; gap: 12px; padding: 8px 20px 12px; }
+.feed-post {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 16px 18px;
+  backdrop-filter: blur(20px);
+}
+.post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.post-avatar { width: 36px; height: 36px; border-radius: 50%; background: conic-gradient(from 45deg, var(--violet), var(--blue), var(--mint)); padding: 2px; }
+.post-avatar > div { width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle at 30% 30%, var(--blue), #1a1a2e); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+.post-meta { flex: 1; }
+.post-name { font-size: 13px; font-weight: 600; }
+.post-time { font-size: 11px; color: var(--text-faint); }
+.post-freq-tag { background: rgba(110,231,183,0.12); color: var(--mint); padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.post-body { font-size: 14px; line-height: 1.5; margin-bottom: 12px; color: rgba(255,255,255,0.85); }
+.post-actions { display: flex; gap: 16px; }
+.post-action { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-dim); transition: color 0.2s; }
+.post-action.liked { color: var(--pink); }
+.post-action svg { width: 18px; height: 18px; }
+
+/* ============ ASCEND — CONSCIOUSNESS LADDER ============ */
+.ascend-page { padding: 8px 0 20px; }
+.ascend-header { text-align: center; padding: 8px 24px 32px; }
+.ascend-eyebrow {
+  font-size: 10px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.ascend-header h1 {
+  font-size: 48px;
+  font-weight: 100;
+  letter-spacing: -0.04em;
+  margin-bottom: 8px;
+  background: linear-gradient(180deg, var(--text), rgba(255,255,255,0.5));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.ascend-header p {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--text-dim);
+  max-width: 320px;
+  margin: 0 auto 24px;
+  line-height: 1.5;
+}
+.ascend-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: var(--card);
+  border: 1px solid var(--border-hi);
+  border-radius: 100px;
+  backdrop-filter: blur(20px);
+}
+.ac-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.ac-tier { font-size: 13px; font-weight: 600; }
+.ac-freq { font-size: 12px; color: var(--mint); font-weight: 600; }
+
+.ladder {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 16px;
+  padding: 0 16px 20px;
+  position: relative;
+}
+.ladder::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 40px; bottom: 40px;
+  width: 2px;
+  background: linear-gradient(180deg,
+    rgba(110,231,183,0.6) 0%,
+    rgba(167,139,250,0.4) 30%,
+    rgba(96,165,250,0.3) 60%,
+    rgba(255,255,255,0.1) 100%);
+  z-index: 0;
+  transform: translateX(-1px);
+}
+
+.tier-card {
+  position: relative;
+  z-index: 1;
+  background: var(--tier-bg, var(--card));
+  border: 1px solid var(--tier-border, var(--border));
+  border-radius: 24px;
+  padding: 20px 20px 18px;
+  backdrop-filter: blur(20px);
+  cursor: pointer;
+  transition: all 0.4s var(--ease);
+  overflow: hidden;
+}
+.tier-card:hover { transform: translateY(-2px); }
+.tier-card:active { transform: scale(0.99); }
+.tier-card.unlocked { opacity: 1; }
+.tier-card.current {
+  border: 1.5px solid var(--tier-c, var(--mint));
+  box-shadow: 0 0 32px var(--tier-glow, rgba(110,231,183,0.25));
+}
+.tier-card.current::before {
+  content: 'YOU ARE HERE';
+  position: absolute;
+  top: -1px; left: 24px;
+  background: var(--tier-c, var(--mint));
+  color: #000;
+  font-size: 9px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 0 0 8px 8px;
+}
+.tier-card.locked {
+  opacity: 0.4;
+  filter: blur(0.3px) saturate(0.5);
+}
+.tier-card.locked .tier-orb {
+  filter: grayscale(0.6);
+}
+.tier-card.unity {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(110,231,183,0.2), transparent 40%),
+    radial-gradient(circle at 80% 30%, rgba(251,113,133,0.18), transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(167,139,250,0.2), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(251,191,36,0.15), transparent 50%),
+    var(--card);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.tier-card.unity::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 24px;
+  background: conic-gradient(from 0deg, var(--mint), var(--violet), var(--pink), var(--gold), var(--blue), var(--mint));
+  z-index: -1;
+  opacity: 0.6;
+  animation: rotateBorder 12s linear infinite;
+}
+
+.tier-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.tier-orb {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--tier-c, var(--violet)) 50%, rgba(10,10,30,0.95));
+  box-shadow: 0 0 30px var(--tier-c, var(--violet));
+  position: relative;
+}
+.tier-orb.unity-orb {
+  background: conic-gradient(from 0deg, var(--mint), var(--violet), var(--pink), var(--gold), var(--blue), var(--mint));
+  box-shadow: 0 0 40px rgba(255,255,255,0.4);
+  animation: rotateBorder 8s linear infinite;
+}
+.tier-meta { flex: 1; min-width: 0; }
+.tier-num {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.tier-card.current .tier-num { color: var(--tier-c, var(--mint)); }
+.tier-title {
+  font-size: 21px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.tier-freq-range {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+.tier-lock {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  color: var(--text-faint);
+}
+.tier-card.unlocked .tier-lock { display: none; }
+
+.tier-state {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 14px;
+  opacity: 0.85;
+}
+
+.tier-presence {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+.tier-presence .souls-dots {
+  display: flex;
+  gap: -8px;
+}
+.tier-presence .soul-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--tier-c, var(--violet));
+  border: 2px solid var(--bg);
+  margin-left: -8px;
+  box-shadow: 0 0 8px var(--tier-c, var(--violet));
+  opacity: 0.85;
+}
+.tier-presence .soul-dot:first-child { margin-left: 0; }
+.tier-presence .presence-text {
+  font-weight: 600;
+  color: var(--text);
+}
+.tier-card.locked .tier-presence { color: var(--text-faint); }
+.tier-card.unity .tier-presence { color: var(--text); }
+.tier-card.unity .tier-presence::after {
+  content: 'EVERYONE';
+  margin-left: auto;
+  font-size: 9px;
+  letter-spacing: 3px;
+  font-weight: 800;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.tier-progress-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.tier-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 100px;
+  overflow: hidden;
+}
+.tier-progress-bar-fill {
+  height: 100%;
+  background: var(--tier-c, var(--mint));
+  border-radius: 100px;
+  box-shadow: 0 0 8px var(--tier-c, var(--mint));
+}
+.tier-card.unlocked:not(.current) .tier-progress-row { display: none; }
+.tier-card.locked .tier-progress-row { display: flex; }
+
+/* Tier modal */
+.tier-modal {
+  position: fixed; inset: 0;
+  z-index: 250;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.tier-modal.show { display: flex; animation: gateIn 0.4s var(--ease); }
+.tier-modal-bg {
+  position: absolute; inset: 0;
+  background: rgba(5,5,7,0.92);
+  backdrop-filter: blur(40px);
+  z-index: 0;
+}
+.tier-modal-close {
+  position: absolute;
+  top: 24px; right: 24px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  color: var(--text);
+  z-index: 2;
+  border: 1px solid var(--border);
+}
+.tier-modal-content {
+  position: relative;
+  z-index: 1;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  padding: 20px;
+}
+.tier-modal-orb {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--tm-c, var(--violet)) 50%, rgba(0,0,0,0.6));
+  box-shadow: 0 0 80px var(--tm-c, var(--violet)), inset 0 0 60px rgba(255,255,255,0.1);
+  animation: pulse 3s ease-in-out infinite;
+}
+.tier-modal-orb.unity-orb {
+  background: conic-gradient(from 0deg, var(--mint), var(--violet), var(--pink), var(--gold), var(--blue), var(--mint));
+  box-shadow: 0 0 80px rgba(255,255,255,0.4);
+  animation: rotateBorder 8s linear infinite, pulse 4s ease-in-out infinite;
+}
+.tier-modal-num {
+  font-size: 10px; letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--tm-c, var(--mint));
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.tier-modal-name {
+  font-size: 36px;
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.tier-modal-state {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+.tier-modal-freq {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--card);
+  border: 1px solid var(--border-hi);
+  border-radius: 100px;
+  font-size: 12px;
+  color: var(--mint);
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+}
+.tier-modal-teaching {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.souls-cluster {
+  position: relative;
+  height: 80px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.souls-cluster .soul-pt {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--tm-c, var(--mint));
+  box-shadow: 0 0 10px var(--tm-c, var(--mint));
+  animation: floatSoul 4s ease-in-out infinite;
+}
+@keyframes floatSoul {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50% { transform: translateY(-8px); opacity: 1; }
+}
+.tier-modal-presence {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+.tier-modal-presence strong { color: var(--text); }
+.tier-modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+.discover-page { padding: 8px 0 20px; }
+.discover-header { text-align: center; padding: 8px 20px 24px; }
+.discover-header h1 { font-size: 32px; font-weight: 200; letter-spacing: -0.02em; margin-bottom: 6px; }
+.discover-header p { font-size: 13px; color: var(--text-dim); }
+.swipe-stage { position: relative; width: calc(100% - 40px); max-width: 380px; height: 540px; margin: 0 auto; }
+.swipe-card { position: absolute; inset: 0; border-radius: 28px; overflow: hidden; background: var(--bg-2); border: 1px solid var(--border); backdrop-filter: blur(20px); cursor: grab; user-select: none; touch-action: none; transition: transform 0.3s var(--pop), opacity 0.3s var(--ease); display: flex; flex-direction: column; }
+.swipe-card.dragging { transition: none; cursor: grabbing; }
+.swipe-card-content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 24px; }
+.match-orb { width: 180px; height: 180px; border-radius: 50%; margin: 24px auto 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), var(--orbC, var(--violet)) 40%, rgba(0,0,0,0.6) 100%); box-shadow: 0 0 60px var(--orbC, var(--violet)), inset 0 0 60px rgba(255,255,255,0.1); animation: pulse 4s ease-in-out infinite; }
+.match-info { background: linear-gradient(180deg, transparent, rgba(0,0,0,0.85)); padding: 60px 24px 24px; margin: 0 -24px -24px; }
+.match-top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.match-name { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+.match-compat { background: var(--mint); color: #04140b; font-weight: 800; padding: 6px 12px; border-radius: 100px; font-size: 13px; }
+.match-freq-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.match-freq { font-size: 13px; background: rgba(110,231,183,0.15); color: var(--mint); padding: 4px 10px; border-radius: 100px; font-weight: 600; }
+.match-loc { font-size: 12px; color: var(--text-dim); }
+.match-bio { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.8); }
+.swipe-overlay { position: absolute; top: 32px; padding: 8px 16px; border-radius: 8px; font-size: 24px; font-weight: 800; letter-spacing: 4px; border: 3px solid; opacity: 0; transform: rotate(-15deg); pointer-events: none; z-index: 2; }
+.swipe-overlay.vibe { right: 24px; color: var(--mint); border-color: var(--mint); }
+.swipe-overlay.pass { left: 24px; color: var(--pink); border-color: var(--pink); transform: rotate(15deg); }
+.swipe-actions { display: flex; gap: 16px; justify-content: center; margin-top: 24px; }
+.swipe-btn { width: 60px; height: 60px; border-radius: 50%; background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; transition: all 0.2s var(--pop); font-size: 22px; }
+.swipe-btn:active { transform: scale(0.9); }
+.swipe-btn.pass { color: var(--pink); border-color: rgba(251,113,133,0.35); }
+.swipe-btn.vibe { width: 72px; height: 72px; background: linear-gradient(135deg, var(--mint), #34d399); color: #04140b; font-weight: 800; border: none; box-shadow: 0 8px 32px rgba(110,231,183,0.4); }
+.swipe-btn.info { color: var(--blue); border-color: rgba(96,165,250,0.35); }
+
+.match-modal { position: fixed; inset: 0; z-index: 200; background: rgba(5,5,7,0.9); backdrop-filter: blur(30px); display: none; align-items: center; justify-content: center; }
+.match-modal.show { display: flex; }
+.match-modal-content { text-align: center; padding: 32px; }
+.match-modal h2 {
+  font-size: 56px; font-weight: 800;
+  background: linear-gradient(135deg, var(--mint), var(--violet), var(--pink));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: -0.03em; margin-bottom: 12px;
+}
+.match-modal p { color: var(--text-dim); font-size: 15px; margin-bottom: 32px; }
+.match-orbs { display: flex; gap: 20px; justify-content: center; margin-bottom: 32px; }
+.match-orbs > div { width: 100px; height: 100px; border-radius: 50%; animation: pulse 3s ease-in-out infinite; }
+.match-modal-actions { display: flex; gap: 12px; justify-content: center; }
+
+.sync-page { padding: 8px 20px 12px; }
+.sync-header { text-align: center; margin-bottom: 16px; }
+.sync-mode-toggle { display: inline-flex; background: var(--card); border: 1px solid var(--border); border-radius: 100px; padding: 4px; backdrop-filter: blur(20px); }
+.sync-mode-toggle button { padding: 8px 16px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; color: var(--text-dim); border-radius: 100px; transition: all 0.3s var(--ease); }
+.sync-mode-toggle button.active { background: rgba(255,255,255,0.12); color: var(--text); }
+.orb-stage { position: relative; width: 300px; height: 300px; margin: 20px auto 0; }
+.spectrum-canvas { position: absolute; top: -40px; left: -40px; width: 380px; height: 380px; z-index: 1; pointer-events: none; }
+.main-orb {
+  position: absolute; inset: 0;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), var(--violet) 40%, rgba(10,10,30,0.95) 100%);
+  box-shadow: 0 0 80px var(--violet), inset 0 0 80px rgba(255,255,255,0.1);
+  animation: pulse 4s ease-in-out infinite;
+  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  cursor: grab; z-index: 2; user-select: none; touch-action: none;
+}
+.freq-display { text-align: center; margin: 40px 0 24px; }
+.freq-value { font-size: 72px; font-weight: 200; letter-spacing: -0.04em; line-height: 1; }
+.freq-unit { font-size: 12px; letter-spacing: 4px; color: var(--text-faint); margin-top: 6px; text-transform: uppercase; }
+.freq-meaning { margin-top: 14px; font-size: 13px; color: var(--text-dim); max-width: 320px; margin-left: auto; margin-right: auto; line-height: 1.5; min-height: 40px; }
+.detected-freq { margin-top: 10px; font-size: 11px; letter-spacing: 2px; color: var(--mint); opacity: 0; transition: opacity 0.3s; text-transform: uppercase; font-weight: 600; }
+.detected-freq.visible { opacity: 1; }
+.scroll-bar-section { margin: 24px auto 0; }
+.scroll-bar-section label { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 2px; color: var(--text-faint); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; }
+.voice-slider-section { margin-top: 14px; }
+.voice-slider-section input[type="range"] {
+  background: linear-gradient(90deg, #4a2c0e 0%, #8b6914 18%, #c97c5d 35%, #fbbf24 55%, #fde68a 70%, #e0e7ff 85%, #ffffff 100%);
+}
+input[type="range"] {
+  width: 100%; -webkit-appearance: none; appearance: none; height: 6px;
+  background: linear-gradient(90deg, #5d4a8a, #c97c5d, #e8c547, var(--mint), var(--blue), var(--violet));
+  border-radius: 3px; outline: none;
+}
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 4px 16px rgba(0,0,0,0.4); }
+input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: #fff; cursor: pointer; border: none; box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 4px 16px rgba(0,0,0,0.4); }
+.controls { display: flex; gap: 10px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+.btn { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 12px 22px; border-radius: 100px; font-size: 12px; letter-spacing: 1px; font-weight: 600; text-transform: uppercase; transition: all 0.2s var(--pop); backdrop-filter: blur(20px); }
+.btn:hover { background: var(--card-hi); border-color: var(--border-hi); }
+.btn:active { transform: scale(0.96); }
+.btn.primary { background: linear-gradient(135deg, #fff, #d4d4d8); color: #000; border: none; font-weight: 700; }
+.btn.active { background: var(--card-hi); border-color: var(--text); color: var(--text); }
+.mode-toggles { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.toggle { background: var(--card); border: 1px solid var(--border); color: var(--text-dim); padding: 8px 14px; border-radius: 100px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; transition: all 0.2s var(--ease); backdrop-filter: blur(20px); }
+.toggle.active { background: rgba(110,231,183,0.15); border-color: rgba(110,231,183,0.45); color: var(--mint); }
+.breathing-guide { text-align: center; margin-top: 28px; display: none; }
+.breathing-guide.active { display: block; }
+.breath-circle { width: 90px; height: 90px; border-radius: 50%; border: 2px solid rgba(110,231,183,0.45); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 10px; letter-spacing: 2px; color: var(--mint); animation: breathe 8s ease-in-out infinite; font-weight: 600; }
+@keyframes breathe { 0%, 100% { transform: scale(0.7); border-color: rgba(110,231,183,0.3); } 50% { transform: scale(1.1); border-color: rgba(110,231,183,0.9); } }
+.mic-row { display: flex; justify-content: center; margin-top: 16px; }
+.mic-indicator { display: flex; align-items: center; gap: 8px; background: var(--card); padding: 8px 14px; border-radius: 100px; font-size: 10px; letter-spacing: 1.5px; border: 1px solid var(--border); cursor: pointer; transition: all 0.3s var(--ease); text-transform: uppercase; font-weight: 600; backdrop-filter: blur(20px); }
+.mic-indicator.active { background: rgba(110,231,183,0.15); border-color: rgba(110,231,183,0.45); color: var(--mint); }
+.mic-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); }
+.mic-indicator.active .mic-dot { background: var(--mint); animation: dotPulse 1.5s ease-in-out infinite; }
+@keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
+
+.library-page { padding: 8px 0 12px; }
+.library-tabs { display: flex; gap: 8px; padding: 8px 20px 16px; overflow-x: auto; scrollbar-width: none; }
+.library-tabs::-webkit-scrollbar { display: none; }
+.lib-tab { background: var(--card); border: 1px solid var(--border); color: var(--text-dim); padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; white-space: nowrap; transition: all 0.2s var(--ease); backdrop-filter: blur(20px); }
+.lib-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.layer-info { text-align: center; margin: 0 auto 16px; font-size: 11px; letter-spacing: 1px; color: var(--text-dim); padding: 8px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 100px; display: inline-block; backdrop-filter: blur(20px); }
+.layer-info-wrap { text-align: center; padding: 0 20px; }
+.preset-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 12px 20px; }
+.preset-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; cursor: pointer; transition: all 0.2s var(--pop); position: relative; overflow: hidden; backdrop-filter: blur(20px); }
+.preset-card:hover { transform: translateY(-2px); background: var(--card-hi); }
+.preset-card.playing { background: rgba(110,231,183,0.08); border-color: rgba(110,231,183,0.4); }
+.preset-card.playing::before { content: ''; position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 12px var(--mint); animation: dotPulse 1.5s ease-in-out infinite; }
+.preset-hz { font-size: 22px; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 4px; }
+.preset-name { font-size: 11px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; font-weight: 600; }
+.preset-desc { font-size: 11px; color: var(--text-faint); line-height: 1.4; }
+.lib-section-title { font-size: 11px; letter-spacing: 3px; color: var(--text-faint); padding: 20px 20px 8px; text-transform: uppercase; font-weight: 700; }
+
+.profile-page { padding: 20px 20px 12px; }
+.profile-hero { text-align: center; padding: 20px 0 28px; }
+.profile-avatar {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--mint), var(--violet), var(--pink), var(--blue), var(--mint));
+  padding: 4px;
+  margin: 0 auto 16px;
+  animation: rotateBorder 8s linear infinite;
+}
+.profile-avatar > div { width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle at 30% 30%, var(--violet), #1a1a2e); display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: 700; overflow: hidden; }
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-name { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 4px; }
+.profile-handle { font-size: 13px; color: var(--text-dim); }
+.profile-tier {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 10px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(167,139,250,0.15));
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 100px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold);
+}
+.profile-level-card { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 18px 20px; margin-top: 20px; backdrop-filter: blur(20px); }
+.profile-level-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.profile-level-info { display: flex; align-items: center; gap: 10px; }
+.profile-level-info .level-badge { width: 32px; height: 32px; font-size: 14px; }
+.profile-level-info .lbl { font-size: 11px; letter-spacing: 1.5px; color: var(--text-faint); text-transform: uppercase; font-weight: 600; }
+.profile-level-info .lvl { font-size: 17px; font-weight: 700; margin-top: 1px; }
+.profile-level-xp { font-size: 12px; color: var(--text-dim); }
+.profile-xp-bar { height: 8px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+.profile-xp-fill { width: 64%; height: 100%; background: linear-gradient(90deg, var(--gold), var(--mint)); }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px 12px; text-align: center; backdrop-filter: blur(20px); }
+.stat-value { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.stat-label { font-size: 10px; letter-spacing: 1.5px; color: var(--text-faint); text-transform: uppercase; margin-top: 4px; font-weight: 600; }
+.badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+.badge { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 8px; text-align: center; backdrop-filter: blur(20px); }
+.badge.locked { opacity: 0.35; }
+.badge-emoji { font-size: 28px; margin-bottom: 4px; filter: drop-shadow(0 0 8px currentColor); }
+.badge-name { font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
+
+.tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; padding: 12px 20px 28px; background: linear-gradient(0deg, rgba(5,5,7,0.95) 60%, transparent); backdrop-filter: blur(30px); z-index: 100; }
+.tab-bar-inner { display: flex; align-items: center; justify-content: space-around; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; padding: 6px; backdrop-filter: blur(40px); }
+.tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border-radius: 100px; color: var(--text-faint); transition: color 0.2s var(--ease); }
+.tab-btn.active { color: var(--text); }
+.tab-btn svg { width: 22px; height: 22px; }
+.tab-btn span { font-size: 9px; letter-spacing: 0.8px; font-weight: 600; text-transform: uppercase; }
+.tab-btn.sync-tab { flex: 0 0 auto; margin: 0 -2px; }
+.tab-btn.sync-tab .sync-icon { width: 52px; height: 52px; border-radius: 50%; background: conic-gradient(from 0deg, var(--mint), var(--violet), var(--pink), var(--blue), var(--mint)); padding: 3px; margin-bottom: 2px; animation: rotateBorder 6s linear infinite; box-shadow: 0 0 24px rgba(167,139,250,0.4); }
+.tab-btn.sync-tab .sync-icon > div { width: 100%; height: 100%; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+.ripple { position: fixed; border-radius: 50%; border: 2px solid; pointer-events: none; animation: rippleOut 1.2s var(--ease) forwards; z-index: 50; transform: translate(-50%, -50%); }
+@keyframes rippleOut { 0% { width: 20px; height: 20px; opacity: 1; } 100% { width: 280px; height: 280px; opacity: 0; } }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<!-- ================= INITIATION GATE ================= -->
+<div class="gate" id="gate">
+
+  <!-- DEV SKIP -->
+  <button id="devSkipBtn" style="position:fixed; top:16px; right:16px; z-index:1100; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.55); padding:8px 14px; border-radius:100px; font-size:10px; letter-spacing:2px; font-weight:600; text-transform:uppercase; cursor:pointer; backdrop-filter:blur(20px); font-family:inherit;">Skip · Dev</button>
+
+  <!-- Step 1: Manifesto -->
+  <div class="gate-step active" data-step="1">
+    <div class="gate-content">
+      <div class="gate-glyph">◎</div>
+      <div class="gate-label">Resonance</div>
+      <h1 class="gate-title">This is <em>not</em> a social app.</h1>
+      <p class="gate-text">Every other platform rewards the version of you that performs. Here, only the inward self gains access.<br><br><strong>Only those living in alignment with their highest path may enter.</strong></p>
+      <button class="gate-btn" onclick="goToStep(2)">Begin Initiation</button>
+    </div>
+  </div>
+
+  <!-- Step 2: How it works -->
+  <div class="gate-step" data-step="2">
+    <div class="gate-content">
+      <div class="gate-label">The Initiation</div>
+      <h1 class="gate-title">Three signals reveal your <em>state</em>.</h1>
+      <div class="gate-list">
+        <div class="gate-list-item"><div class="num">1</div><div><strong style="color:var(--text);">Your face.</strong> A still capture reveals the energetic field you carry today.</div></div>
+        <div class="gate-list-item"><div class="num">2</div><div><strong style="color:var(--text);">Your frequency.</strong> Eight seconds of your ambient resonance. Breathe naturally.</div></div>
+        <div class="gate-list-item"><div class="num">3</div><div><strong style="color:var(--text);">Your alignment.</strong> The system measures coherence between the two.</div></div>
+      </div>
+      <p class="gate-text" style="margin-top:8px;">The inner world only opens for those who are genuinely walking their path. There is no faking this.</p>
+      <button class="gate-btn" onclick="goToStep(3)">I'm Ready</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Photo capture -->
+  <div class="gate-step" data-step="3">
+    <div class="gate-content">
+      <div class="gate-label">Step 1 of 3</div>
+      <h1 class="gate-title" style="font-size:30px;">Show your <em>face</em>.</h1>
+      <p class="gate-text">Position your face in the circle. Look directly at the camera. No filters, no posing — present yourself as you are.</p>
+      <div class="photo-frame" id="photoFrame">
+        <div class="placeholder" id="photoPlaceholder">◐</div>
+        <video id="cameraVideo" autoplay playsinline style="display:none;"></video>
+        <canvas id="photoCanvas" style="display:none;"></canvas>
+        <img id="photoImg" style="display:none;" alt="">
+        <div class="scan-line"></div>
+      </div>
+      <input type="file" accept="image/*" capture="user" class="photo-input" id="photoInput">
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="gate-btn ghost" id="startCameraBtn">Use Camera</button>
+        <button class="gate-btn ghost" id="uploadBtn">Upload Photo</button>
+      </div>
+      <div class="gate-divider"></div>
+      <button class="gate-btn" id="capturePhotoBtn" style="display:none;">Capture</button>
+      <button class="gate-btn" id="retakePhotoBtn" style="display:none;">Retake</button>
+      <button class="gate-btn" id="confirmPhotoBtn" style="display:none; margin-left:8px;">Confirm</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Frequency scan -->
+  <div class="gate-step" data-step="4">
+    <div class="gate-content">
+      <div class="gate-label">Step 2 of 3</div>
+      <h1 class="gate-title" style="font-size:30px;">Reveal your <em>frequency</em>.</h1>
+      <p class="gate-text">Eight seconds of stillness. Breathe naturally. The sensor will read your ambient resonance.</p>
+      <div class="scan-orb-stage">
+        <canvas class="scan-canvas" id="scanCanvas"></canvas>
+        <div class="scan-orb" id="scanOrb"></div>
+      </div>
+      <div class="scan-readout" id="scanReadout">Awaiting signal…</div>
+      <div class="scan-progress"><div class="scan-progress-fill" id="scanFill"></div></div>
+      <div class="gate-divider"></div>
+      <button class="gate-btn" id="startScanBtn">Begin Scan</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Calculating -->
+  <div class="gate-step" data-step="5">
+    <div class="gate-content">
+      <div class="calc-orb"><div id="calcGlyph">∞</div></div>
+      <div class="gate-label">Measuring Coherence</div>
+      <h1 class="gate-title" style="font-size:24px; margin-top:8px;">Determining your <em>alignment</em>…</h1>
+      <div class="calc-status" id="calcStatus">Reading energetic field…</div>
+    </div>
+  </div>
+
+  <!-- Step 6: Verdict (ascended) -->
+  <div class="gate-step" data-step="6">
+    <div class="gate-content">
+      <div class="verdict-glyph ascended">◎</div>
+      <div class="verdict-label">Ascended</div>
+      <h1 class="gate-title">You are walking your <em>path</em>.</h1>
+      <div class="verdict-score">
+        <div>
+          <div class="verdict-score-lbl">Alignment</div>
+          <div class="verdict-score-val" id="finalScore">—</div>
+        </div>
+        <div style="width:1px; height:32px; background:var(--border-hi);"></div>
+        <div>
+          <div class="verdict-score-lbl">Frequency</div>
+          <div class="verdict-score-val" id="finalFreq">—</div>
+        </div>
+        <div style="width:1px; height:32px; background:var(--border-hi);"></div>
+        <div>
+          <div class="verdict-score-lbl">Tier</div>
+          <div class="verdict-score-val" id="finalTier" style="color:var(--mint);">—</div>
+        </div>
+      </div>
+      <p class="gate-text">The inner world is now open to you. Welcome.</p>
+      <button class="gate-btn" id="enterInnerBtn">Enter The Inner World</button>
+    </div>
+  </div>
+
+  <!-- Step 7: Not yet (low alignment) -->
+  <div class="gate-step" data-step="7">
+    <div class="gate-content">
+      <div class="verdict-glyph" style="color:var(--text-dim);">◌</div>
+      <div class="verdict-label" style="color:var(--text-faint);">Not Yet</div>
+      <h1 class="gate-title">Your path <em>continues</em>.</h1>
+      <p class="gate-text">Your current alignment isn't ready for the inner world. This is not a judgment — it is an invitation. Return when you have done the work.</p>
+      <p class="gate-text" style="font-size:13px;">Suggested practices: meditation, breathwork, time in nature, honest self-inquiry.</p>
+      <button class="gate-btn ghost" onclick="goToStep(3)">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP (inner world) ================= -->
+<div class="app" id="app">
+  <div class="status-bar">
+    <div class="user-tag">
+      <div class="avatar-mini"><div id="userAvatarMini">E</div></div>
+      <div class="greeting-row">
+        <div class="greet">Inner World</div>
+        <div class="name" id="userGreetName">Hey, Soul</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <div class="streak">🔥 7</div>
+      <div class="level-pill">
+        <div class="level-badge">7</div>
+        <div class="xp-bar"><div class="xp-fill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page active" id="page-feed">
+    <div class="feed-v2">
+      <!-- Hero: your current frequency state -->
+      <div class="freq-hero" id="freqHero">
+        <div class="freq-hero-label">You're Resonating At</div>
+        <div class="freq-hero-value"><span id="heroFreq">432</span><span class="hz-unit">Hz</span></div>
+        <div class="freq-hero-state" id="heroState">The natural tuning. Heart center resonance.</div>
+        <svg class="freq-hero-waveform" id="heroWave" viewBox="0 0 400 32" preserveAspectRatio="none">
+          <path d="" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" id="heroWavePath"/>
+        </svg>
+        <div class="freq-hero-meta">
+          <span><div class="dot"></div><span id="heroTier">Initiate</span></span>
+          <span>· <span id="heroTime">Morning</span></span>
+          <span>· <span id="heroSession">No active session</span></span>
+        </div>
+      </div>
+
+      <!-- Memories strip -->
+      <div class="section-poetic">
+        <h2>Your memories</h2>
+        <div class="sub">Frequency over time</div>
+      </div>
+      <div class="memories-strip" id="memoriesStrip"></div>
+
+      <!-- Live souls -->
+      <div class="section-poetic" style="padding-top:20px;">
+        <h2>Live now</h2>
+        <div class="sub">In your field</div>
+      </div>
+      <div class="stories" id="storiesRow"></div>
+
+      <!-- Daily quest -->
+      <div class="quest" style="margin-top:8px;">
+        <div class="quest-icon">⚡</div>
+        <div class="quest-title">Today's Path</div>
+        <div class="quest-name">Sync to 528 Hz</div>
+        <div class="quest-desc">Hit the miracle frequency for 3 minutes today</div>
+        <div class="quest-progress">
+          <div class="quest-bar"><div class="quest-bar-fill" id="questFill"></div></div>
+          <div class="quest-reward">+250 XP</div>
+        </div>
+      </div>
+
+      <!-- Curated tiered feed -->
+      <div class="feed-curated" id="feedCurated"></div>
+    </div>
+  </div>
+
+  <!-- Memory modal -->
+  <div class="mem-modal" id="memModal">
+    <div class="mem-modal-card">
+      <button class="mem-modal-close" id="memModalClose">✕</button>
+      <div class="mem-modal-orb" id="memModalOrb"></div>
+      <div class="mem-modal-freq"><span id="memModalFreq">—</span> <span style="font-size:18px; color:var(--text-faint);">Hz</span></div>
+      <div class="mem-modal-state" id="memModalState">—</div>
+      <div class="mem-modal-time" id="memModalTime">—</div>
+      <div class="mem-modal-actions">
+        <button class="btn primary" id="memReliveBtn">Relive</button>
+        <button class="btn" id="memDeleteBtn">Release</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-discover">
+    <div class="ascend-page">
+      <div class="ascend-header">
+        <div class="ascend-eyebrow">The Path Inward</div>
+        <h1>Ascend</h1>
+        <p>The only way out is up. The only way up is in.</p>
+        <div class="ascend-current" id="ascendCurrent">
+          <div class="ac-label">You are here</div>
+          <div class="ac-tier">—</div>
+          <div class="ac-freq">— Hz</div>
+        </div>
+      </div>
+      <div class="ladder" id="ladder"></div>
+    </div>
+  </div>
+
+  <!-- Tier modal -->
+  <div class="tier-modal" id="tierModal">
+    <div class="tier-modal-bg" id="tierModalBg"></div>
+    <button class="tier-modal-close" id="tierModalClose">✕</button>
+    <div class="tier-modal-content">
+      <div class="tier-modal-orb" id="tierModalOrb"></div>
+      <div class="tier-modal-num" id="tierModalNum">—</div>
+      <div class="tier-modal-name" id="tierModalName">—</div>
+      <div class="tier-modal-state" id="tierModalState">—</div>
+      <div class="tier-modal-freq" id="tierModalFreq">—</div>
+      <div class="tier-modal-teaching" id="tierModalTeaching">—</div>
+      <div class="souls-cluster" id="tierModalSouls"></div>
+      <div class="tier-modal-presence" id="tierModalPresence">—</div>
+      <div class="tier-modal-actions">
+        <button class="btn" id="tierModalSkip">Close</button>
+        <button class="btn primary" id="tierModalEnter">Enter This Tier</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-sync">
+    <div class="sync-page">
+      <div class="sync-header">
+        <div class="sync-mode-toggle">
+          <button class="active" data-mode="manual">Manual</button>
+          <button data-mode="auto">Auto</button>
+        </div>
+      </div>
+      <div class="orb-stage">
+        <canvas class="spectrum-canvas" id="spectrumCanvas"></canvas>
+        <div class="main-orb" id="mainOrb"></div>
+      </div>
+      <div class="freq-display">
+        <div class="freq-value" id="manualFreq">432</div>
+        <div class="freq-unit">Hertz</div>
+        <div class="freq-meaning" id="manualMeaning">The natural tuning. Heart resonance, cosmic alignment.</div>
+        <div class="detected-freq" id="detectedFreq">Detected: 0 Hz</div>
+      </div>
+      <div class="scroll-bar-section">
+        <label><span>20 Hz</span><span>Sweep</span><span>1000 Hz</span></label>
+        <input type="range" id="freqSlider" min="20" max="1000" value="432" step="1">
+      </div>
+      <div class="scroll-bar-section voice-slider-section">
+        <label><span>Earth · Organ</span><span>Voice</span><span>Heaven · Shimmer</span></label>
+        <input type="range" id="voiceSlider" min="0" max="100" value="50" step="1">
+      </div>
+      <div class="controls"><button class="btn primary" id="manualPlay">Begin Sync</button></div>
+      <div class="mode-toggles">
+        <button class="toggle" id="binauralToggle">Binaural</button>
+        <button class="toggle" id="harmonicToggle">Harmonics</button>
+        <button class="toggle" id="breathToggle">Breath</button>
+      </div>
+      <div class="mic-row"><div class="mic-indicator" id="micBtn"><div class="mic-dot"></div><span id="micLabel">Activate sensor</span></div></div>
+      <div class="breathing-guide" id="breathGuide">
+        <div class="breath-circle">BREATHE</div>
+        <div style="font-size: 11px; color: var(--text-faint); letter-spacing: 2px;">4-4 RHYTHM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-library">
+    <div class="library-page">
+      <div class="library-tabs">
+        <button class="lib-tab active" data-tab="divine">Divine</button>
+        <button class="lib-tab" data-tab="universal">Universal</button>
+        <button class="lib-tab" data-tab="custom">My Library</button>
+      </div>
+      <div class="layer-info-wrap"><div class="layer-info" id="layerInfo">Tap to play · Layer multiple together</div></div>
+      <div class="lib-content" id="content-divine">
+        <div class="lib-section-title">Solfeggio</div><div class="preset-list" id="solfeggioList"></div>
+        <div class="lib-section-title">Chakras</div><div class="preset-list" id="chakraList"></div>
+        <div class="lib-section-title">Sacred</div><div class="preset-list" id="sacredList"></div>
+      </div>
+      <div class="lib-content" id="content-universal" style="display:none;">
+        <div class="lib-section-title">Planetary</div><div class="preset-list" id="planetaryList"></div>
+        <div class="lib-section-title">Earth & Elements</div><div class="preset-list" id="elementalList"></div>
+      </div>
+      <div class="lib-content" id="content-custom" style="display:none;">
+        <div style="text-align:center; padding: 60px 24px; color: var(--text-dim);">
+          <div style="font-size: 36px; margin-bottom: 8px;">✦</div>
+          <div style="font-size: 14px; margin-bottom: 6px; color: var(--text);">Your saved frequencies</div>
+          <div style="font-size: 12px;">Long-press any preset to save it here</div>
+        </div>
+      </div>
+      <div style="text-align: center; margin: 24px 0;"><button class="btn" id="clearLayers">Clear All Tones</button></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-you">
+    <div class="profile-page">
+      <div class="profile-hero">
+        <div class="profile-avatar"><div id="profileAvatar">E</div></div>
+        <div class="profile-name" id="profileName">Soul</div>
+        <div class="profile-handle">Resonating at <span style="color:var(--mint);" id="profileFreqDisp">432 Hz</span></div>
+        <div class="profile-tier" id="profileTier">◎ Initiated</div>
+      </div>
+      <div class="profile-level-card">
+        <div class="profile-level-row">
+          <div class="profile-level-info">
+            <div class="level-badge">7</div>
+            <div><div class="lbl">Frequency Level</div><div class="lvl">Resonator</div></div>
+          </div>
+          <div class="profile-level-xp">3,250 / 5,000 XP</div>
+        </div>
+        <div class="profile-xp-bar"><div class="profile-xp-fill"></div></div>
+      </div>
+      <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Stats</h2></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="statAlign">—</div><div class="stat-label">Alignment</div></div>
+        <div class="stat-card"><div class="stat-value">147</div><div class="stat-label">Sessions</div></div>
+        <div class="stat-card"><div class="stat-value">38h</div><div class="stat-label">Synced</div></div>
+      </div>
+      <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Badges</h2><button class="see-all">View all</button></div>
+      <div class="badge-grid">
+        <div class="badge" style="color:var(--gold);"><div class="badge-emoji">◎</div><div class="badge-name">Initiated</div></div>
+        <div class="badge" style="color:var(--mint);"><div class="badge-emoji">🌊</div><div class="badge-name">First Sync</div></div>
+        <div class="badge" style="color:var(--violet);"><div class="badge-emoji">✨</div><div class="badge-name">528 Master</div></div>
+        <div class="badge" style="color:var(--pink);"><div class="badge-emoji">💖</div><div class="badge-name">10 Vibes</div></div>
+        <div class="badge" style="color:var(--blue);"><div class="badge-emoji">🌀</div><div class="badge-name">Crown Open</div></div>
+        <div class="badge locked"><div class="badge-emoji">🔮</div><div class="badge-name">Locked</div></div>
+        <div class="badge locked"><div class="badge-emoji">⭐</div><div class="badge-name">Locked</div></div>
+        <div class="badge locked"><div class="badge-emoji">👁</div><div class="badge-name">Locked</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-bar-inner">
+      <button class="tab-btn active" data-tab="feed"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h14V10"/></svg><span>Feed</span></button>
+      <button class="tab-btn" data-tab="discover"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L4 9h4v11h8V9h4z"/></svg><span>Ascend</span></button>
+      <button class="tab-btn sync-tab" data-tab="sync"><div class="sync-icon"><div>◎</div></div><span>Sync</span></button>
+      <button class="tab-btn" data-tab="library"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6v15M4 6a2 2 0 012-2h12a2 2 0 012 2v15M9 21V9h6v12"/></svg><span>Library</span></button>
+      <button class="tab-btn" data-tab="you"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>You</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="match-modal" id="matchModal">
+  <div class="match-modal-content">
+    <h2>It's a Vibe!</h2>
+    <p id="matchSubtitle">You and Sage are resonating</p>
+    <div class="match-orbs">
+      <div style="background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), var(--violet), rgba(20,10,40,0.9)); box-shadow: 0 0 40px var(--violet);"></div>
+      <div style="background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), var(--mint), rgba(0,40,30,0.9)); box-shadow: 0 0 40px var(--mint);"></div>
+    </div>
+    <div class="match-modal-actions">
+      <button class="btn" id="closeMatch">Keep Discovering</button>
+      <button class="btn primary" id="goToChat">Send a Wave</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =================== STATE ===================
+let userPhoto = null;
+let userFreq = 432;
+let userAlignment = 0;
+let scanFreqs = [];
+let scanStream = null;
+let cameraStream = null;
+
+// =================== GATE FLOW ===================
+function goToStep(n) {
+  document.querySelectorAll('.gate-step').forEach(s => s.classList.remove('active'));
+  document.querySelector(`.gate-step[data-step="${n}"]`).classList.add('active');
+}
+
+// Photo capture
+const photoFrame = document.getElementById('photoFrame');
+const cameraVideo = document.getElementById('cameraVideo');
+const photoCanvas = document.getElementById('photoCanvas');
+const photoImg = document.getElementById('photoImg');
+const photoPlaceholder = document.getElementById('photoPlaceholder');
+const photoInput = document.getElementById('photoInput');
+
+document.getElementById('startCameraBtn').addEventListener('click', async () => {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+    cameraVideo.srcObject = cameraStream;
+    cameraVideo.style.display = 'block';
+    photoPlaceholder.style.display = 'none';
+    photoFrame.classList.add('scanning');
+    document.getElementById('capturePhotoBtn').style.display = 'inline-block';
+    document.getElementById('startCameraBtn').style.display = 'none';
+    document.getElementById('uploadBtn').style.display = 'none';
+  } catch (err) {
+    alert('Camera access needed. Try uploading a photo instead.');
+  }
+});
+
+document.getElementById('uploadBtn').addEventListener('click', () => photoInput.click());
+photoInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    photoImg.src = ev.target.result;
+    photoImg.style.display = 'block';
+    photoPlaceholder.style.display = 'none';
+    userPhoto = ev.target.result;
+    document.getElementById('startCameraBtn').style.display = 'none';
+    document.getElementById('uploadBtn').style.display = 'none';
+    document.getElementById('confirmPhotoBtn').style.display = 'inline-block';
+    document.getElementById('retakePhotoBtn').style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('capturePhotoBtn').addEventListener('click', () => {
+  photoCanvas.width = cameraVideo.videoWidth;
+  photoCanvas.height = cameraVideo.videoHeight;
+  const ctx = photoCanvas.getContext('2d');
+  ctx.translate(photoCanvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(cameraVideo, 0, 0);
+  userPhoto = photoCanvas.toDataURL('image/jpeg');
+  photoImg.src = userPhoto;
+  photoImg.style.display = 'block';
+  cameraVideo.style.display = 'none';
+  photoFrame.classList.remove('scanning');
+  if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+  document.getElementById('capturePhotoBtn').style.display = 'none';
+  document.getElementById('confirmPhotoBtn').style.display = 'inline-block';
+  document.getElementById('retakePhotoBtn').style.display = 'inline-block';
+});
+
+document.getElementById('retakePhotoBtn').addEventListener('click', () => {
+  photoImg.style.display = 'none';
+  photoPlaceholder.style.display = 'block';
+  userPhoto = null;
+  document.getElementById('confirmPhotoBtn').style.display = 'none';
+  document.getElementById('retakePhotoBtn').style.display = 'none';
+  document.getElementById('startCameraBtn').style.display = 'inline-block';
+  document.getElementById('uploadBtn').style.display = 'inline-block';
+});
+
+document.getElementById('confirmPhotoBtn').addEventListener('click', () => goToStep(4));
+
+// Frequency scan
+let scanRunning = false;
+const scanCanvas = document.getElementById('scanCanvas');
+const scanCtx = scanCanvas.getContext('2d');
+scanCanvas.width = 200; scanCanvas.height = 200;
+
+document.getElementById('startScanBtn').addEventListener('click', async () => {
+  if (scanRunning) return;
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    await Tone.start();
+    const ctx = Tone.context;
+    const src = ctx.createMediaStreamSource(scanStream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 4096;
+    src.connect(analyser);
+    scanRunning = true;
+    scanFreqs = [];
+    document.getElementById('startScanBtn').textContent = 'Scanning…';
+    document.getElementById('startScanBtn').disabled = true;
+    document.getElementById('scanReadout').textContent = 'Reading…';
+    const SCAN_DURATION = 8000;
+    const startTime = Date.now();
+
+    function tick() {
+      if (!scanRunning) return;
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min(100, (elapsed / SCAN_DURATION) * 100);
+      document.getElementById('scanFill').style.width = pct + '%';
+
+      const buf = new Float32Array(analyser.frequencyBinCount);
+      analyser.getFloatFrequencyData(buf);
+      let max = -Infinity, idx = 0;
+      for (let i = 2; i < buf.length; i++) if (buf[i] > max) { max = buf[i]; idx = i; }
+      const hz = Math.round((idx * ctx.sampleRate) / analyser.fftSize);
+      if (max > -95 && hz > 20 && hz < 2000) {
+        scanFreqs.push(hz);
+        document.getElementById('scanReadout').textContent = `${hz} Hz`;
+      } else {
+        document.getElementById('scanReadout').textContent = `Reading… ${Math.ceil((SCAN_DURATION - elapsed) / 1000)}s`;
+      }
+      // Visualize
+      scanCtx.clearRect(0, 0, 200, 200);
+      const cx = 100, cy = 100;
+      scanCtx.strokeStyle = '#a78bfa';
+      scanCtx.lineWidth = 1.2;
+      scanCtx.globalAlpha = 0.6;
+      scanCtx.beginPath();
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      for (let i = 0; i < 128; i++) {
+        const angle = (i / 128) * Math.PI * 2 - Math.PI / 2;
+        const r = 78 + (data[i] / 255) * 22;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        if (i === 0) scanCtx.moveTo(x, y); else scanCtx.lineTo(x, y);
+      }
+      scanCtx.closePath();
+      scanCtx.stroke();
+
+      if (elapsed >= SCAN_DURATION) {
+        scanRunning = false;
+        scanStream.getTracks().forEach(t => t.stop());
+        // compute average freq, fallback to a default vibrational baseline
+        if (scanFreqs.length === 0) scanFreqs = [Math.floor(Math.random() * 200) + 400];
+        const avg = scanFreqs.reduce((a,b) => a+b, 0) / scanFreqs.length;
+        userFreq = Math.round(avg);
+        goToStep(5);
+        runCalculation();
+        return;
+      }
+      requestAnimationFrame(tick);
+    }
+    tick();
+  } catch (err) {
+    // Mic denied or unavailable — let user continue with default baseline
+    document.getElementById('scanReadout').textContent = 'Sensor unavailable — proceeding with baseline';
+    document.getElementById('scanFill').style.width = '100%';
+    setTimeout(() => {
+      userFreq = Math.floor(Math.random() * 200) + 400;
+      goToStep(5);
+      runCalculation();
+    }, 1500);
+  }
+});
+
+// Calculation animation
+function runCalculation() {
+  const status = document.getElementById('calcStatus');
+  const glyph = document.getElementById('calcGlyph');
+  const phases = [
+    { t: 'Reading energetic field…', g: '◐' },
+    { t: 'Mapping frequency signature…', g: '◑' },
+    { t: 'Calculating coherence…', g: '◒' },
+    { t: 'Measuring alignment…', g: '◓' },
+    { t: 'Determining tier…', g: '∞' }
+  ];
+  let i = 0;
+  const interval = setInterval(() => {
+    status.textContent = phases[i].t;
+    glyph.textContent = phases[i].g;
+    i++;
+    if (i >= phases.length) {
+      clearInterval(interval);
+      setTimeout(showVerdict, 800);
+    }
+  }, 700);
+}
+
+function showVerdict() {
+  // Compute alignment score (generous — most users pass)
+  // Bias toward passing while still feeling earned
+  const baseScore = 60 + Math.random() * 35; // 60-95
+  // Frequency contribution
+  let freqBonus = 0;
+  if (userFreq > 100 && userFreq < 1500) freqBonus = 5;
+  userAlignment = Math.min(99, Math.round(baseScore + freqBonus));
+
+  const tier =
+    userAlignment >= 90 ? 'Sage' :
+    userAlignment >= 80 ? 'Adept' :
+    userAlignment >= 70 ? 'Seeker' :
+    'Initiate';
+
+  document.getElementById('finalScore').textContent = userAlignment;
+  document.getElementById('finalFreq').textContent = userFreq + ' Hz';
+  document.getElementById('finalTier').textContent = tier;
+
+  // Pass threshold: 65+
+  if (userAlignment >= 65) {
+    goToStep(6);
+  } else {
+    goToStep(7);
+  }
+}
+
+document.getElementById('enterInnerBtn').addEventListener('click', () => {
+  // Apply user data to app
+  if (userPhoto) {
+    document.getElementById('userAvatarMini').innerHTML = `<img src="${userPhoto}">`;
+    document.getElementById('profileAvatar').innerHTML = `<img src="${userPhoto}">`;
+  }
+  document.getElementById('profileFreqDisp').textContent = userFreq + ' Hz';
+  document.getElementById('statAlign').textContent = userAlignment;
+  const tier = userAlignment >= 90 ? '✦ Sage' : userAlignment >= 80 ? '◇ Adept' : userAlignment >= 70 ? '◎ Seeker' : '◌ Initiate';
+  document.getElementById('profileTier').textContent = tier;
+  applyFrequency(userFreq);
+
+  // Portal opening transition
+  const gate = document.getElementById('gate');
+  gate.style.transition = 'opacity 1s var(--ease)';
+  gate.style.opacity = '0';
+  setTimeout(() => {
+    gate.style.display = 'none';
+    document.getElementById('app').classList.add('unlocked');
+  }, 1000);
+});
+
+// DEV SKIP — bypass initiation entirely
+document.getElementById('devSkipBtn').addEventListener('click', () => {
+  userFreq = 432;
+  userAlignment = 88;
+  // Stop any active streams
+  if (scanRunning) { scanRunning = false; if (scanStream) scanStream.getTracks().forEach(t => t.stop()); }
+  if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+  document.getElementById('profileFreqDisp').textContent = '432 Hz';
+  document.getElementById('statAlign').textContent = '88';
+  document.getElementById('profileTier').textContent = '◇ Adept';
+  applyFrequency(432);
+  const gate = document.getElementById('gate');
+  gate.style.display = 'none';
+  document.getElementById('app').classList.add('unlocked');
+  // Seed memories so feed feels populated
+  if (memories && memories.length === 0) {
+    saveMemory(432, 'Dev entry');
+    const seeds = [
+      { freq: 528, label: 'Heart opening', offset: 3600000 * 2 },
+      { freq: 432, label: 'Morning sync', offset: 3600000 * 8 },
+      { freq: 396, label: 'Release', offset: 3600000 * 26 },
+      { freq: 963, label: 'Crown · 18m', offset: 3600000 * 52 }
+    ];
+    seeds.forEach(s => memories.push({ id: Date.now() - s.offset, freq: s.freq, label: s.label, time: Date.now() - s.offset }));
+    persistMemories();
+    renderMemories();
+  }
+});
+
+// =================== AUDIO ENGINE ===================
+let audioReady = false;
+let masterGain, mainFilter, hiShelf, reverb, analyserMain;
+const activeTones = new Map();
+let micStream = null, micAnalyser = null, micActive = false;
+let binauralMode = false, harmonicMode = false, autoSweep = false;
+let sweepDir = 1;
+let voice = 0.5; // 0 = earth/organ, 1 = heaven/shimmer
+
+async function ensureAudio() {
+  if (audioReady) return;
+  await Tone.start();
+  reverb = new Tone.Reverb({ decay: 12, wet: 0.55 }).toDestination();
+  hiShelf = new Tone.EQ3({ low: 0, mid: 0, high: 0, lowFrequency: 400, highFrequency: 2500 }).connect(reverb);
+  mainFilter = new Tone.Filter({ frequency: 3500, type: 'lowpass', Q: 0.7 }).connect(hiShelf);
+  masterGain = new Tone.Gain(0.4).connect(mainFilter);
+  analyserMain = new Tone.Analyser('fft', 256);
+  masterGain.connect(analyserMain);
+  applyVoiceToMaster();
+  audioReady = true;
+}
+
+// Voice maps: 0 (earth/organ) → 1 (heaven/shimmer)
+function voiceGains(v) {
+  // gentle s-curve so middle feels balanced
+  const s = v;
+  return {
+    sub: (1 - s) * 0.32,       // sub octave: warm, organ pedal — loud low, off high
+    fifth: (1 - s) * 0.18,      // perfect fifth: organ stop fullness
+    fund: 0.42 - Math.abs(s - 0.5) * 0.04, // fundamental: always present
+    oct: 0.12 + s * 0.18,       // octave up: subtle low, prominent high
+    oct2: Math.max(0, s - 0.35) * 0.16, // 2-octave shimmer: only when high
+    detune: s * 7               // chorus detune for choir effect at high
+  };
+}
+
+function applyVoiceToMaster() {
+  if (!audioReady) return;
+  // Filter cutoff: ~600 Hz at earth, ~14000 Hz at heaven
+  const cutoff = 600 * Math.pow(23, voice);
+  mainFilter.frequency.rampTo(cutoff, 0.4);
+  // Reverb wet: drier at earth, washy cathedral at heaven
+  reverb.wet.rampTo(0.4 + voice * 0.45, 0.4);
+  // High-shelf boost for shimmer
+  hiShelf.high.rampTo(voice * 8 - 2, 0.4);
+  hiShelf.low.rampTo((1 - voice) * 4 - 1, 0.4);
+}
+
+function applyVoiceToTone(t) {
+  if (!t) return;
+  const g = voiceGains(voice);
+  if (t.subGain) t.subGain.gain.rampTo(g.sub, 0.4);
+  if (t.fifthGain) t.fifthGain.gain.rampTo(g.fifth, 0.4);
+  if (t.gain) t.gain.gain.rampTo(g.fund, 0.4);
+  if (t.octGain) t.octGain.gain.rampTo(g.oct, 0.4);
+  if (t.oct2Gain) t.oct2Gain.gain.rampTo(g.oct2, 0.4);
+  // detune for choir feel
+  if (t.octDetune) t.octDetune.detune.rampTo(g.detune, 0.4);
+  if (t.oct2Detune) t.oct2Detune.detune.rampTo(-g.detune * 1.3, 0.4);
+}
+
+function applyVoiceToAll() {
+  applyVoiceToMaster();
+  for (const t of activeTones.values()) applyVoiceToTone(t);
+}
+
+function startTone(hz, label) {
+  if (activeTones.has(hz)) return;
+  const panner = new Tone.Panner(binauralMode ? -0.8 : 0).connect(masterGain);
+  const g = voiceGains(voice);
+
+  // Fundamental (sine — pure tone)
+  const osc = new Tone.Oscillator(hz, 'sine');
+  const gain = new Tone.Gain(0).connect(panner);
+  osc.connect(gain); osc.start();
+  gain.gain.rampTo(g.fund, 0.6);
+
+  // Sub octave (triangle — warmth & body, organ pedal)
+  const subOsc = new Tone.Oscillator(hz / 2, 'triangle');
+  const subGain = new Tone.Gain(0).connect(panner);
+  subOsc.connect(subGain); subOsc.start();
+  subGain.gain.rampTo(g.sub, 0.6);
+
+  // Perfect fifth (sine — organ-like fullness)
+  const fifthOsc = new Tone.Oscillator(hz * 1.5, 'sine');
+  const fifthGain = new Tone.Gain(0).connect(panner);
+  fifthOsc.connect(fifthGain); fifthOsc.start();
+  fifthGain.gain.rampTo(g.fifth, 0.6);
+
+  // Octave up — shimmer, slight detune for choir
+  const octOsc = new Tone.Oscillator(hz * 2, 'sine');
+  octOsc.detune.value = g.detune;
+  const octGain = new Tone.Gain(0).connect(panner);
+  octOsc.connect(octGain); octOsc.start();
+  octGain.gain.rampTo(g.oct, 0.6);
+
+  // Two octaves up — angelic shimmer
+  const oct2Osc = new Tone.Oscillator(hz * 4, 'sine');
+  oct2Osc.detune.value = -g.detune * 1.3;
+  const oct2Gain = new Tone.Gain(0).connect(panner);
+  oct2Osc.connect(oct2Gain); oct2Osc.start();
+  oct2Gain.gain.rampTo(g.oct2, 0.6);
+
+  let h2 = null, h3 = null, h2g = null, h3g = null;
+  if (harmonicMode) {
+    h2g = new Tone.Gain(0.15).connect(panner);
+    h2 = new Tone.Oscillator(hz * 3, 'sine');
+    h2.connect(h2g); h2.start();
+    h3g = new Tone.Gain(0.08).connect(panner);
+    h3 = new Tone.Oscillator(hz * 5, 'sine');
+    h3.connect(h3g); h3.start();
+  }
+  let binauralOsc = null, binauralGain = null, rPanner = null;
+  if (binauralMode) {
+    binauralOsc = new Tone.Oscillator(hz + 7, 'sine');
+    binauralGain = new Tone.Gain(0.4);
+    rPanner = new Tone.Panner(0.8).connect(masterGain);
+    binauralOsc.connect(binauralGain);
+    binauralGain.connect(rPanner);
+    binauralOsc.start();
+  }
+
+  activeTones.set(hz, {
+    osc, gain, panner,
+    subOsc, subGain,
+    fifthOsc, fifthGain,
+    octOsc, octGain, octDetune: octOsc,
+    oct2Osc, oct2Gain, oct2Detune: oct2Osc,
+    h2, h3, h2g, h3g,
+    binauralOsc, binauralGain, rPanner,
+    label
+  });
+}
+
+function stopTone(hz) {
+  const t = activeTones.get(hz);
+  if (!t) return;
+  t.gain.gain.rampTo(0, 0.4);
+  if (t.subGain) t.subGain.gain.rampTo(0, 0.4);
+  if (t.fifthGain) t.fifthGain.gain.rampTo(0, 0.4);
+  if (t.octGain) t.octGain.gain.rampTo(0, 0.4);
+  if (t.oct2Gain) t.oct2Gain.gain.rampTo(0, 0.4);
+  if (t.binauralGain) t.binauralGain.gain.rampTo(0, 0.4);
+  setTimeout(() => {
+    try { t.osc.stop(); t.osc.dispose(); t.gain.dispose(); t.panner.dispose(); } catch(e){}
+    if (t.subOsc) { try { t.subOsc.stop(); t.subOsc.dispose(); t.subGain.dispose(); } catch(e){} }
+    if (t.fifthOsc) { try { t.fifthOsc.stop(); t.fifthOsc.dispose(); t.fifthGain.dispose(); } catch(e){} }
+    if (t.octOsc) { try { t.octOsc.stop(); t.octOsc.dispose(); t.octGain.dispose(); } catch(e){} }
+    if (t.oct2Osc) { try { t.oct2Osc.stop(); t.oct2Osc.dispose(); t.oct2Gain.dispose(); } catch(e){} }
+    if (t.h2) { try { t.h2.stop(); t.h2.dispose(); t.h2g.dispose(); } catch(e){} }
+    if (t.h3) { try { t.h3.stop(); t.h3.dispose(); t.h3g.dispose(); } catch(e){} }
+    if (t.binauralOsc) { try { t.binauralOsc.stop(); t.binauralOsc.dispose(); t.binauralGain.dispose(); t.rPanner.dispose(); } catch(e){} }
+  }, 500);
+  activeTones.delete(hz);
+}
+
+function stopAllTones() { for (const hz of [...activeTones.keys()]) stopTone(hz); }
+function getManualHz() { for (const [hz, t] of activeTones) if (t.label === 'manual') return hz; return null; }
+function updateMainFreq(hz) {
+  const existing = getManualHz();
+  if (existing === null) return;
+  const t = activeTones.get(existing);
+  t.osc.frequency.rampTo(hz, 0.15);
+  if (t.subOsc) t.subOsc.frequency.rampTo(hz / 2, 0.15);
+  if (t.fifthOsc) t.fifthOsc.frequency.rampTo(hz * 1.5, 0.15);
+  if (t.octOsc) t.octOsc.frequency.rampTo(hz * 2, 0.15);
+  if (t.oct2Osc) t.oct2Osc.frequency.rampTo(hz * 4, 0.15);
+  if (t.h2) t.h2.frequency.rampTo(hz * 3, 0.15);
+  if (t.h3) t.h3.frequency.rampTo(hz * 5, 0.15);
+  if (t.binauralOsc) t.binauralOsc.frequency.rampTo(hz + 7, 0.15);
+  activeTones.delete(existing);
+  activeTones.set(hz, t);
+}
+
+// Wire voice slider
+document.getElementById('voiceSlider').addEventListener('input', e => {
+  voice = parseInt(e.target.value) / 100;
+  applyVoiceToAll();
+});
+
+// MIC
+async function toggleMic() {
+  const btn = document.getElementById('micBtn');
+  const label = document.getElementById('micLabel');
+  if (micActive) {
+    if (micStream) micStream.getTracks().forEach(t => t.stop());
+    micActive = false;
+    btn.classList.remove('active');
+    label.textContent = 'Activate sensor';
+    document.getElementById('detectedFreq').classList.remove('visible');
+    return;
+  }
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const ctx = Tone.context;
+    const src = ctx.createMediaStreamSource(micStream);
+    micAnalyser = ctx.createAnalyser();
+    micAnalyser.fftSize = 4096;
+    src.connect(micAnalyser);
+    micActive = true;
+    btn.classList.add('active');
+    label.textContent = 'Sensor active';
+    document.getElementById('detectedFreq').classList.add('visible');
+    detectMicFrequency();
+  } catch (err) {
+    alert('Sensor permission needed.');
+  }
+}
+function detectMicFrequency() {
+  if (!micActive) return;
+  const buffer = new Float32Array(micAnalyser.frequencyBinCount);
+  micAnalyser.getFloatFrequencyData(buffer);
+  let maxVal = -Infinity, maxIdx = 0;
+  for (let i = 2; i < buffer.length; i++) {
+    if (buffer[i] > maxVal) { maxVal = buffer[i]; maxIdx = i; }
+  }
+  const hz = Math.round((maxIdx * Tone.context.sampleRate) / micAnalyser.fftSize);
+  if (maxVal > -75 && hz > 20 && hz < 2000) {
+    document.getElementById('detectedFreq').textContent = `Detected: ${hz} Hz`;
+  }
+  requestAnimationFrame(detectMicFrequency);
+}
+
+// TABS
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + btn.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+document.getElementById('micBtn').addEventListener('click', async () => { await ensureAudio(); toggleMic(); });
+
+// SYNC LOGIC
+const freqMeanings = [
+  { min: 20, max: 60, text: "Sub-bass. Deep grounding, physical body, root resonance." },
+  { min: 60, max: 150, text: "Earth tones. Foundational, stabilizing, primal awareness." },
+  { min: 150, max: 250, text: "Lower body. Sacral energy, creative flow." },
+  { min: 250, max: 400, text: "Solar plexus. Personal power, will, identity." },
+  { min: 400, max: 450, text: "The natural tuning. Heart resonance, cosmic alignment." },
+  { min: 450, max: 550, text: "Heart center expanding. Love frequency." },
+  { min: 550, max: 700, text: "Throat. Expression, truth, communication." },
+  { min: 700, max: 850, text: "Third eye opening. Intuition, inner sight." },
+  { min: 850, max: 1001, text: "Crown. Divine connection, transcendence, unity." }
+];
+function getMeaning(hz) { const m = freqMeanings.find(x => hz >= x.min && hz < x.max); return m ? m.text : "Your unique resonance."; }
+function hzToColor(hz) {
+  const t = (hz - 20) / (1000 - 20);
+  if (t < 0.16) return ['rgba(180,80,80,0.6)', 'rgba(60,20,30,0.9)', '#fb7185'];
+  if (t < 0.33) return ['rgba(220,140,80,0.6)', 'rgba(100,50,30,0.9)', '#fbbf24'];
+  if (t < 0.5) return ['rgba(230,200,80,0.6)', 'rgba(140,110,30,0.9)', '#fde68a'];
+  if (t < 0.66) return ['rgba(100,200,140,0.6)', 'rgba(30,100,80,0.9)', '#6ee7b7'];
+  if (t < 0.83) return ['rgba(100,160,220,0.6)', 'rgba(30,70,140,0.9)', '#60a5fa'];
+  return ['rgba(180,120,220,0.6)', 'rgba(70,30,120,0.9)', '#a78bfa'];
+}
+let currentColor = '#a78bfa';
+const freqSlider = document.getElementById('freqSlider');
+function applyFrequency(hz, fromSlider = false) {
+  hz = Math.max(20, Math.min(1000, Math.round(hz)));
+  if (!fromSlider) freqSlider.value = hz;
+  document.getElementById('manualFreq').textContent = hz;
+  document.getElementById('manualMeaning').textContent = getMeaning(hz);
+  const [c1, c2, accent] = hzToColor(hz);
+  currentColor = accent;
+  const orb = document.getElementById('mainOrb');
+  if (orb) {
+    orb.style.background = `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), ${c1} 40%, ${c2} 100%)`;
+    orb.style.boxShadow = `0 0 80px ${c1}, inset 0 0 80px rgba(255,255,255,0.1)`;
+    orb.style.animationDuration = `${Math.max(1.5, 4 - (hz/1000)*2.5)}s`;
+  }
+  if (getManualHz() !== null) updateMainFreq(hz);
+}
+freqSlider.addEventListener('input', () => applyFrequency(parseInt(freqSlider.value), true));
+document.getElementById('manualPlay').addEventListener('click', async () => {
+  await ensureAudio();
+  const btn = document.getElementById('manualPlay');
+  const playing = getManualHz() !== null;
+  if (!playing) {
+    startTone(parseInt(freqSlider.value), 'manual');
+    btn.textContent = 'Stop Sync';
+    btn.classList.add('active');
+    if (Math.abs(parseInt(freqSlider.value) - 528) < 10) document.getElementById('questFill').style.width = '100%';
+  } else {
+    stopTone(getManualHz());
+    btn.textContent = 'Begin Sync';
+    btn.classList.remove('active');
+  }
+});
+document.getElementById('binauralToggle').addEventListener('click', e => { binauralMode = !binauralMode; e.target.classList.toggle('active'); });
+document.getElementById('harmonicToggle').addEventListener('click', e => { harmonicMode = !harmonicMode; e.target.classList.toggle('active'); });
+document.getElementById('breathToggle').addEventListener('click', e => { e.target.classList.toggle('active'); document.getElementById('breathGuide').classList.toggle('active'); });
+
+document.querySelectorAll('.sync-mode-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sync-mode-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    autoSweep = btn.dataset.mode === 'auto';
+  });
+});
+setInterval(() => {
+  if (!autoSweep) return;
+  let val = parseInt(freqSlider.value);
+  val += sweepDir * 3;
+  if (val >= 1000) sweepDir = -1;
+  if (val <= 20) sweepDir = 1;
+  applyFrequency(val);
+}, 80);
+
+const mainOrb = document.getElementById('mainOrb');
+let dragging = false, dragStartY = 0, dragStartFreq = 432, dragDist = 0;
+function startDrag(y) { dragging = true; dragStartY = y; dragStartFreq = parseInt(freqSlider.value); dragDist = 0; }
+function doDrag(y) { if (!dragging) return; const dy = dragStartY - y; dragDist = Math.abs(dy); applyFrequency(dragStartFreq + dy * 2); }
+function endDrag() { dragging = false; }
+if (mainOrb) {
+  mainOrb.addEventListener('mousedown', e => startDrag(e.clientY));
+  window.addEventListener('mousemove', e => doDrag(e.clientY));
+  window.addEventListener('mouseup', endDrag);
+  mainOrb.addEventListener('touchstart', e => { e.preventDefault(); startDrag(e.touches[0].clientY); }, { passive: false });
+  window.addEventListener('touchmove', e => { if (dragging) { e.preventDefault(); doDrag(e.touches[0].clientY); } }, { passive: false });
+  window.addEventListener('touchend', endDrag);
+  mainOrb.addEventListener('click', e => { if (dragDist < 5) createRipple(e.clientX, e.clientY); });
+}
+function createRipple(x, y) {
+  const ripple = document.createElement('div');
+  ripple.className = 'ripple';
+  ripple.style.left = x + 'px';
+  ripple.style.top = y + 'px';
+  ripple.style.borderColor = currentColor;
+  document.body.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 1200);
+}
+
+// Spectrum
+const specCanvas = document.getElementById('spectrumCanvas');
+const specCtx = specCanvas?.getContext('2d');
+if (specCanvas) { specCanvas.width = 380; specCanvas.height = 380; }
+function drawSpectrum() {
+  if (specCtx) {
+    specCtx.clearRect(0, 0, 380, 380);
+    if (audioReady && analyserMain) {
+      try {
+        const data = analyserMain.getValue();
+        const cx = 190, cy = 190, radius = 165;
+        specCtx.strokeStyle = currentColor;
+        specCtx.lineWidth = 1.5;
+        specCtx.globalAlpha = 0.7;
+        specCtx.beginPath();
+        for (let i = 0; i < data.length; i++) {
+          const angle = (i / data.length) * Math.PI * 2 - Math.PI / 2;
+          const val = Math.max(0, (data[i] + 100) / 100);
+          const r = radius + val * 35;
+          const x = cx + Math.cos(angle) * r;
+          const y = cy + Math.sin(angle) * r;
+          if (i === 0) specCtx.moveTo(x, y); else specCtx.lineTo(x, y);
+        }
+        specCtx.closePath();
+        specCtx.stroke();
+        specCtx.globalAlpha = 1;
+      } catch(e) {}
+    }
+  }
+  requestAnimationFrame(drawSpectrum);
+}
+drawSpectrum();
+
+// BG particles
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx = bgCanvas.getContext('2d');
+function resizeBg() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
+resizeBg();
+window.addEventListener('resize', resizeBg);
+const particles = [];
+for (let i = 0; i < 50; i++) {
+  particles.push({ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, vx: (Math.random()-0.5)*0.2, vy: (Math.random()-0.5)*0.2, r: 1+Math.random()*1.8 });
+}
+function drawBg() {
+  bgCtx.fillStyle = 'rgba(5,5,7,0.15)';
+  bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+  let energy = 0;
+  if (audioReady && analyserMain) {
+    try {
+      const data = analyserMain.getValue();
+      for (let i = 0; i < data.length; i++) energy += Math.max(0, data[i] + 100);
+      energy = energy / data.length / 100;
+    } catch(e) {}
+  }
+  particles.forEach(p => {
+    p.x += p.vx * (1 + energy * 4);
+    p.y += p.vy * (1 + energy * 4);
+    if (p.x < 0) p.x = bgCanvas.width;
+    if (p.x > bgCanvas.width) p.x = 0;
+    if (p.y < 0) p.y = bgCanvas.height;
+    if (p.y > bgCanvas.height) p.y = 0;
+    bgCtx.fillStyle = currentColor + '70';
+    bgCtx.beginPath();
+    bgCtx.arc(p.x, p.y, p.r * (1 + energy * 1.5), 0, Math.PI * 2);
+    bgCtx.fill();
+  });
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+// LIBRARY
+const solfeggio = [{ hz: 174, name: "UT", desc: "Foundation. Pain relief, security." },{ hz: 285, name: "Quantum", desc: "Tissue regeneration." },{ hz: 396, name: "Liberation", desc: "Release fear. Grounding." },{ hz: 417, name: "Change", desc: "Undoing. Transformation." },{ hz: 528, name: "Miracle", desc: "DNA repair. Love frequency." },{ hz: 639, name: "Connection", desc: "Heart-centered bonds." },{ hz: 741, name: "Expression", desc: "Awakening intuition." },{ hz: 852, name: "Spiritual", desc: "Return to spiritual order." },{ hz: 963, name: "Divine", desc: "Unity. Crown opening." }];
+const chakras = [{ hz: 256, name: "Root", desc: "Grounding, survival." },{ hz: 288, name: "Sacral", desc: "Creativity, flow." },{ hz: 320, name: "Solar", desc: "Personal power." },{ hz: 341.3, name: "Heart", desc: "Love, compassion." },{ hz: 384, name: "Throat", desc: "Expression, truth." },{ hz: 426.7, name: "Third Eye", desc: "Intuition, insight." },{ hz: 480, name: "Crown", desc: "Unity, transcendence." }];
+const sacred = [{ hz: 432, name: "Natural A", desc: "Cosmic tuning." },{ hz: 111, name: "Angelic", desc: "Cell regeneration." },{ hz: 144, name: "Christ", desc: "Sacred geometry." },{ hz: 222, name: "Builder", desc: "Manifestation." },{ hz: 333, name: "Ascended", desc: "Guides nearby." }];
+const planetary = [{ hz: 126.22, name: "Sun", desc: "Vitality." },{ hz: 210.42, name: "Moon", desc: "Emotion." },{ hz: 141.27, name: "Mercury", desc: "Communication." },{ hz: 221.23, name: "Venus", desc: "Love." },{ hz: 144.72, name: "Mars", desc: "Action." },{ hz: 183.58, name: "Jupiter", desc: "Expansion." },{ hz: 147.85, name: "Saturn", desc: "Structure." },{ hz: 207.36, name: "Uranus", desc: "Breakthrough." },{ hz: 211.44, name: "Neptune", desc: "Dreams." },{ hz: 140.25, name: "Pluto", desc: "Transformation." }];
+const elemental = [{ hz: 7.83, name: "Schumann", desc: "Earth's heartbeat." },{ hz: 136.1, name: "Om", desc: "Cosmic sound." },{ hz: 194.18, name: "Earth Day", desc: "Earth's rotation." },{ hz: 172.06, name: "Platonic", desc: "Cosmic cycle." },{ hz: 40, name: "Gamma", desc: "Higher awareness." }];
+
+function renderPresets(list, containerId, layerLabel) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  list.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'preset-card';
+    card.innerHTML = `<div class="preset-hz">${p.hz} <span style="font-size:14px; color:var(--text-faint);">Hz</span></div><div class="preset-name">${p.name}</div><div class="preset-desc">${p.desc}</div>`;
+    card.addEventListener('click', async () => {
+      await ensureAudio();
+      if (activeTones.has(p.hz)) { stopTone(p.hz); card.classList.remove('playing'); }
+      else { startTone(p.hz, layerLabel); card.classList.add('playing'); }
+      updateLayerInfo();
+    });
+    c.appendChild(card);
+  });
+}
+renderPresets(solfeggio, 'solfeggioList', 'divine');
+renderPresets(chakras, 'chakraList', 'divine');
+renderPresets(sacred, 'sacredList', 'divine');
+renderPresets(planetary, 'planetaryList', 'universal');
+renderPresets(elemental, 'elementalList', 'universal');
+
+function updateLayerInfo() {
+  const layered = [...activeTones.values()].filter(t => t.label === 'divine' || t.label === 'universal');
+  document.getElementById('layerInfo').textContent = layered.length === 0 ? 'Tap to play · Layer multiple together' : layered.length === 1 ? '1 frequency playing' : `${layered.length} frequencies layered`;
+}
+document.querySelectorAll('.lib-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lib-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.lib-content').forEach(c => c.style.display = 'none');
+    document.getElementById('content-' + btn.dataset.tab).style.display = 'block';
+  });
+});
+document.getElementById('clearLayers').addEventListener('click', () => {
+  stopAllTones();
+  document.querySelectorAll('.preset-card.playing').forEach(c => c.classList.remove('playing'));
+  document.getElementById('manualPlay').textContent = 'Begin Sync';
+  document.getElementById('manualPlay').classList.remove('active');
+  updateLayerInfo();
+});
+
+// =================== MEMORIES SYSTEM ===================
+let memories = [];
+function loadMemories() {
+  try {
+    const saved = localStorage.getItem('resonance_memories');
+    if (saved) memories = JSON.parse(saved);
+  } catch (e) {}
+}
+function persistMemories() {
+  try { localStorage.setItem('resonance_memories', JSON.stringify(memories)); } catch (e) {}
+}
+function saveMemory(freq, label) {
+  const mem = {
+    id: Date.now(),
+    freq: Math.round(freq),
+    label: label || frequencyState(freq).short,
+    time: Date.now()
+  };
+  memories.unshift(mem);
+  if (memories.length > 30) memories.pop();
+  persistMemories();
+  renderMemories();
+  return mem;
+}
+function deleteMemory(id) {
+  memories = memories.filter(m => m.id !== id);
+  persistMemories();
+  renderMemories();
+}
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return 'Just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+function frequencyState(hz) {
+  const [, , accent] = hzToColor(hz);
+  if (hz < 60) return { short: 'Deep root', long: 'Sub-bass. Deep grounding.', color: accent };
+  if (hz < 150) return { short: 'Earth tones', long: 'Foundational, stabilizing.', color: accent };
+  if (hz < 250) return { short: 'Sacral flow', long: 'Creative energy rising.', color: accent };
+  if (hz < 400) return { short: 'Solar power', long: 'Will and identity activating.', color: accent };
+  if (hz < 450) return { short: 'Heart center', long: 'The natural tuning. Cosmic alignment.', color: accent };
+  if (hz < 550) return { short: 'Love expanding', long: 'Heart opening. Healing waters.', color: accent };
+  if (hz < 700) return { short: 'Throat truth', long: 'Expression. Voice unbound.', color: accent };
+  if (hz < 850) return { short: 'Third eye', long: 'Inner sight awakening.', color: accent };
+  return { short: 'Crown open', long: 'Divine connection. Transcendence.', color: accent };
+}
+
+function renderMemories() {
+  const strip = document.getElementById('memoriesStrip');
+  strip.innerHTML = '';
+
+  // Capture card
+  const cap = document.createElement('div');
+  cap.className = 'memory-card capture';
+  cap.innerHTML = `<div class="cap-icon">+</div><div class="cap-label">Capture this moment</div>`;
+  cap.addEventListener('click', () => {
+    const m = saveMemory(userFreq, frequencyState(userFreq).short);
+    openMemory(m);
+  });
+  strip.appendChild(cap);
+
+  memories.forEach(m => {
+    const state = frequencyState(m.freq);
+    const card = document.createElement('div');
+    card.className = 'memory-card';
+    card.style.setProperty('--m-c', state.color);
+    card.innerHTML = `
+      <div class="memory-orb"></div>
+      <div class="memory-info">
+        <div class="memory-freq">${m.freq}<span class="u">Hz</span></div>
+        <div class="memory-label">${m.label}</div>
+        <div class="memory-time">${timeAgo(m.time)}</div>
+      </div>
+    `;
+    card.addEventListener('click', () => openMemory(m));
+    strip.appendChild(card);
+  });
+}
+
+function openMemory(m) {
+  const state = frequencyState(m.freq);
+  document.getElementById('memModalFreq').textContent = m.freq;
+  document.getElementById('memModalState').textContent = state.long;
+  document.getElementById('memModalTime').textContent = new Date(m.time).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  document.getElementById('memModalOrb').style.setProperty('--mm-c', state.color);
+  document.getElementById('memModal').classList.add('show');
+  document.getElementById('memModal').dataset.id = m.id;
+  document.getElementById('memModal').dataset.freq = m.freq;
+}
+
+document.getElementById('memModalClose').addEventListener('click', () => document.getElementById('memModal').classList.remove('show'));
+document.getElementById('memReliveBtn').addEventListener('click', async () => {
+  const freq = parseInt(document.getElementById('memModal').dataset.freq);
+  await ensureAudio();
+  // switch to sync tab and start tone at that freq
+  applyFrequency(freq);
+  stopAllTones();
+  startTone(freq, 'manual');
+  document.getElementById('manualPlay').textContent = 'Stop Sync';
+  document.getElementById('manualPlay').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="sync"]').classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-sync').classList.add('active');
+  document.getElementById('memModal').classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+document.getElementById('memDeleteBtn').addEventListener('click', () => {
+  const id = parseInt(document.getElementById('memModal').dataset.id);
+  deleteMemory(id);
+  document.getElementById('memModal').classList.remove('show');
+});
+
+// =================== HERO STATE ===================
+function updateHero(hz) {
+  const state = frequencyState(hz);
+  document.getElementById('heroFreq').textContent = hz;
+  document.getElementById('heroState').textContent = state.long;
+  const [c1, c2, accent] = hzToColor(hz);
+  const hero = document.getElementById('freqHero');
+  hero.style.setProperty('--hero-c1', c1);
+  hero.style.setProperty('--hero-c2', `rgba(110,231,183,0.15)`);
+  hero.style.color = accent;
+  // Generate a waveform path based on frequency
+  const path = document.getElementById('heroWavePath');
+  const cycles = Math.max(2, Math.round(hz / 60));
+  let d = 'M 0 16';
+  for (let x = 0; x <= 400; x += 4) {
+    const y = 16 + Math.sin((x / 400) * Math.PI * cycles * 2) * 10;
+    d += ` L ${x} ${y}`;
+  }
+  path.setAttribute('d', d);
+  path.setAttribute('stroke', accent);
+
+  // Tier label
+  const tier = userAlignment >= 90 ? 'Sage' : userAlignment >= 80 ? 'Adept' : userAlignment >= 70 ? 'Seeker' : userAlignment >= 65 ? 'Initiate' : 'Soul';
+  document.getElementById('heroTier').textContent = tier;
+  const h = new Date().getHours();
+  document.getElementById('heroTime').textContent = h < 5 ? 'Late night' : h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : h < 21 ? 'Evening' : 'Night';
+}
+
+// =================== CURATED FEED ===================
+const allPosts = [
+  { name: 'Sage_Wanderer', initial: 'S', time: '12m ago', freq: 963, body: 'Just hit the divine frequency for 20 minutes. The crown opens like a flower 🌸', likes: 24, liked: false, comments: 8 },
+  { name: 'Lunar_Echo', initial: 'L', time: '38m ago', freq: 432, body: 'Morning meditation at natural tuning. The whole room felt different today. The air thickens at 432.', likes: 47, liked: true, comments: 12 },
+  { name: 'Nova_Pulse', initial: 'N', time: '1h ago', freq: 528, body: 'Hit my 30-day streak today. The miracle frequency really does work — I feel like a different person.', likes: 89, liked: false, comments: 23 },
+  { name: 'Cosmic_Drift', initial: 'C', time: '2h ago', freq: 7.83, body: 'Tuned into the Schumann resonance during a thunderstorm. The earth was singing back to me.', likes: 31, liked: false, comments: 5 },
+  { name: 'Quiet_Flame', initial: 'Q', time: '3h ago', freq: 639, body: 'Used 639 Hz for a difficult conversation with my mom. Everything shifted. The connection frequency is real.', likes: 56, liked: false, comments: 14 },
+  { name: 'River_Stone', initial: 'R', time: '4h ago', freq: 417, body: 'Releasing what no longer serves. 417 has been my anchor through this transition.', likes: 38, liked: false, comments: 9 },
+  { name: 'Sun_Walker', initial: 'S', time: '5h ago', freq: 126, body: 'Tuning into solar frequency this morning. Vitality through the roof. ☀️', likes: 22, liked: false, comments: 4 },
+  { name: 'Deep_Well', initial: 'D', time: '6h ago', freq: 174, body: 'Foundation work. Sub-bass tones for the body. Sometimes the root needs the most attention.', likes: 19, liked: false, comments: 3 },
+  { name: 'Star_Echo', initial: 'S', time: '7h ago', freq: 852, body: 'Spiritual order returning. Third eye work is intense but worth it.', likes: 41, liked: false, comments: 11 },
+  { name: 'Wave_Breaker', initial: 'W', time: '8h ago', freq: 396, body: 'Letting fear go. 396 is the liberation tone — it works if you let it.', likes: 33, liked: false, comments: 7 }
+];
+
+function postResonance(postFreq) {
+  // Distance from user's frequency, normalized to 0-100 match score
+  const diff = Math.abs(postFreq - userFreq);
+  if (diff <= 30) return { tier: 'attuned', score: Math.max(85, Math.round(100 - diff)) };
+  if (diff <= 100) return { tier: 'near', score: Math.round(80 - (diff - 30) * 0.4) };
+  return { tier: 'distant', score: Math.max(10, Math.round(50 - (diff - 100) * 0.05)) };
+}
+
+function renderCuratedFeed() {
+  const container = document.getElementById('feedCurated');
+  container.innerHTML = '';
+
+  // Sort all posts by resonance score
+  const scored = allPosts.map(p => ({ ...p, ...postResonance(p.freq) }));
+  scored.sort((a, b) => b.score - a.score);
+
+  const tiers = {
+    attuned: { name: 'In your frequency', meta: '', posts: [] },
+    near: { name: 'Adjacent waves', meta: '', posts: [] },
+    distant: { name: 'Distant echoes', meta: '', posts: [] }
+  };
+  scored.forEach(p => tiers[p.tier].posts.push(p));
+  tiers.attuned.meta = tiers.attuned.posts.length + ' souls';
+  tiers.near.meta = tiers.near.posts.length + ' nearby';
+  tiers.distant.meta = tiers.distant.posts.length + ' on other paths';
+
+  Object.entries(tiers).forEach(([key, t]) => {
+    if (t.posts.length === 0) return;
+    const sec = document.createElement('div');
+    sec.className = 'tier tier-' + key;
+    sec.innerHTML = `
+      <div class="tier-header">
+        <div class="tier-name">${t.name}</div>
+        <div class="tier-meta">${t.meta}</div>
+      </div>
+      <div class="tier-cards"></div>
+    `;
+    const cards = sec.querySelector('.tier-cards');
+    t.posts.forEach(p => {
+      const post = document.createElement('div');
+      post.className = 'post-v2 ' + p.tier;
+      post.innerHTML = `
+        <div class="post-resonance">
+          <span>${p.score}%</span>
+          <div class="bar"><div class="bar-fill" style="width:${p.score}%"></div></div>
+        </div>
+        <div class="post-h">
+          <div class="post-av"><div>${p.initial}</div></div>
+          <div>
+            <div class="post-n">${p.name}</div>
+            <div class="post-mr"><span class="post-fm">${p.freq} Hz</span><span>·</span><span>${p.time}</span></div>
+          </div>
+        </div>
+        <div class="post-b">${p.body}</div>
+        <div class="post-acts">
+          <button class="post-act ${p.liked ? 'liked' : ''}">
+            <svg fill="${p.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+            <span class="lc">${p.likes}</span>
+          </button>
+          <button class="post-act">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72A8.78 8.78 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <span>${p.comments}</span>
+          </button>
+        </div>
+      `;
+      const likeBtn = post.querySelector('.post-act');
+      let liked = p.liked, count = p.likes;
+      likeBtn.addEventListener('click', () => {
+        liked = !liked; count += liked ? 1 : -1;
+        likeBtn.classList.toggle('liked', liked);
+        likeBtn.querySelector('svg').setAttribute('fill', liked ? 'currentColor' : 'none');
+        likeBtn.querySelector('.lc').textContent = count;
+      });
+      cards.appendChild(post);
+    });
+    container.appendChild(sec);
+  });
+}
+
+// Hook into applyFrequency so feed reflows when user's freq changes
+const _applyFrequency = applyFrequency;
+applyFrequency = function(hz, fromSlider) {
+  _applyFrequency(hz, fromSlider);
+  hz = Math.max(20, Math.min(1000, Math.round(hz)));
+  userFreq = hz;
+  updateHero(hz);
+  renderCuratedFeed();
+};
+
+// Auto-capture: track sync sessions
+let sessionStart = null;
+let sessionStartFreq = null;
+const _origManualPlay = document.getElementById('manualPlay').onclick;
+document.getElementById('manualPlay').addEventListener('click', () => {
+  const btn = document.getElementById('manualPlay');
+  if (btn.classList.contains('active')) {
+    // Started a session
+    sessionStart = Date.now();
+    sessionStartFreq = parseInt(freqSlider.value);
+    document.getElementById('heroSession').textContent = 'Active session';
+  } else if (sessionStart) {
+    // Ended a session — save memory if it lasted at least 20 seconds
+    const duration = Date.now() - sessionStart;
+    if (duration > 20000) {
+      const state = frequencyState(sessionStartFreq);
+      saveMemory(sessionStartFreq, state.short + ' · ' + Math.round(duration/60000) + 'm');
+    }
+    sessionStart = null;
+    document.getElementById('heroSession').textContent = 'No active session';
+  }
+});
+
+// STORIES
+const storyUsers = [
+  { name: 'You', initial: '+', freq: null, you: true },
+  { name: 'Sage', initial: 'S', freq: 528, live: true, color1: 'var(--mint)', color2: '#0a2818' },
+  { name: 'Luna', initial: 'L', freq: 432, color1: 'var(--violet)', color2: '#1a0e2e' },
+  { name: 'Nova', initial: 'N', freq: 639, live: true, color1: 'var(--pink)', color2: '#2e0e1a' },
+  { name: 'Quiet', initial: 'Q', freq: 396, color1: 'var(--gold)', color2: '#2e1f0a' },
+  { name: 'Cosmic', initial: 'C', freq: 963, color1: 'var(--blue)', color2: '#0a1a2e' },
+  { name: 'Arthur', initial: 'A', freq: 528, live: true, color1: 'var(--mint)', color2: '#0a2818' }
+];
+const storiesRow = document.getElementById('storiesRow');
+storyUsers.forEach(u => {
+  const s = document.createElement('div');
+  s.className = 'story' + (u.you ? ' you' : '');
+  const orbBg = u.you ? '' : `background: radial-gradient(circle at 30% 30%, ${u.color1}, ${u.color2});`;
+  s.innerHTML = `<div class="story-ring"><div style="${orbBg}">${u.you ? '' : u.initial}</div>${u.live ? '<div class="story-live">LIVE</div>' : ''}</div><div class="story-name">${u.name}</div>${u.freq ? `<div class="story-freq">${u.freq} Hz</div>` : ''}`;
+  storiesRow.appendChild(s);
+});
+
+// Initialize: seed first memory from initiation, render everything
+loadMemories();
+// If no memories yet, seed with initiation scan
+if (memories.length === 0) {
+  // Will be set after initiation completes (in enterInnerBtn click)
+}
+
+// Hook the enter button to seed initiation memory
+const _enterBtn = document.getElementById('enterInnerBtn');
+_enterBtn.addEventListener('click', () => {
+  setTimeout(() => {
+    if (memories.length === 0) {
+      saveMemory(userFreq, 'Initiation');
+      // Add a few seed entries spread across time for demo
+      const seeds = [
+        { freq: 528, label: 'Heart opening', offset: 3600000 * 2 },
+        { freq: 432, label: 'Morning sync', offset: 3600000 * 8 },
+        { freq: 396, label: 'Release', offset: 3600000 * 26 },
+        { freq: 963, label: 'Crown · 18m', offset: 3600000 * 52 }
+      ];
+      seeds.forEach(s => {
+        memories.push({ id: Date.now() - s.offset, freq: s.freq, label: s.label, time: Date.now() - s.offset });
+      });
+      persistMemories();
+      renderMemories();
+    }
+    updateHero(userFreq);
+    renderCuratedFeed();
+  }, 200);
+});
+
+renderMemories();
+renderCuratedFeed();
+updateHero(userFreq);
+setTimeout(() => { document.getElementById('questFill').style.width = '33%'; }, 600);
+
+// =================== ASCEND — CONSCIOUSNESS LADDER ===================
+const tiers = [
+  {
+    n: 1, name: 'Root', state: 'Grounding. Body. Survival.',
+    teaching: 'The foundation. Before you ascend, you must root. Sit with the body. Feel the earth.',
+    freqMin: 20, freqMax: 200, anchor: 174,
+    presence: 1, color: '#fb7185',
+    practice: 'Solo introspection. No others here. Just you and your body.'
+  },
+  {
+    n: 2, name: 'Sacral', state: 'Creation. Emotion. Flow.',
+    teaching: 'Energy begins to move. Feelings flow without resistance. Creativity opens.',
+    freqMin: 200, freqMax: 285, anchor: 285,
+    presence: 2, color: '#fbbf24',
+    practice: 'Mostly solitary. A few others appear faintly in your field.'
+  },
+  {
+    n: 3, name: 'Solar Plexus', state: 'Will. Power. Identity.',
+    teaching: 'You meet yourself. The fire of self-knowing. Personal power without ego.',
+    freqMin: 285, freqMax: 396, anchor: 396,
+    presence: 6, color: '#fde68a',
+    practice: 'Small clusters. You begin to sense others in the field.'
+  },
+  {
+    n: 4, name: 'Heart', state: 'Love. Compassion. Connection.',
+    teaching: 'The center. Love without condition begins here. The bridge between earth and sky.',
+    freqMin: 396, freqMax: 528, anchor: 528,
+    presence: 18, color: '#6ee7b7',
+    practice: 'Small groups gather. Hearts beat in unison.'
+  },
+  {
+    n: 5, name: 'Throat', state: 'Truth. Voice. Expression.',
+    teaching: 'You speak what is real. No mask. Words carry frequency now.',
+    freqMin: 528, freqMax: 639, anchor: 639,
+    presence: 42, color: '#34d399',
+    practice: 'Larger circles forming. Truth-tellers find each other.'
+  },
+  {
+    n: 6, name: 'Third Eye', state: 'Vision. Intuition. Insight.',
+    teaching: 'You see beyond the veil. The inner eye opens. Patterns become visible.',
+    freqMin: 639, freqMax: 741, anchor: 741,
+    presence: 87, color: '#60a5fa',
+    practice: 'Wider community. Seers sharing what they witness.'
+  },
+  {
+    n: 7, name: 'Crown', state: 'Enlightenment. Spirit. Knowing.',
+    teaching: 'The thousand-petaled lotus. Direct communion with the divine source.',
+    freqMin: 741, freqMax: 852, anchor: 852,
+    presence: 234, color: '#a78bfa',
+    practice: 'Open temple. Many awakened ones present together.'
+  },
+  {
+    n: 8, name: 'Soul Star', state: 'Transcendence. Beyond self.',
+    teaching: 'Above the crown. The eighth chakra. You begin to dissolve into the field itself.',
+    freqMin: 852, freqMax: 963, anchor: 963,
+    presence: 561, color: '#e0e7ff',
+    practice: 'Most who arrive here stay. The collective field is vast.'
+  },
+  {
+    n: 9, name: 'Unity', state: 'All-One. The public field.',
+    teaching: 'The highest tier. All veils collapse. Everyone who ever ascended exists here simultaneously. This is the public server — the collective consciousness made real.',
+    freqMin: 963, freqMax: 9999, anchor: 999,
+    presence: 'EVERYONE', color: '#ffffff',
+    practice: 'You are not alone here. You never were. This is home.',
+    unity: true
+  }
+];
+
+function getCurrentTier(hz) {
+  for (let i = tiers.length - 1; i >= 0; i--) {
+    if (hz >= tiers[i].freqMin) return tiers[i];
+  }
+  return tiers[0];
+}
+
+function renderLadder() {
+  const ladder = document.getElementById('ladder');
+  ladder.innerHTML = '';
+  const current = getCurrentTier(userFreq);
+
+  tiers.forEach(t => {
+    const card = document.createElement('div');
+    const isUnlocked = userFreq >= t.freqMin;
+    const isCurrent = t.n === current.n;
+    const cls = ['tier-card'];
+    if (isUnlocked) cls.push('unlocked');
+    else cls.push('locked');
+    if (isCurrent) cls.push('current');
+    if (t.unity) cls.push('unity');
+    card.className = cls.join(' ');
+    card.style.setProperty('--tier-c', t.color);
+    card.style.setProperty('--tier-glow', t.color + '40');
+
+    // Souls visualization
+    const presenceCount = t.unity ? 999 : t.presence;
+    const visibleSouls = Math.min(8, t.unity ? 8 : t.presence);
+    let soulDots = '';
+    for (let i = 0; i < visibleSouls; i++) soulDots += `<div class="soul-dot"></div>`;
+    const presenceLabel = t.unity ? 'All awakened here' :
+      t.presence === 1 ? 'Just you · solo path' :
+      t.presence < 10 ? `${t.presence} souls present` :
+      t.presence < 100 ? `${t.presence} souls in the field` :
+      `${t.presence}+ souls gathered`;
+
+    // Progress to this tier (only shown when locked)
+    let progressHtml = '';
+    if (!isUnlocked) {
+      const need = t.freqMin - userFreq;
+      const pct = Math.max(0, Math.min(100, (userFreq / t.freqMin) * 100));
+      progressHtml = `<div class="tier-progress-row">
+        <span>${need} Hz to unlock</span>
+        <div class="tier-progress-bar"><div class="tier-progress-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }
+
+    card.innerHTML = `
+      <div class="tier-top">
+        <div class="tier-orb ${t.unity ? 'unity-orb' : ''}"></div>
+        <div class="tier-meta">
+          <div class="tier-num">Tier ${t.n}${t.unity ? ' · The Peak' : ''}</div>
+          <div class="tier-title">${t.name}</div>
+          <div class="tier-freq-range">${t.freqMin < 9999 ? t.freqMin + (t.freqMax < 9999 ? ' – ' + t.freqMax : '+') + ' Hz' : '∞'}</div>
+        </div>
+        ${!isUnlocked ? '<div class="tier-lock">🔒</div>' : ''}
+      </div>
+      <div class="tier-state">${t.state}</div>
+      <div class="tier-presence">
+        <div class="souls-dots">${soulDots}</div>
+        <div class="presence-text">${presenceLabel}</div>
+      </div>
+      ${progressHtml}
+    `;
+    card.addEventListener('click', () => openTier(t, isUnlocked));
+    ladder.appendChild(card);
+  });
+
+  // Update current tier indicator
+  document.getElementById('ascendCurrent').querySelector('.ac-tier').textContent = `Tier ${current.n} · ${current.name}`;
+  document.getElementById('ascendCurrent').querySelector('.ac-freq').textContent = `${userFreq} Hz`;
+}
+
+function openTier(t, isUnlocked) {
+  const modal = document.getElementById('tierModal');
+  document.getElementById('tierModalNum').textContent = `Tier ${t.n}${t.unity ? ' · The Peak' : ''}`;
+  document.getElementById('tierModalName').textContent = t.name;
+  document.getElementById('tierModalState').textContent = t.state;
+  document.getElementById('tierModalFreq').textContent = t.freqMin < 9999 ? `${t.freqMin}+ Hz` : '∞ Hz';
+  document.getElementById('tierModalTeaching').textContent = t.teaching;
+  document.getElementById('tierModalOrb').style.setProperty('--tm-c', t.color);
+  document.getElementById('tierModalOrb').className = t.unity ? 'tier-modal-orb unity-orb' : 'tier-modal-orb';
+
+  // Souls cluster
+  const cluster = document.getElementById('tierModalSouls');
+  cluster.innerHTML = '';
+  const soulCount = t.unity ? 30 : Math.min(t.presence, 20);
+  for (let i = 0; i < soulCount; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'soul-pt';
+    const angle = (i / soulCount) * Math.PI * 2;
+    const r = 25 + Math.random() * 18;
+    dot.style.left = `calc(50% + ${Math.cos(angle) * r}px)`;
+    dot.style.top = `calc(50% + ${Math.sin(angle) * r}px)`;
+    dot.style.animationDelay = (Math.random() * 4) + 's';
+    if (t.unity) {
+      const colors = ['var(--mint)', 'var(--violet)', 'var(--pink)', 'var(--gold)', 'var(--blue)'];
+      const c = colors[i % colors.length];
+      dot.style.background = c;
+      dot.style.boxShadow = `0 0 10px ${c}`;
+    }
+    cluster.appendChild(dot);
+  }
+  document.getElementById('tierModalSouls').style.setProperty('--tm-c', t.color);
+
+  const presenceLabel = t.unity ? '<strong>EVERYONE</strong> — public field' :
+    t.presence === 1 ? '<strong>1 soul</strong> · solo introspection' :
+    `<strong>${t.presence}</strong> souls present`;
+  document.getElementById('tierModalPresence').innerHTML = presenceLabel + ' · ' + (isUnlocked ? '<strong style="color:var(--mint);">Unlocked</strong>' : '<strong style="color:var(--text-faint);">Locked</strong>');
+
+  const enterBtn = document.getElementById('tierModalEnter');
+  if (isUnlocked) {
+    enterBtn.textContent = 'Enter This Tier';
+    enterBtn.style.opacity = 1;
+    enterBtn.disabled = false;
+    enterBtn._target = t.anchor;
+  } else {
+    enterBtn.textContent = `Reach ${t.freqMin} Hz to unlock`;
+    enterBtn.style.opacity = 0.4;
+    enterBtn.disabled = true;
+  }
+  modal.classList.add('show');
+}
+
+document.getElementById('tierModalClose').addEventListener('click', () => document.getElementById('tierModal').classList.remove('show'));
+document.getElementById('tierModalSkip').addEventListener('click', () => document.getElementById('tierModal').classList.remove('show'));
+document.getElementById('tierModalEnter').addEventListener('click', async () => {
+  const target = document.getElementById('tierModalEnter')._target;
+  if (!target) return;
+  await ensureAudio();
+  applyFrequency(target);
+  stopAllTones();
+  startTone(target, 'manual');
+  document.getElementById('manualPlay').textContent = 'Stop Sync';
+  document.getElementById('manualPlay').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="sync"]').classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-sync').classList.add('active');
+  document.getElementById('tierModal').classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Hook into applyFrequency so ladder updates with user's frequency
+const __applyFrequency = applyFrequency;
+applyFrequency = function(hz, fromSlider) {
+  __applyFrequency(hz, fromSlider);
+  renderLadder();
+};
+
+renderLadder();
+</script>
+</body>
+</html>

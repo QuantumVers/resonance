@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/elliotgoldmanai/Downloads/**)",
+      "Bash(cp /Users/elliotgoldmanai/Downloads/resonance_app-2.html /Users/elliotgoldmanai/resonance/resonance_app.html)",
+      "Bash(cp /Users/elliotgoldmanai/Downloads/resonance_app.html /Users/elliotgoldmanai/resonance/resonance_app_v1.html)",
+      "Bash(git --version)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(cat)",
+      "Bash(git add *)"
+    ]
+  }
+}
