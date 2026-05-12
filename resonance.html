@@ -1071,7 +1071,16 @@ input[type="date"].signup-input {
 .mem-modal-freq { font-size: 48px; font-weight: 200; letter-spacing: -0.03em; line-height: 1; }
 .mem-modal-state { font-family: Georgia, serif; font-style: italic; font-size: 16px; margin-top: 8px; color: var(--text-dim); }
 .mem-modal-time { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); margin-top: 14px; font-weight: 600; }
-.mem-modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: center; }
+.mem-modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: center; flex-wrap: wrap; }
+
+/* Solfeggio detail card (long-press) */
+#solfModal .mem-modal-card { max-width: 380px; max-height: 88vh; overflow-y: auto; text-align: left; }
+.solf-orb { width: 108px; height: 108px; border-radius: 50%; margin: 0 auto 16px; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--sf-c, var(--mint)) 50%, rgba(0,0,0,0.5)); box-shadow: 0 0 50px var(--sf-c, var(--mint)); animation: pulse 4s ease-in-out infinite; }
+.solf-section { margin-top: 16px; }
+.solf-label { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 5px; }
+.solf-text { font-size: 13px; line-height: 1.55; color: rgba(255,255,255,0.82); }
+.solf-chakra-chip { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); color: var(--violet); }
+.preset-card { -webkit-touch-callout: none; }
 
 .stories { display: flex; gap: 12px; overflow-x: auto; padding: 8px 20px 4px; scrollbar-width: none; }
 .stories::-webkit-scrollbar { display: none; }
@@ -2667,6 +2676,25 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       <div class="mem-modal-actions">
         <button class="btn primary" id="memReliveBtn">Relive</button>
         <button class="btn" id="memDeleteBtn">Release</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Solfeggio detail card (long-press) -->
+  <div class="mem-modal" id="solfModal">
+    <div class="mem-modal-card">
+      <button class="mem-modal-close" id="solfModalClose">✕</button>
+      <div class="solf-orb" id="solfOrb"></div>
+      <div style="text-align:center;">
+        <div class="mem-modal-freq"><span id="solfFreq">—</span> <span style="font-size:18px; color:var(--text-faint);">Hz</span></div>
+        <div class="mem-modal-state" id="solfName">—</div>
+        <div id="solfChakra" style="margin-top:10px;"></div>
+      </div>
+      <div class="solf-section"><div class="solf-label">Healing properties</div><div class="solf-text" id="solfProps">—</div></div>
+      <div class="solf-section"><div class="solf-label">Traditional uses</div><div class="solf-text" id="solfUses">—</div></div>
+      <div class="mem-modal-actions">
+        <button class="btn primary" id="solfPlayBtn">Play this</button>
+        <button class="btn" id="solfSaveBtn">Save as memory</button>
       </div>
     </div>
   </div>
@@ -4549,14 +4577,52 @@ const sacred = [{ hz: 432, name: "Natural A", desc: "Cosmic tuning." },{ hz: 111
 const planetary = [{ hz: 126.22, name: "Sun", desc: "Vitality." },{ hz: 210.42, name: "Moon", desc: "Emotion." },{ hz: 141.27, name: "Mercury", desc: "Communication." },{ hz: 221.23, name: "Venus", desc: "Love." },{ hz: 144.72, name: "Mars", desc: "Action." },{ hz: 183.58, name: "Jupiter", desc: "Expansion." },{ hz: 147.85, name: "Saturn", desc: "Structure." },{ hz: 207.36, name: "Uranus", desc: "Breakthrough." },{ hz: 211.44, name: "Neptune", desc: "Dreams." },{ hz: 140.25, name: "Pluto", desc: "Transformation." }];
 const elemental = [{ hz: 7.83, name: "Schumann", desc: "Earth's heartbeat." },{ hz: 136.1, name: "Om", desc: "Cosmic sound." },{ hz: 194.18, name: "Earth Day", desc: "Earth's rotation." },{ hz: 172.06, name: "Platonic", desc: "Cosmic cycle." },{ hz: 40, name: "Gamma", desc: "Higher awareness." }];
 
-function renderPresets(list, containerId, layerLabel) {
+// Deeper info shown on long-press of a Solfeggio chip
+const solfeggioDetail = {
+  174: { name: 'UT — Foundation', props: 'The lowest of the Solfeggio tones. Said to reduce physical pain and instill a deep sense of security, safety, and being held. Gently relaxes and anesthetizes the body.', uses: 'Grounding the body before deeper energetic work; easing tension and pain.', chakra: null },
+  285: { name: 'Quantum Cognition', props: 'Associated with restructuring tissue and signaling cells to return to their original blueprint. Linked to regeneration and rejuvenation.', uses: 'Applied to wounds, cuts, and burns; "reminding" the body of its healthy form.', chakra: 'Root' },
+  396: { name: 'Liberation — UT', props: 'Releases guilt and fear — the primal blocks on the path. Turns grief into joy and liberates from the feeling of failure. Cleansing and grounding.', uses: 'Letting go of guilt; awakening; turning sorrow into power and forward motion.', chakra: 'Root' },
+  417: { name: 'Transformation — RE', props: 'Wipes out destructive patterns and facilitates change. Clears traumatic experiences and crystallized negativity from the past.', uses: 'Undoing situations; breaking old emotional loops; supporting new beginnings.', chakra: 'Sacral' },
+  528: { name: 'Miracle — MI', props: 'The "love frequency." Folklore links it to DNA repair, transformation, and miracles. Brings clarity, inner peace, and a centered sense of self.', uses: 'Meditation, manifestation, heart-opening; the cornerstone of Solfeggio practice.', chakra: 'Solar Plexus' },
+  639: { name: 'Connection — FA', props: 'Enhances communication, understanding, tolerance, and love. Harmonizes relationships — with others and within yourself.', uses: 'Repairing relationships; deepening empathy; steadying the heart in social moments.', chakra: 'Heart' },
+  741: { name: 'Expression — SOL', props: 'Awakens intuition and self-expression. Said to cleanse cells from toxins and electromagnetic clutter, and to support problem-solving.', uses: 'Detox practices; speaking your truth; clearing a noisy mind.', chakra: 'Throat' },
+  852: { name: 'Spiritual Order — LA', props: 'Returns the spirit to order; awakens inner strength and the ability to see through illusion. Raises awareness and intuition.', uses: 'Connecting with the higher self; dissolving fear-based thought; spiritual realignment.', chakra: 'Third Eye' },
+  963: { name: 'Divine — Crown', props: 'The frequency of awakening and oneness. Re-connects with the light, the source, and your true nature — pure consciousness.', uses: 'Crown-opening meditation; experiences of unity; the "pineal" tone.', chakra: 'Crown' }
+};
+
+function renderPresets(list, containerId, layerLabel, detailMap) {
   const c = document.getElementById(containerId);
   c.innerHTML = '';
   list.forEach(p => {
     const card = document.createElement('div');
     card.className = 'preset-card';
+    card.dataset.hz = p.hz;
     card.innerHTML = `<div class="preset-hz">${p.hz} <span style="font-size:14px; color:var(--text-faint);">Hz</span></div><div class="preset-name">${p.name}</div><div class="preset-desc">${p.desc}</div>`;
+    // Long-press → detail card (only where detail data exists)
+    const hasDetail = detailMap && detailMap[p.hz];
+    let lpTimer = null, lpFired = false, lpX = 0, lpY = 0;
+    if (hasDetail) {
+      const lpStart = e => {
+        lpFired = false;
+        lpX = (e.touches ? e.touches[0].clientX : e.clientX) || 0;
+        lpY = (e.touches ? e.touches[0].clientY : e.clientY) || 0;
+        lpTimer = setTimeout(() => { lpFired = true; openSolfDetail(p, detailMap); }, 500);
+      };
+      const lpCancel = () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } };
+      const lpMaybeMove = e => {
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) || 0;
+        const y = (e.touches ? e.touches[0].clientY : e.clientY) || 0;
+        if (Math.hypot(x - lpX, y - lpY) > 12) lpCancel();
+      };
+      card.addEventListener('pointerdown', lpStart);
+      card.addEventListener('pointermove', lpMaybeMove);
+      card.addEventListener('pointerup', lpCancel);
+      card.addEventListener('pointerleave', lpCancel);
+      card.addEventListener('pointercancel', lpCancel);
+      card.addEventListener('contextmenu', e => e.preventDefault());
+    }
     card.addEventListener('click', async () => {
+      if (lpFired) return; // long-press already handled this gesture
       await ensureAudio();
       if (activeTones.has(p.hz)) { stopTone(p.hz); card.classList.remove('playing'); }
       else { startTone(p.hz, layerLabel); card.classList.add('playing'); }
@@ -4565,7 +4631,40 @@ function renderPresets(list, containerId, layerLabel) {
     c.appendChild(card);
   });
 }
-renderPresets(solfeggio, 'solfeggioList', 'divine');
+function markPresetPlaying(containerId, hz, on) {
+  const card = document.querySelector('#' + containerId + ' .preset-card[data-hz="' + hz + '"]');
+  if (card) card.classList.toggle('playing', !!on);
+}
+function openSolfDetail(p, detailMap) {
+  const d = (detailMap || solfeggioDetail)[p.hz];
+  if (!d) return;
+  const [, , accent] = hzToColor(p.hz);
+  document.getElementById('solfFreq').textContent = p.hz;
+  document.getElementById('solfName').textContent = d.name;
+  document.getElementById('solfProps').textContent = d.props;
+  document.getElementById('solfUses').textContent = d.uses;
+  const ch = document.getElementById('solfChakra');
+  ch.innerHTML = d.chakra ? `<span class="solf-chakra-chip">${d.chakra} chakra</span>` : '';
+  document.getElementById('solfOrb').style.setProperty('--sf-c', accent);
+  const modal = document.getElementById('solfModal');
+  modal.classList.add('show');
+  modal.dataset.hz = p.hz;
+}
+document.getElementById('solfModalClose').addEventListener('click', () => document.getElementById('solfModal').classList.remove('show'));
+document.getElementById('solfPlayBtn').addEventListener('click', async () => {
+  const hz = parseInt(document.getElementById('solfModal').dataset.hz);
+  await ensureAudio();
+  if (!activeTones.has(hz)) { startTone(hz, 'divine'); markPresetPlaying('solfeggioList', hz, true); updateLayerInfo(); }
+  toast(hz + ' Hz playing', 'ok');
+  document.getElementById('solfModal').classList.remove('show');
+});
+document.getElementById('solfSaveBtn').addEventListener('click', () => {
+  const hz = parseInt(document.getElementById('solfModal').dataset.hz);
+  const d = solfeggioDetail[hz];
+  saveMemory(hz, d ? d.name : frequencyState(hz).short);
+  document.getElementById('solfModal').classList.remove('show');
+});
+renderPresets(solfeggio, 'solfeggioList', 'divine', solfeggioDetail);
 renderPresets(chakras, 'chakraList', 'divine');
 renderPresets(sacred, 'sacredList', 'divine');
 renderPresets(planetary, 'planetaryList', 'universal');
