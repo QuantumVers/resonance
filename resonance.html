@@ -2785,6 +2785,38 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .wave-card .wv-actions { display: flex; gap: 10px; margin-top: 14px; position: relative; }
 .wave-card .wv-actions .btn { flex: 1; }
 .wave-modal-orb { width: 130px; height: 130px; border-radius: 50%; margin: 0 auto 18px; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--wm-c, var(--blue)) 50%, rgba(0,0,0,0.5)); box-shadow: 0 0 56px var(--wm-c, var(--blue)); animation: pulse 4s ease-in-out infinite; }
+
+/* ============ THE TRUE SELF + CLOSENESS ============ */
+.trueself-card {
+  margin: 12px 20px 0; padding: 18px 18px 16px; border-radius: 24px;
+  background: radial-gradient(circle at 100% 0%, var(--ts-c, rgba(167,139,250,0.18)), transparent 62%), var(--card);
+  border: 1px solid var(--ts-bd, var(--border-hi)); backdrop-filter: blur(24px);
+  position: relative; overflow: hidden;
+}
+.trueself-kicker { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 12px; }
+.trueself-row { display: flex; align-items: center; gap: 16px; }
+.closeness-ring-wrap { position: relative; width: 76px; height: 76px; flex-shrink: 0; }
+.closeness-ring { width: 76px; height: 76px; transform: rotate(-90deg); }
+.closeness-ring circle { fill: none; stroke-width: 5; stroke-linecap: round; }
+.closeness-ring .cr-track { stroke: rgba(255,255,255,0.08); }
+.closeness-ring .cr-fill { stroke: var(--ts-orb, var(--mint)); filter: drop-shadow(0 0 6px var(--ts-orb, var(--mint))); transition: stroke-dashoffset 0.7s var(--ease); }
+.closeness-ring-core {
+  position: absolute; inset: 14px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--ts-orb, var(--mint)) 55%, rgba(0,0,0,0.5));
+  box-shadow: 0 0 20px var(--ts-orb, var(--mint));
+  display: flex; align-items: center; justify-content: center;
+}
+.closeness-pct { font-size: 14px; font-weight: 700; color: #fff; text-shadow: 0 0 6px rgba(0,0,0,0.4); font-variant-numeric: tabular-nums; }
+.trueself-info { flex: 1; min-width: 0; }
+.trueself-arch { font-size: 19px; font-weight: 300; letter-spacing: -0.01em; line-height: 1.1; }
+.trueself-freq { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ts-orb, var(--mint)); font-weight: 700; margin-top: 4px; }
+.trueself-status { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13px; color: var(--text-dim); margin-top: 12px; line-height: 1.5; }
+.trueself-work { font-size: 12.5px; color: rgba(255,255,255,0.78); margin-top: 8px; line-height: 1.45; }
+.trueself-actions { display: flex; gap: 10px; margin-top: 14px; }
+.trueself-actions .btn { flex: 1; }
+.trueself-home { border-color: rgba(167,139,250,0.5) !important; box-shadow: 0 0 36px rgba(167,139,250,0.22) !important; }
+/* compact variant for the You page */
+.trueself-card.compact { margin: 12px 0 0; }
 </style>
 </head>
 <body>
@@ -3058,6 +3090,8 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         </div>
       </div>
 
+      <!-- Your true self + how close you are to it -->
+      <div id="trueSelfSlot"></div>
       <!-- While you were away (anti-FOMO) -->
       <div id="awayCardSlot"></div>
       <!-- Wave received (anti-DM) -->
@@ -3328,6 +3362,7 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         <div class="profile-handle">Resonating at <span style="color:var(--mint);" id="profileFreqDisp">432 Hz</span></div>
         <div class="profile-tier" id="profileTier">◎ Initiated</div>
       </div>
+      <div id="trueSelfYouSlot"></div>
       <div class="profile-level-card">
         <div class="profile-level-row">
           <div class="profile-level-info">
@@ -7860,6 +7895,183 @@ function renderWaveCard() {
   });
 }
 renderWaveCard();
+
+// =================== THE TRUE SELF + CLOSENESS ===================
+// At the gate, the scan measured your ambient resonance — that is your true self's frequency.
+// The rest of the app is one thing: closing the distance from the self you are to the self you are.
+const TRUE_SELF_ARCHETYPES = {
+  1:  { name: 'The Pioneer',  work: 'The work is to begin — and to let others begin beside you.' },
+  2:  { name: 'The Diplomat', work: 'The work is to stay soft without disappearing.' },
+  3:  { name: 'The Creator',  work: 'The work is to make the thing only you can make.' },
+  4:  { name: 'The Builder',  work: 'The work is to build something that holds — starting with yourself.' },
+  5:  { name: 'The Wanderer', work: 'The work is to be free without running.' },
+  6:  { name: 'The Nurturer', work: 'The work is to pour from a full cup.' },
+  7:  { name: 'The Seeker',   work: 'The work is to stop searching and start hearing.' },
+  8:  { name: 'The Sovereign',work: 'The work is to hold power without spending it.' },
+  9:  { name: 'The Sage',     work: 'The work is to forgive — yourself included — and complete the circle.' },
+  11: { name: 'The Intuitive',work: 'The work is to trust the knowing that arrives before the thought.' },
+  22: { name: 'The Architect',work: 'The work is to bring the vision all the way into form.' },
+  33: { name: 'The Teacher',  work: 'The work is to love without conditions — out loud.' }
+};
+function computeTrueSelf() {
+  const num = (typeof userProfile !== 'undefined' && userProfile.numerology) ? userProfile.numerology
+    : (typeof computeNumerology === 'function' ? computeNumerology((userProfile && userProfile.name) || 'Soul') : 7);
+  const a = TRUE_SELF_ARCHETYPES[num] || TRUE_SELF_ARCHETYPES[7];
+  const freq = Math.max(20, Math.min(1000, Math.round((typeof userFreq !== 'undefined' && userFreq) ? userFreq : 432)));
+  const element = (typeof userProfile !== 'undefined' && userProfile.zodiac) ? userProfile.zodiac.element : null;
+  return { freq, archetype: a.name, work: a.work, element };
+}
+function ensureTrueSelf() {
+  if (typeof userProfile === 'undefined') return null;
+  if (!userProfile.trueSelf || !userProfile.trueSelf.freq) userProfile.trueSelf = computeTrueSelf();
+  return userProfile.trueSelf;
+}
+let closeness = 18;
+const CLOSENESS_MARKS = {
+  33: { eyebrow: 'A third of the way home', sub: 'You’ve closed a third of the distance to your true self. Nothing dramatic happened — you just kept showing up. That’s the whole secret.', color: '#6ee7b7', glyph: '◔' },
+  50: { eyebrow: 'Halfway home', sub: 'The pull is stronger now. You feel it. Keep walking — the second half is downhill.', color: '#6ee7b7', glyph: '◑' },
+  66: { eyebrow: 'Two-thirds home', sub: 'You can almost stand in it. The version of you that you’re becoming is close enough to hear.', color: '#fbbf24', glyph: '◕' },
+  80: { eyebrow: 'Almost home', sub: 'One more honest day, then another. You’re nearly there. Don’t rush the last stretch.', color: '#fbbf24', glyph: '●' },
+  100:{ eyebrow: 'Home', sub: 'Your now-self and your true self are the same frequency. Stay. And leave the porch light on for the ones still walking.', color: '#a78bfa', glyph: '◎' }
+};
+function loadCloseness() { try { const v = parseFloat(localStorage.getItem('resonance_closeness')); if (!isNaN(v)) closeness = Math.max(0, Math.min(100, v)); } catch (e) {} }
+function saveCloseness() { try { localStorage.setItem('resonance_closeness', String(closeness)); } catch (e) {} }
+function closenessLevelText() {
+  if (closeness >= 100) return 'You arrived. The work now is to stay — and to leave the light on.';
+  if (closeness >= 95) return 'Home is in reach. One more honest day.';
+  if (closeness >= 75) return 'Nearly home. You can almost stand in it.';
+  if (closeness >= 50) return 'Halfway home. The pull is getting stronger.';
+  if (closeness >= 25) return 'You’re closing the distance. Stay with it.';
+  return 'The distance to your true self is wide. That isn’t failure — it’s the map.';
+}
+function closenessWord() {
+  if (closeness >= 100) return 'home';
+  if (closeness >= 80) return 'almost home';
+  if (closeness >= 50) return 'most of the way';
+  if (closeness >= 25) return 'closing the distance';
+  return 'at the start of the road';
+}
+function addCloseness(amount, reason) {
+  if (!amount) return;
+  const prevMark = [33, 50, 66, 80, 100].filter(m => closeness >= m).length;
+  closeness = Math.max(0, Math.min(100, closeness + amount));
+  const newMarkCount = [33, 50, 66, 80, 100].filter(m => closeness >= m).length;
+  saveCloseness();
+  renderTrueSelfCard(); renderTrueSelfYou();
+  if (newMarkCount > prevMark) {
+    const justHit = [33, 50, 66, 80, 100][newMarkCount - 1];
+    const m = CLOSENESS_MARKS[justHit];
+    if (m && typeof moment === 'function') setTimeout(() => { moment(m.eyebrow, m.sub, m.color, m.glyph); if (typeof floatGain === 'function') floatGain('Closer ✦'); }, 300);
+  }
+}
+loadCloseness();
+
+const TS_RING_CIRC = 213; // 2*PI*r(33.9) — for the 76px ring, r=34, stroke 5
+function renderTrueSelfCard() {
+  const slot = document.getElementById('trueSelfSlot'); if (!slot) return;
+  const ts = ensureTrueSelf(); if (!ts) { slot.innerHTML = ''; return; }
+  const c = (typeof hzToColor === 'function') ? hzToColor(ts.freq)[2] : 'var(--mint)';
+  const pct = Math.round(closeness);
+  const off = TS_RING_CIRC * (1 - closeness / 100);
+  const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+  const atHome = closeness >= 100;
+  const nowNear = (typeof userFreq !== 'undefined') && Math.abs(Math.round(userFreq) - ts.freq) <= 8;
+  slot.innerHTML = `
+    <div class="trueself-card${atHome ? ' trueself-home' : ''}" style="--ts-c:${c}26; --ts-bd:${c}55; --ts-orb:${c};">
+      <div class="trueself-kicker">Your true self</div>
+      <div class="trueself-row">
+        <div class="closeness-ring-wrap">
+          <svg class="closeness-ring" viewBox="0 0 76 76"><circle class="cr-track" cx="38" cy="38" r="34"></circle><circle class="cr-fill" cx="38" cy="38" r="34" style="stroke-dasharray:${TS_RING_CIRC}; stroke-dashoffset:${off};"></circle></svg>
+          <div class="closeness-ring-core"><span class="closeness-pct">${quiet ? (atHome ? '✓' : '·') : pct + '%'}</span></div>
+        </div>
+        <div class="trueself-info">
+          <div class="trueself-arch">${escapeHtml(ts.archetype)}</div>
+          <div class="trueself-freq">${ts.freq} Hz${ts.element ? ' · ' + ts.element : ''}${nowNear ? ' · you’re standing in it' : ''}</div>
+        </div>
+      </div>
+      <div class="trueself-status">${quiet ? 'You are ' + closenessWord() + '.' : (quiet ? '' : 'You are ' + pct + '% of the way home. ') + closenessLevelText()}</div>
+      <div class="trueself-work">${escapeHtml(ts.work)}</div>
+      <div class="trueself-actions">
+        <button class="btn primary" id="trueSelfGoBtn">${atHome ? 'Stand in it' : 'Go there'}</button>
+        <button class="btn" id="trueSelfWhyBtn">What is this?</button>
+      </div>
+    </div>`;
+  document.getElementById('trueSelfGoBtn').addEventListener('click', async () => {
+    if (typeof ensureAudio === 'function') await ensureAudio();
+    if (typeof stopAllTones === 'function') stopAllTones();
+    applyFrequency(ts.freq);
+    if (typeof startTone === 'function') startTone(ts.freq, 'manual');
+    const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Stop Sync'; mp.classList.add('active'); }
+    if (typeof gotoTab === 'function') gotoTab('sync');
+    toast('Holding your true self · ' + ts.freq + ' Hz. The longer you stay, the closer you get.', 'ok');
+  });
+  document.getElementById('trueSelfWhyBtn').addEventListener('click', () => {
+    if (typeof openRepair === 'function') openRepair();
+    else toast('At the gate we measured your resonance. That tone is your true self. Everything else is the walk toward it.', '');
+  });
+}
+function renderTrueSelfYou() {
+  const slot = document.getElementById('trueSelfYouSlot'); if (!slot) return;
+  const ts = ensureTrueSelf(); if (!ts) { slot.innerHTML = ''; return; }
+  const c = (typeof hzToColor === 'function') ? hzToColor(ts.freq)[2] : 'var(--mint)';
+  const pct = Math.round(closeness);
+  const off = TS_RING_CIRC * (1 - closeness / 100);
+  const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+  slot.innerHTML = `
+    <div class="trueself-card compact" style="--ts-c:${c}22; --ts-bd:${c}4d; --ts-orb:${c};">
+      <div class="trueself-kicker">Your true self</div>
+      <div class="trueself-row">
+        <div class="closeness-ring-wrap">
+          <svg class="closeness-ring" viewBox="0 0 76 76"><circle class="cr-track" cx="38" cy="38" r="34"></circle><circle class="cr-fill" cx="38" cy="38" r="34" style="stroke-dasharray:${TS_RING_CIRC}; stroke-dashoffset:${off};"></circle></svg>
+          <div class="closeness-ring-core"><span class="closeness-pct">${quiet ? (closeness >= 100 ? '✓' : '·') : pct + '%'}</span></div>
+        </div>
+        <div class="trueself-info">
+          <div class="trueself-arch">${escapeHtml(ts.archetype)} · ${ts.freq} Hz</div>
+          <div class="trueself-freq">${quiet ? closenessWord() : pct + '% of the way home'}</div>
+        </div>
+      </div>
+      <div class="trueself-work">${escapeHtml(ts.work)}</div>
+    </div>`;
+}
+
+// --- earn closeness from the inner work (wrap existing functions) ---
+(function () {
+  if (typeof addTrust === 'function') { const _f = addTrust; addTrust = function (amt) { _f(amt); if (typeof addCloseness === 'function') addCloseness((amt || 0) * 0.4, 'inner'); }; }
+  if (typeof saveMemory === 'function') { const _f = saveMemory; saveMemory = function (a, b) { const r = _f(a, b); if (typeof addCloseness === 'function') addCloseness(2, 'memory'); return r; }; }
+  if (typeof unlockAwakening === 'function') { const _f = unlockAwakening; unlockAwakening = function (id, opts) { const before = (typeof isAwakened === 'function') ? isAwakened(id) : false; _f(id, opts); if (!before && typeof isAwakened === 'function' && isAwakened(id) && typeof addCloseness === 'function') addCloseness(7, 'awakening'); }; }
+  if (typeof recordDailySync === 'function') { const _f = recordDailySync; recordDailySync = function () { _f(); if (typeof addCloseness === 'function') addCloseness(2, 'daily'); }; }
+})();
+// session begun near your true self → bigger step
+document.getElementById('manualPlay').addEventListener('click', () => {
+  const btn = document.getElementById('manualPlay');
+  if (btn.classList.contains('active')) {
+    const ts = ensureTrueSelf();
+    const near = ts && (typeof userFreq !== 'undefined') && Math.abs(Math.round(userFreq) - ts.freq) <= 30;
+    addCloseness(near ? 2.5 : 0.6, 'sync');
+  }
+});
+// re-render the card when frequency settles (so "you're standing in it" appears)
+(function () { const _af = applyFrequency; let _t = null; applyFrequency = function (hz, fromSlider) { _af(hz, fromSlider); if (_t) clearTimeout(_t); _t = setTimeout(() => { renderTrueSelfCard(); }, 350); }; })();
+
+// name the true self when the inner world opens
+(function () {
+  const onEnter = () => {
+    setTimeout(() => {
+      const ts = ensureTrueSelf(); if (!ts) return;
+      renderTrueSelfCard(); renderTrueSelfYou();
+      if (typeof moment === 'function') {
+        moment('We found your true self', `It resonates at ${ts.freq} Hz — ${ts.archetype}. You are ${Math.round(closeness)}% of the way there. The distance from here to there is the only journey this app cares about.`, (typeof hzToColor === 'function') ? hzToColor(ts.freq)[2] : '#6ee7b7', '◎');
+      }
+    }, 1700);
+  };
+  document.getElementById('enterInnerBtn').addEventListener('click', onEnter);
+  document.getElementById('devSkipBtn').addEventListener('click', onEnter);
+})();
+// dev: seed some progress so the demo shows a journey in motion
+document.getElementById('devSkipBtn').addEventListener('click', () => { if (closeness < 40) { closeness = 42; saveCloseness(); renderTrueSelfCard(); renderTrueSelfYou(); } });
+// also refresh on profile-apply (covers all entry paths)
+if (typeof applyUserProfileToApp === 'function') { const _f = applyUserProfileToApp; applyUserProfileToApp = function () { _f(); ensureTrueSelf(); renderTrueSelfCard(); renderTrueSelfYou(); }; }
+renderTrueSelfCard(); renderTrueSelfYou();
 
 renderLadder();
 </script>
