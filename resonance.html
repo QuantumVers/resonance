@@ -2601,6 +2601,7 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       <div class="mem-modal-freq"><span id="memModalFreq">—</span> <span style="font-size:18px; color:var(--text-faint);">Hz</span></div>
       <div class="mem-modal-state" id="memModalState">—</div>
       <div class="mem-modal-time" id="memModalTime">—</div>
+      <div class="mem-modal-time" id="memModalContext" style="margin-top:6px; opacity:0.85; color:var(--mint);"></div>
       <div class="mem-modal-actions">
         <button class="btn primary" id="memReliveBtn">Relive</button>
         <button class="btn" id="memDeleteBtn">Release</button>
@@ -4503,11 +4504,15 @@ function persistMemories() {
   try { localStorage.setItem('resonance_memories', JSON.stringify(memories)); } catch (e) {}
 }
 function saveMemory(freq, label) {
+  freq = Math.round(freq);
   const mem = {
     id: Date.now(),
-    freq: Math.round(freq),
+    freq,
     label: label || frequencyState(freq).short,
-    time: Date.now()
+    time: Date.now(),
+    tradition: (typeof userProfile !== 'undefined' && userProfile.tradition) ? userProfile.tradition : null,
+    tier: (typeof getCurrentTier === 'function') ? getCurrentTier(freq).name : null,
+    modes: (typeof activeModeNames === 'function') ? activeModeNames() : []
   };
   memories.unshift(mem);
   if (memories.length > 30) memories.pop();
@@ -4578,27 +4583,35 @@ function openMemory(m) {
   document.getElementById('memModalState').textContent = state.long;
   document.getElementById('memModalTime').textContent = new Date(m.time).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
   document.getElementById('memModalOrb').style.setProperty('--mm-c', state.color);
-  document.getElementById('memModal').classList.add('show');
-  document.getElementById('memModal').dataset.id = m.id;
-  document.getElementById('memModal').dataset.freq = m.freq;
+  // Context line: tier + tradition + modes that were active
+  const bits = [];
+  if (m.tier) bits.push(m.tier + ' tier');
+  if (m.tradition && traditions[m.tradition]) bits.push(traditions[m.tradition].glyph + ' ' + traditions[m.tradition].name);
+  if (m.modes && m.modes.length) bits.push(m.modes.join(' + '));
+  const ctx = document.getElementById('memModalContext');
+  ctx.textContent = bits.join('  ·  ');
+  ctx.style.display = bits.length ? 'block' : 'none';
+  const modal = document.getElementById('memModal');
+  modal.classList.add('show');
+  modal.dataset.id = m.id;
+  modal.dataset.freq = m.freq;
+  modal.dataset.modes = (m.modes || []).join(',');
 }
 
 document.getElementById('memModalClose').addEventListener('click', () => document.getElementById('memModal').classList.remove('show'));
 document.getElementById('memReliveBtn').addEventListener('click', async () => {
-  const freq = parseInt(document.getElementById('memModal').dataset.freq);
+  const modal = document.getElementById('memModal');
+  const freq = parseInt(modal.dataset.freq);
+  const modes = (modal.dataset.modes || '').split(',').filter(Boolean);
   await ensureAudio();
-  // switch to sync tab and start tone at that freq
-  applyFrequency(freq);
   stopAllTones();
+  applyFrequency(freq);
+  if (typeof setModesExact === 'function') setModesExact(modes);
   startTone(freq, 'manual');
   document.getElementById('manualPlay').textContent = 'Stop Sync';
   document.getElementById('manualPlay').classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector('.tab-btn[data-tab="sync"]').classList.add('active');
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-sync').classList.add('active');
-  document.getElementById('memModal').classList.remove('show');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (typeof gotoTab === 'function') gotoTab('sync');
+  modal.classList.remove('show');
 });
 document.getElementById('memDeleteBtn').addEventListener('click', () => {
   const id = parseInt(document.getElementById('memModal').dataset.id);
@@ -5977,6 +5990,15 @@ function activeModeNames() {
   if (harmonicMode) m.push('harmonics');
   if (document.getElementById('breathToggle').classList.contains('active')) m.push('breath');
   return m;
+}
+// Set the four mode toggles to exactly match an array of mode names (used by relive / shared links)
+function setModesExact(modes) {
+  const want = new Set((modes || []).map(s => (s === 'harmonic' ? 'harmonics' : s)));
+  const sync = (name, isOn, clickFn) => { if (isOn !== want.has(name)) clickFn(); };
+  sync('binaural', binauralMode, () => document.getElementById('binauralToggle').click());
+  sync('mirror', mirrorMode, () => document.getElementById('mirrorToggle').click());
+  sync('harmonics', harmonicMode, () => document.getElementById('harmonicToggle').click());
+  sync('breath', document.getElementById('breathToggle').classList.contains('active'), () => document.getElementById('breathToggle').click());
 }
 function buildShareUrl(hz, modes) {
   const base = location.origin + (location.pathname && location.pathname !== '/' ? location.pathname : '/resonance.html');
