@@ -3680,10 +3680,14 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
   </div>
 
   <div class="set-section">
-    <div class="set-label">Notifications</div>
+    <div class="set-label">Quiet</div>
     <div class="set-row">
       <div><div class="set-row-name">Daily resonance reminder</div><div class="set-row-sub">A gentle nudge to return (interface only)</div></div>
       <div class="set-switch" id="setNotify" role="switch" tabindex="0"></div>
+    </div>
+    <div class="set-row" style="margin-top:14px;">
+      <div><div class="set-row-name">Quiet metrics</div><div class="set-row-sub">Hide the numbers — streaks, counts, percentages become words. The only number that matters isn't one.</div></div>
+      <div class="set-switch" id="setQuiet" role="switch" tabindex="0"></div>
     </div>
   </div>
 
@@ -3887,7 +3891,7 @@ function toast(message, type) {
 }
 
 // =================== SETTINGS (state) ===================
-const DEFAULT_SETTINGS = { volume: 80, notify: false, theme: 'violet' };
+const DEFAULT_SETTINGS = { volume: 80, notify: false, theme: 'violet', quietMetrics: false };
 let appSettings = Object.assign({}, DEFAULT_SETTINGS);
 function loadSettings() { try { const v = JSON.parse(localStorage.getItem('resonance_settings') || 'null'); if (v && typeof v === 'object') appSettings = Object.assign({}, DEFAULT_SETTINGS, v); } catch (e) {} }
 function saveSettings() { try { localStorage.setItem('resonance_settings', JSON.stringify(appSettings)); } catch (e) {} }
@@ -3898,6 +3902,7 @@ function applyTheme(name) {
 }
 loadSettings();
 applyTheme(appSettings.theme);
+if (document.body && appSettings.quietMetrics) document.body.classList.add('quiet-metrics');
 
 // =================== STREAKS ===================
 const STREAK_MILESTONES = {
@@ -3921,7 +3926,11 @@ function updateStreakUI() {
   const live = n > 0 && (streakData.lastDay === today || streakData.lastDay === yesterday);
   el.classList.toggle('cold', !live);
   el.classList.toggle('milestone', live && !!STREAK_MILESTONES[n]);
-  el.textContent = (live ? '🔥' : '◌') + ' Day ' + n;
+  if (typeof appSettings !== 'undefined' && appSettings.quietMetrics) {
+    el.textContent = (live ? '🔥 ' : '◌ ') + (!live ? 'no streak' : n >= 30 ? 'a long streak' : n >= 7 ? 'a steady streak' : n >= 3 ? 'a few days' : 'a new streak');
+  } else {
+    el.textContent = (live ? '🔥' : '◌') + ' Day ' + n;
+  }
 }
 function recordDailySync() {
   const today = _dayKey();
@@ -3955,8 +3964,15 @@ function fmtDuration(ms) {
   return (hrs < 10 ? hrs.toFixed(1) : Math.round(hrs)) + 'h';
 }
 function updateStatsUI() {
-  const a = document.getElementById('statSessions'); if (a) a.textContent = appStats.sessions || 0;
-  const b = document.getElementById('statSynced'); if (b) b.textContent = fmtDuration(appStats.syncedMs || 0);
+  const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+  const a = document.getElementById('statSessions');
+  if (a) a.textContent = quiet ? ((appStats.sessions || 0) >= 30 ? 'many' : (appStats.sessions || 0) >= 5 ? 'some' : (appStats.sessions || 0) >= 1 ? 'a few' : 'none') : (appStats.sessions || 0);
+  const b = document.getElementById('statSynced');
+  if (b) b.textContent = quiet ? ((appStats.syncedMs || 0) >= 3600000 ? 'hours' : (appStats.syncedMs || 0) > 0 ? 'a while' : 'none') : fmtDuration(appStats.syncedMs || 0);
+  const al = document.getElementById('statAlign');
+  if (al && typeof userAlignment !== 'undefined' && userAlignment) {
+    al.textContent = quiet ? (userAlignment >= 85 ? 'high' : userAlignment >= 70 ? 'strong' : userAlignment >= 50 ? 'rising' : 'forming') : userAlignment;
+  }
 }
 function recordSessionStart() { appStats.sessions = (appStats.sessions || 0) + 1; saveStats(); updateStatsUI(); }
 function recordSessionEnd(ms) { if (ms > 0) { appStats.syncedMs = (appStats.syncedMs || 0) + ms; saveStats(); updateStatsUI(); } }
@@ -4352,7 +4368,7 @@ function updateTrustUI() {
   const fill = document.getElementById('trustBarFill');
   const label = document.getElementById('trustLabel');
   if (fill) fill.style.width = soulTrust + '%';
-  if (label) label.textContent = level.name + ' · ' + Math.floor(soulTrust) + '%';
+  if (label) label.textContent = (typeof appSettings !== 'undefined' && appSettings.quietMetrics) ? level.name : (level.name + ' · ' + Math.floor(soulTrust) + '%');
   // Reflect in dev slider
   const dev = document.getElementById('devTrustSlider');
   const devVal = document.getElementById('devTrustVal');
@@ -6152,6 +6168,7 @@ function moment(title, subtitle, color, glyph) {
 }
 
 function floatGain(text, x, y) {
+  if (typeof appSettings !== 'undefined' && appSettings.quietMetrics && /\bxp\b/i.test(String(text))) text = 'growth';
   const el = document.createElement('div');
   el.className = 'float-gain';
   el.textContent = text;
@@ -7248,14 +7265,15 @@ function renderAwakenings() {
     el.addEventListener('click', () => openAwakeningModal(a.id));
     grid.appendChild(el);
   });
-  const cl = document.getElementById('awkCountLabel');
-  if (cl) cl.textContent = awakenedCount() + ' / ' + AWAKENINGS.length;
+  updateAwakeningsBadge();
 }
 function updateAwakeningsBadge() {
+  const c = awakenedCount(), total = AWAKENINGS.length;
+  const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
   const star = document.getElementById('awakeningsStar');
-  if (star) star.textContent = '★ ' + awakenedCount();
+  if (star) star.textContent = quiet ? '★' : ('★ ' + c);
   const cl = document.getElementById('awkCountLabel');
-  if (cl) cl.textContent = awakenedCount() + ' / ' + AWAKENINGS.length;
+  if (cl) cl.textContent = quiet ? (c === 0 ? 'none yet' : c >= total ? 'all' : c >= 5 ? 'many' : 'a few') : (c + ' / ' + total);
 }
 function openAwakeningModal(id) {
   const a = AWAKENINGS_BY_ID[id]; if (!a) return;
@@ -7297,9 +7315,26 @@ function openSettings() {
   document.getElementById('setVolume').value = appSettings.volume;
   document.getElementById('setVolumeVal').textContent = appSettings.volume + '%';
   document.getElementById('setNotify').classList.toggle('on', !!appSettings.notify);
+  document.getElementById('setQuiet').classList.toggle('on', !!appSettings.quietMetrics);
   document.querySelectorAll('.set-theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === (appSettings.theme || 'violet')));
   document.getElementById('settingsOverlay').classList.add('show');
 }
+function _toggleQuiet() {
+  appSettings.quietMetrics = !appSettings.quietMetrics;
+  document.getElementById('setQuiet').classList.toggle('on', appSettings.quietMetrics);
+  if (document.body) document.body.classList.toggle('quiet-metrics', appSettings.quietMetrics);
+  saveSettings();
+  if (typeof updateStreakUI === 'function') updateStreakUI();
+  if (typeof updateAwakeningsBadge === 'function') updateAwakeningsBadge();
+  if (typeof updateStatsUI === 'function') updateStatsUI();
+  if (typeof updateTrustUI === 'function') updateTrustUI();
+  if (typeof renderTrueSelfCard === 'function') renderTrueSelfCard();
+  if (typeof renderTrueSelfYou === 'function') renderTrueSelfYou();
+  if (typeof renderKindred === 'function') renderKindred();
+  toast(appSettings.quietMetrics ? 'Quiet metrics on — the numbers are words now' : 'Numbers back on', '');
+}
+document.getElementById('setQuiet').addEventListener('click', _toggleQuiet);
+document.getElementById('setQuiet').addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); _toggleQuiet(); } });
 document.getElementById('settingsBtn').addEventListener('click', openSettings);
 document.getElementById('settingsCloseBtn').addEventListener('click', () => document.getElementById('settingsOverlay').classList.remove('show'));
 document.getElementById('setVolume').addEventListener('input', e => {
@@ -8238,6 +8273,36 @@ document.getElementById('kpathVisitBtn').addEventListener('click', async () => {
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderKindred, 1750));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderKindred, 1750));
 renderKindred();
+
+// =================== WHILE YOU WERE AWAY (anti-FOMO) ===================
+// The opposite of "47 things happened, look what you missed": nothing was kept from you,
+// because the only thing here that moves is how close you are to yourself — and that's exactly where you left it.
+(function () {
+  const slot = document.getElementById('awayCardSlot'); if (!slot) return;
+  let last = 0;
+  try { last = parseInt(localStorage.getItem('resonance_lastopen') || '0') || 0; } catch (e) {}
+  try { localStorage.setItem('resonance_lastopen', String(Date.now())); } catch (e) {}
+  const gapH = last ? (Date.now() - last) / 3600000 : -1;
+  let kicker, body;
+  if (gapH < 0) {
+    kicker = 'First time here';
+    body = 'There’s nothing you missed — there never will be. Resonance doesn’t keep a tally that runs against you, and there’s no feed scrolling past while you’re gone. There is exactly one number that means anything here: how close you are to your true self. Right now it’s wherever you’ll leave it.';
+  } else if (gapH < 3) { slot.innerHTML = ''; return; }
+  else {
+    const souls = 3 + (((typeof _dayHash === 'function') ? _dayHash('away|' + Math.round(gapH)) : 5) % 11) + Math.min(40, Math.round(gapH));
+    const ago = gapH >= 36 ? Math.round(gapH / 24) + ' days' : (gapH >= 1.5 ? Math.round(gapH) + ' hours' : 'a while');
+    kicker = 'While you were away · ' + ago;
+    body = souls + ' souls passed through your frequency. The field held steady. Nothing happened that you needed to see — so nothing was kept from you. You didn’t fall behind: there’s no "behind" here, only how close you are to yourself, and that’s exactly where you left it. The field is patient. So can you be.';
+  }
+  slot.innerHTML = `
+    <div class="wave-card" style="--wv-orb:var(--violet); --wv-c:rgba(167,139,250,0.16); --wv-bd:rgba(167,139,250,0.4);">
+      <div class="wv-pulse"></div>
+      <div class="wv-kicker" style="color:var(--violet);">${kicker}</div>
+      <div class="wv-line" style="font-size:13.5px; color:rgba(255,255,255,0.85); line-height:1.55;">${body}</div>
+      <div class="wv-actions"><button class="btn" id="awayDismissBtn">Good</button></div>
+    </div>`;
+  document.getElementById('awayDismissBtn').addEventListener('click', () => { slot.innerHTML = ''; });
+})();
 
 renderLadder();
 </script>
