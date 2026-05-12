@@ -3021,8 +3021,16 @@ const traditions = {
   buddhism:    { name: 'Buddhism',     glyph: '☸',  tagline: 'Dharma · Path',  greeting: 'Namaste',   accent: '#fde68a', divine: 'Dharma',  blessing: 'May you walk the middle path. Be the mind that is awake.' },
   hinduism:    { name: 'Hinduism',     glyph: '🕉', tagline: 'Atman · Self',    greeting: 'Namaste',   accent: '#fb7185', divine: 'Brahman', blessing: 'May Atman recognize itself in this work. Tat Tvam Asi — you are That.' },
   spiritual:   { name: 'Spiritual',    glyph: '✨', tagline: 'Source · Light',  greeting: 'Welcome',   accent: '#a78bfa', divine: 'Source',  blessing: 'May you remember who you are. You are the light returning.' },
+  indigenous:  { name: 'Indigenous',   glyph: '◉',  tagline: 'Earth · Ancestors', greeting: 'Walk in beauty', accent: '#c8763c', divine: 'the Great Spirit', blessing: 'May you walk in beauty. The land remembers you. Your ancestors walk beside you.' },
+  jewishrenewal:{ name: 'Jewish Renewal', glyph: '✡', tagline: 'Ruach · Renewal', greeting: 'Shalom',    accent: '#2dd4bf', divine: 'the Source of Life', blessing: 'May the Ruach — the breath of renewal — move through you. Hineni: you are here.' },
+  mixed:       { name: 'Mixed Paths',  glyph: '✺',  tagline: 'Many rivers · one sea', greeting: 'Welcome', accent: '#c4b5fd', accentGradient: 'linear-gradient(95deg, #fb7185, #fbbf24, #6ee7b7, #60a5fa, #a78bfa)', divine: 'the Mystery', blessing: 'Every path is a finger pointing at the same moon. You are allowed all of them.' },
   universal:   { name: 'Universal',    glyph: '◎',  tagline: 'Pure frequency', greeting: 'Welcome',   accent: '#6ee7b7', divine: 'Universe',blessing: 'You are pure vibration. Frequency is the only truth.' }
 };
+function traditionGlyphStyle(t) {
+  // Returns inline-style string for a tradition glyph (handles rainbow gradient for Mixed Paths)
+  if (t && t.accentGradient) return `background:${t.accentGradient}; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;`;
+  return `color:${t ? t.accent : 'var(--gold)'};`;
+}
 
 // =================== ZODIAC ===================
 const zodiacData = [
@@ -3124,7 +3132,7 @@ function renderTraditionGrid() {
     const card = document.createElement('div');
     card.className = 'tradition-card';
     card.dataset.key = key;
-    card.innerHTML = `<div class="tg" style="color:${t.accent};">${t.glyph}</div><div class="tn">${t.name}</div><div class="tl">${t.tagline}</div>`;
+    card.innerHTML = `<div class="tg" style="${traditionGlyphStyle(t)}">${t.glyph}</div><div class="tn">${t.name}</div><div class="tl">${t.tagline}</div>`;
     card.addEventListener('click', () => {
       document.querySelectorAll('.tradition-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
