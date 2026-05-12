@@ -2766,6 +2766,25 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .fieldnote.landed .fieldnote-land { color: var(--mint); }
 .fieldnote-line { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.88); }
 .fieldnotes-empty { font-family: Georgia, serif; font-style: italic; font-size: 13px; color: var(--text-faint); padding: 6px 0 4px; line-height: 1.5; }
+
+/* ============ WAVES (anti-DM) ============ */
+.story { cursor: pointer; }
+.story:active { transform: scale(0.94); transition: transform 0.12s; }
+.wave-card {
+  margin: 16px 20px 0; padding: 18px 18px 16px; border-radius: 22px;
+  background: radial-gradient(circle at 100% 0%, var(--wv-c, rgba(96,165,250,0.18)), transparent 60%), var(--card);
+  border: 1px solid var(--wv-bd, rgba(96,165,250,0.4)); backdrop-filter: blur(20px);
+  position: relative; overflow: hidden;
+}
+.wave-card .wv-pulse { position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; border-radius: 50%; background: var(--wv-orb, var(--blue)); opacity: 0.18; filter: blur(28px); }
+.wave-card .wv-kicker { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--wv-orb, var(--blue)); font-weight: 700; margin-bottom: 8px; position: relative; }
+.wave-card .wv-row { display: flex; align-items: center; gap: 14px; position: relative; }
+.wave-card .wv-orb { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--wv-orb, var(--blue)) 50%, rgba(0,0,0,0.4)); box-shadow: 0 0 24px var(--wv-orb, var(--blue)); animation: pulse 3s ease-in-out infinite; }
+.wave-card .wv-name { font-size: 15px; font-weight: 700; }
+.wave-card .wv-line { font-size: 12.5px; color: var(--text-dim); margin-top: 2px; }
+.wave-card .wv-actions { display: flex; gap: 10px; margin-top: 14px; position: relative; }
+.wave-card .wv-actions .btn { flex: 1; }
+.wave-modal-orb { width: 130px; height: 130px; border-radius: 50%; margin: 0 auto 18px; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--wm-c, var(--blue)) 50%, rgba(0,0,0,0.5)); box-shadow: 0 0 56px var(--wm-c, var(--blue)); animation: pulse 4s ease-in-out infinite; }
 </style>
 </head>
 <body>
@@ -3149,6 +3168,22 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         <div class="awk-progress-bar"><div class="awk-progress-fill" id="awkProgressFill" style="width:0%;"></div></div>
       </div>
       <div id="awkUnlockedTag" style="margin-top:16px; display:none;"><span class="solf-chakra-chip" style="color:var(--mint); border-color:rgba(110,231,183,0.3); background:rgba(110,231,183,0.12);">✦ Unlocked</span></div>
+    </div>
+  </div>
+
+  <!-- Send-a-wave sheet -->
+  <div class="mem-modal" id="waveModal">
+    <div class="mem-modal-card" style="text-align:center;">
+      <button class="mem-modal-close" id="waveModalClose">✕</button>
+      <div class="wave-modal-orb" id="waveModalOrb"></div>
+      <div class="mem-modal-freq"><span id="waveModalFreq">—</span> <span style="font-size:18px; color:var(--text-faint);">Hz</span></div>
+      <div class="mem-modal-state" id="waveModalName">—</div>
+      <div class="solf-text" id="waveModalState" style="margin-top:8px; text-align:center;">—</div>
+      <p style="font-size:12.5px; color:var(--text-faint); margin-top:14px; line-height:1.5;">A wave carries no words. It carries the frequency you're holding right now. When it reaches them, their Resonance opens on it — and they decide whether to hold it with you.</p>
+      <div class="mem-modal-actions">
+        <button class="btn primary" id="waveSendBtn">Send a wave</button>
+        <button class="btn" id="waveVisitBtn">Visit their frequency</button>
+      </div>
     </div>
   </div>
 
@@ -5704,6 +5739,8 @@ storyUsers.forEach(u => {
   s.className = 'story' + (u.you ? ' you' : '');
   const orbBg = u.you ? '' : `background: radial-gradient(circle at 30% 30%, ${u.color1}, ${u.color2});`;
   s.innerHTML = `<div class="story-ring"><div style="${orbBg}">${u.you ? '' : u.initial}</div>${u.live ? '<div class="story-live">LIVE</div>' : ''}</div><div class="story-name">${u.name}</div>${u.freq ? `<div class="story-freq">${u.freq} Hz</div>` : ''}`;
+  if (!u.you) s.addEventListener('click', () => { if (typeof openWaveSheet === 'function') openWaveSheet(u); });
+  else s.addEventListener('click', () => toast('You are already here. The field can feel you.', ''));
   storiesRow.appendChild(s);
 });
 
@@ -7729,6 +7766,100 @@ renderFieldNotes();
     _t = setTimeout(renderFieldNotes, 400);
   };
 })();
+
+// =================== WAVES (anti-DM) ===================
+// You don't message a soul. You send them a wave — the frequency you're holding.
+// They receive a tone, not a wall of text, and decide whether to hold it with you.
+let _waveTarget = null;
+function _soulColor(u) {
+  if (u && u.color1) return u.color1;
+  if (u && typeof hzToColor === 'function' && u.freq) return hzToColor(u.freq)[2];
+  return 'var(--blue)';
+}
+function _soulState(freq) { return (typeof frequencyState === 'function') ? frequencyState(freq).long : 'their resonance.'; }
+function openWaveSheet(u) {
+  _waveTarget = u;
+  const c = _soulColor(u);
+  document.getElementById('waveModalOrb').style.setProperty('--wm-c', c);
+  document.getElementById('waveModalFreq').textContent = u.freq != null ? u.freq : '—';
+  document.getElementById('waveModalName').textContent = u.name;
+  document.getElementById('waveModalState').textContent = u.freq != null ? _soulState(u.freq) : '';
+  document.getElementById('waveModal').classList.add('show');
+}
+document.getElementById('waveModalClose').addEventListener('click', () => document.getElementById('waveModal').classList.remove('show'));
+document.getElementById('waveSendBtn').addEventListener('click', () => {
+  if (!_waveTarget) return;
+  const myHz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432;
+  if (typeof floatGain === 'function') floatGain('Wave sent ✦');
+  toast('A wave is on its way to ' + _waveTarget.name + ' — your ' + myHz + ' Hz. No words. Just the tone.', 'ok');
+  document.getElementById('waveModal').classList.remove('show');
+});
+document.getElementById('waveVisitBtn').addEventListener('click', async () => {
+  if (!_waveTarget || _waveTarget.freq == null) { document.getElementById('waveModal').classList.remove('show'); return; }
+  const hz = _waveTarget.freq, name = _waveTarget.name;
+  if (typeof ensureAudio === 'function') await ensureAudio();
+  if (typeof stopAllTones === 'function') stopAllTones();
+  applyFrequency(hz);
+  if (typeof startTone === 'function') startTone(hz, 'manual');
+  const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Stop Sync'; mp.classList.add('active'); }
+  if (typeof gotoTab === 'function') gotoTab('sync');
+  document.getElementById('waveModal').classList.remove('show');
+  toast('Holding ' + name + "'s frequency · " + hz + ' Hz', 'ok');
+});
+
+// --- A wave received (shown once per day in the feed) ---
+function waveRxKey() { return 'resonance_wave_' + (typeof _dayKey === 'function' ? _dayKey() : 'd'); }
+function getWaveRx() {
+  try { const v = JSON.parse(localStorage.getItem(waveRxKey()) || 'null'); if (v && v.from) return v; } catch (e) {}
+  // generate one from the live souls
+  const live = (typeof storyUsers !== 'undefined') ? storyUsers.filter(s => !s.you) : [];
+  if (!live.length) return null;
+  const pick = live[_dayHash('waverx') % live.length];
+  const v = { from: pick.name, freq: pick.freq, color: pick.color1 || null, status: 'open' };
+  try { localStorage.setItem(waveRxKey(), JSON.stringify(v)); } catch (e) {}
+  return v;
+}
+function setWaveRxStatus(st) {
+  try { const v = getWaveRx(); if (v) { v.status = st; localStorage.setItem(waveRxKey(), JSON.stringify(v)); } } catch (e) {}
+}
+function renderWaveCard() {
+  const slot = document.getElementById('waveCardSlot'); if (!slot) return;
+  const w = getWaveRx();
+  if (!w || w.status !== 'open') { slot.innerHTML = ''; return; }
+  const c = w.color || ((typeof hzToColor === 'function' && w.freq) ? hzToColor(w.freq)[2] : 'var(--blue)');
+  slot.innerHTML = `
+    <div class="wave-card" style="--wv-orb:${c}; --wv-c:${c}2e; --wv-bd:${c}66;">
+      <div class="wv-pulse"></div>
+      <div class="wv-kicker">A wave reached you</div>
+      <div class="wv-row">
+        <div class="wv-orb"></div>
+        <div style="flex:1; min-width:0;">
+          <div class="wv-name">${escapeHtml(w.from)} · ${w.freq != null ? w.freq + ' Hz' : ''}</div>
+          <div class="wv-line">${w.freq != null ? escapeHtml(_soulState(w.freq)) : ''} They want you here.</div>
+        </div>
+      </div>
+      <div class="wv-actions">
+        <button class="btn primary" id="waveHoldBtn">Hold it with them</button>
+        <button class="btn" id="waveLetPassBtn">Let it pass</button>
+      </div>
+    </div>`;
+  document.getElementById('waveHoldBtn').addEventListener('click', async () => {
+    if (typeof ensureAudio === 'function') await ensureAudio();
+    if (typeof stopAllTones === 'function') stopAllTones();
+    applyFrequency(w.freq);
+    if (typeof startTone === 'function') startTone(w.freq, 'manual');
+    const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Stop Sync'; mp.classList.add('active'); }
+    setWaveRxStatus('held'); renderWaveCard();
+    if (typeof gotoTab === 'function') gotoTab('sync');
+    if (typeof floatGain === 'function') floatGain('Held with ' + w.from);
+    toast("You're holding " + w.from + "'s wave · " + w.freq + ' Hz', 'ok');
+  });
+  document.getElementById('waveLetPassBtn').addEventListener('click', () => {
+    setWaveRxStatus('passed'); renderWaveCard();
+    if (typeof floatGain === 'function') floatGain('Let it pass');
+  });
+}
+renderWaveCard();
 
 renderLadder();
 </script>
