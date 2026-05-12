@@ -1556,6 +1556,29 @@ input[type="date"].signup-input {
 .sync-mode-toggle button.active { background: rgba(255,255,255,0.12); color: var(--text); }
 .orb-stage { position: relative; width: 300px; height: 300px; margin: 20px auto 0; }
 .spectrum-canvas { position: absolute; top: -40px; left: -40px; width: 380px; height: 380px; z-index: 1; pointer-events: none; }
+.hold-ring {
+  position: absolute; top: -10px; left: -10px;
+  width: 320px; height: 320px;
+  z-index: 3; pointer-events: none;
+  transform: rotate(-90deg);
+  opacity: 0; transition: opacity 0.4s var(--ease);
+}
+.hold-ring.active { opacity: 1; }
+.hold-ring circle { fill: none; stroke-width: 4; stroke-linecap: round; }
+.hold-ring-track { stroke: rgba(255,255,255,0.07); }
+.hold-ring-fill {
+  stroke: var(--ring-c, var(--mint));
+  filter: drop-shadow(0 0 8px var(--ring-c, var(--mint)));
+  stroke-dasharray: 943;
+  stroke-dashoffset: 943;
+  transition: stroke-dashoffset 0.2s linear;
+}
+.hold-ring.full { animation: holdRingBurst 1.1s var(--ease); }
+@keyframes holdRingBurst {
+  0% { transform: rotate(-90deg) scale(1); }
+  35% { transform: rotate(-90deg) scale(1.06); filter: brightness(1.6); }
+  100% { transform: rotate(-90deg) scale(1); }
+}
 .main-orb {
   position: absolute; inset: 0;
   width: 300px; height: 300px;
@@ -2695,6 +2718,10 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       <div class="orb-stage">
         <canvas class="spectrum-canvas" id="spectrumCanvas"></canvas>
         <div class="main-orb" id="mainOrb"></div>
+        <svg class="hold-ring" id="holdRing" viewBox="0 0 320 320" aria-hidden="true">
+          <circle class="hold-ring-track" cx="160" cy="160" r="150"></circle>
+          <circle class="hold-ring-fill" id="holdRingFill" cx="160" cy="160" r="150"></circle>
+        </svg>
       </div>
       <div class="freq-display">
         <div class="freq-value" id="manualFreq">432</div>
@@ -5147,24 +5174,8 @@ applyFrequency = function(hz, fromSlider) {
     moment('Tier Unlocked', `${currentTier.name} · ${currentTier.state}`, currentTier.color, '◎');
   }
   _lastTierN = currentTier.n;
-
-  // Anchor moment — held a named frequency for 20s
-  const named = findNamedFreq(userFreq);
-  if (named && getManualHz() !== null) {
-    if (_anchorTarget !== named.hz) {
-      _anchorTarget = named.hz;
-      if (_anchorTimer) clearTimeout(_anchorTimer);
-      _anchorTimer = setTimeout(() => {
-        if (Math.abs(userFreq - named.hz) < 3 && getManualHz() !== null) {
-          moment('Anchored', `${named.hz} Hz · ${named.name}`, '#6ee7b7', '✦');
-          floatGain('+50 XP');
-        }
-      }, 20000);
-    }
-  } else {
-    _anchorTarget = null;
-    if (_anchorTimer) { clearTimeout(_anchorTimer); _anchorTimer = null; }
-  }
+  // (The "Anchored" moment for holding a Solfeggio for 20s is now driven by the
+  //  hold-ring loop near the bottom of this script — see holdRingTick().)
 };
 
 // =================== GROUNDING MOMENT SYSTEM ===================
@@ -6133,6 +6144,48 @@ document.getElementById('shareFreqBtn').addEventListener('click', async () => {
   document.getElementById('enterInnerBtn').addEventListener('click', onEnter);
   document.getElementById('devSkipBtn').addEventListener('click', onEnter);
 })();
+
+// =================== FREQUENCY HOLDING RING ===================
+// While a manual tone is playing on a Solfeggio frequency, a progress ring fills
+// around the sync orb over 20s; when full, fire the "Anchored" hero moment.
+const HOLD_RING_CIRC = 943; // 2 * PI * r(150) ≈ 942.5
+let _holdRingHz = null, _holdRingStart = 0, _holdRingFired = false;
+function nearestSolfeggio(hz) { return solfeggio.find(s => Math.abs(hz - s.hz) < 3) || null; }
+function holdRingTick() {
+  const ring = document.getElementById('holdRing');
+  const fill = document.getElementById('holdRingFill');
+  if (ring && fill) {
+    const playing = (typeof getManualHz === 'function') && getManualHz() !== null;
+    const sol = playing ? nearestSolfeggio(userFreq) : null;
+    if (sol) {
+      if (_holdRingHz !== sol.hz) {
+        _holdRingHz = sol.hz; _holdRingStart = Date.now(); _holdRingFired = false;
+        const [, , accent] = hzToColor(sol.hz);
+        ring.style.setProperty('--ring-c', accent);
+        ring.classList.add('active');
+      }
+      const p = Math.min(1, (Date.now() - _holdRingStart) / 20000);
+      fill.style.strokeDashoffset = String(HOLD_RING_CIRC * (1 - p));
+      if (p >= 1 && !_holdRingFired) {
+        _holdRingFired = true;
+        const named = (typeof findNamedFreq === 'function') ? findNamedFreq(sol.hz) : null;
+        const label = named ? named.name : sol.name;
+        const [, , accent] = hzToColor(sol.hz);
+        moment('Anchored', `${sol.hz} Hz · ${label}`, accent, '✦');
+        floatGain('+50 XP');
+        ring.classList.add('full');
+        setTimeout(() => ring.classList.remove('full'), 1100);
+        if (typeof unlockAwakening === 'function') unlockAwakening('anchor');
+      }
+    } else if (_holdRingHz !== null) {
+      _holdRingHz = null; _holdRingFired = false;
+      ring.classList.remove('active');
+      fill.style.strokeDashoffset = String(HOLD_RING_CIRC);
+    }
+  }
+  requestAnimationFrame(holdRingTick);
+}
+requestAnimationFrame(holdRingTick);
 
 renderLadder();
 </script>
