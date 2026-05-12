@@ -2817,6 +2817,46 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .trueself-home { border-color: rgba(167,139,250,0.5) !important; box-shadow: 0 0 36px rgba(167,139,250,0.22) !important; }
 /* compact variant for the You page */
 .trueself-card.compact { margin: 12px 0 0; }
+
+/* ============ KINDRED (true selves on a similar path) ============ */
+.kindred-section { padding: 0 20px; }
+.kindred-head { display: flex; align-items: baseline; justify-content: space-between; padding: 24px 0 4px; }
+.kindred-head h2 { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 22px; font-weight: 400; letter-spacing: -0.01em; }
+.kindred-head .kh-sub { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.kindred-list { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; transition: filter 0.6s var(--ease); }
+.kindred-list.focusing { filter: blur(2.2px) saturate(0.8); opacity: 0.7; }
+.kindred-focus-note { font-family: Georgia, serif; font-style: italic; font-size: 12px; color: var(--text-faint); padding: 8px 0 0; }
+.kindred-empty {
+  background: var(--card); border: 1px dashed var(--border-hi); border-radius: 18px;
+  padding: 18px; backdrop-filter: blur(20px);
+  font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 14px; color: var(--text-dim); line-height: 1.55;
+}
+.kindred-card {
+  background: radial-gradient(circle at 100% 0%, var(--kn-c, rgba(167,139,250,0.12)), transparent 60%), var(--card);
+  border: 1px solid var(--border); border-radius: 18px; padding: 14px 16px; backdrop-filter: blur(20px);
+  cursor: pointer; transition: transform 0.2s var(--pop);
+  display: flex; align-items: center; gap: 14px;
+}
+.kindred-card:active { transform: scale(0.99); }
+.kindred-orb { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; position: relative; }
+.kindred-orb svg { width: 44px; height: 44px; transform: rotate(-90deg); }
+.kindred-orb svg circle { fill: none; stroke-width: 3.5; stroke-linecap: round; }
+.kindred-orb .kn-track { stroke: rgba(255,255,255,0.08); }
+.kindred-orb .kn-fill { stroke: var(--kn-orb, var(--mint)); filter: drop-shadow(0 0 4px var(--kn-orb, var(--mint))); }
+.kindred-orb .kn-core { position: absolute; inset: 10px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), var(--kn-orb, var(--mint)) 55%, rgba(0,0,0,0.5)); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; box-shadow: 0 0 12px var(--kn-orb, var(--mint)); }
+.kindred-info { flex: 1; min-width: 0; }
+.kindred-name { font-size: 14px; font-weight: 700; }
+.kindred-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+.kindred-line { font-size: 12.5px; color: var(--text-dim); margin-top: 6px; font-style: italic; font-family: Georgia, serif; line-height: 1.4; }
+.kindred-arrow { font-size: 16px; color: var(--text-faint); align-self: center; }
+.kindred-whole {
+  margin-top: 12px; padding: 14px 16px; border-radius: 16px; text-align: center;
+  background: radial-gradient(circle at 50% 0%, rgba(167,139,250,0.16), transparent 60%), var(--card);
+  border: 1px solid rgba(167,139,250,0.4);
+  font-family: Georgia, serif; font-style: italic; font-size: 13.5px; color: var(--text); line-height: 1.5;
+}
+.kpath-overlap { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.85); text-align: left; margin: 4px 0 8px; }
+.kpath-overlap b { color: var(--mint); }
 </style>
 </head>
 <body>
@@ -3096,6 +3136,8 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       <div id="awayCardSlot"></div>
       <!-- Wave received (anti-DM) -->
       <div id="waveCardSlot"></div>
+      <!-- Kindred — true selves on a similar highest path; comes into focus as you get closer to yourself -->
+      <div id="kindredSlot"></div>
 
       <!-- Today's Transmission — the whole of it, finite, expires at midnight -->
       <div class="tx-section">
@@ -3202,6 +3244,23 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         <div class="awk-progress-bar"><div class="awk-progress-fill" id="awkProgressFill" style="width:0%;"></div></div>
       </div>
       <div id="awkUnlockedTag" style="margin-top:16px; display:none;"><span class="solf-chakra-chip" style="color:var(--mint); border-color:rgba(110,231,183,0.3); background:rgba(110,231,183,0.12);">✦ Unlocked</span></div>
+    </div>
+  </div>
+
+  <!-- The path you share with a kindred -->
+  <div class="mem-modal" id="kpathModal">
+    <div class="mem-modal-card" style="text-align:center;">
+      <button class="mem-modal-close" id="kpathClose">✕</button>
+      <div class="wave-modal-orb" id="kpathOrb"></div>
+      <div class="mem-modal-state" id="kpathName" style="font-size:20px; font-style:normal; font-weight:300; color:var(--text);">—</div>
+      <div class="solf-text" id="kpathArch" style="margin-top:6px; text-align:center;">—</div>
+      <div class="about-section-label" style="margin-top:18px;">The path you share</div>
+      <div class="kpath-overlap" id="kpathOverlap">—</div>
+      <p style="font-size:12px; color:var(--text-faint); line-height:1.5;">You didn't find each other by an algorithm. You found each other by getting closer to yourselves until your paths overlapped.</p>
+      <div class="mem-modal-actions">
+        <button class="btn primary" id="kpathWaveBtn">Send them a wave</button>
+        <button class="btn" id="kpathVisitBtn">Walk their frequency</button>
+      </div>
     </div>
   </div>
 
@@ -8072,6 +8131,113 @@ document.getElementById('devSkipBtn').addEventListener('click', () => { if (clos
 // also refresh on profile-apply (covers all entry paths)
 if (typeof applyUserProfileToApp === 'function') { const _f = applyUserProfileToApp; applyUserProfileToApp = function () { _f(); ensureTrueSelf(); renderTrueSelfCard(); renderTrueSelfYou(); }; }
 renderTrueSelfCard(); renderTrueSelfYou();
+
+// =================== KINDRED — true selves on a similar highest path ===================
+// You don't get followers. You get kindred: souls becoming who they are, near where you're
+// becoming who you are. They come into focus only as you get closer to your own true self.
+const KINDRED_POOL = [
+  { name: 'Rún',     freq: 396, num: 1,  closeness: 28, line: 'still loosening what the root won’t let go of. it’s slow. it’s working.' },
+  { name: 'Wren',    freq: 432, num: 4,  closeness: 41, line: 'building something that holds — starting with the part of me that didn’t think it could.' },
+  { name: 'Sol',     freq: 528, num: 6,  closeness: 52, line: 'learning to pour from a full cup. mostly learning to fill the cup.' },
+  { name: 'Atlas',   freq: 432, num: 8,  closeness: 47, line: 'holding the power without spending it on people who don’t deserve the heat.' },
+  { name: 'Maren',   freq: 639, num: 9,  closeness: 61, line: 'forgave the last one on the list today. the one with my name on it.' },
+  { name: 'Vesper',  freq: 741, num: 7,  closeness: 58, line: 'stopped searching at noon. heard something at one.' },
+  { name: 'Cael',    freq: 528, num: 3,  closeness: 55, line: 'made the thing only i can make. it’s small. it’s mine.' },
+  { name: 'Indra',   freq: 852, num: 11, closeness: 74, line: 'the knowing arrives before the thought now. learning not to argue with it.' },
+  { name: 'Brae',    freq: 285, num: 2,  closeness: 33, line: 'soft without disappearing. that’s the whole assignment. i’m at maybe a 4 out of 10.' },
+  { name: 'Onyx',    freq: 963, num: 22, closeness: 83, line: 'bringing the vision all the way down into form. the last ten percent is the hardest.' },
+  { name: 'Lyra',    freq: 639, num: 6,  closeness: 66, line: 'we didn’t fix it. we held it. it stopped needing fixing.' },
+  { name: 'Sage',    freq: 528, num: 9,  closeness: 71, line: 'completing the circle. turns out it was always closed — i just couldn’t see the far side.' },
+  { name: 'Kestrel', freq: 417, num: 5,  closeness: 38, line: 'free without running. parked the car. stayed.' },
+  { name: 'Eira',    freq: 432, num: 33, closeness: 90, line: 'loving without conditions, out loud, even when my voice shakes. especially then.' }
+];
+function kindredVisible() {
+  if (closeness >= 100) return { count: 6, freqWin: 100, closeWin: 100, focusing: false, sub: 'your circle' };
+  if (closeness >= 75)  return { count: 5, freqWin: 110, closeWin: 24,  focusing: false, sub: 'in focus' };
+  if (closeness >= 50)  return { count: 3, freqWin: 170, closeWin: 30,  focusing: false, sub: 'coming into focus' };
+  if (closeness >= 25)  return { count: 2, freqWin: 260, closeWin: 42,  focusing: true,  sub: 'still blurred' };
+  return { count: 0, freqWin: 0, closeWin: 0, focusing: false, sub: 'out of focus' };
+}
+const K_RING_CIRC = 119; // 2*PI*r(19)
+function renderKindred() {
+  const slot = document.getElementById('kindredSlot'); if (!slot) return;
+  const ts = (typeof ensureTrueSelf === 'function') ? ensureTrueSelf() : null;
+  const v = kindredVisible();
+  const header = `<div class="kindred-head"><h2>Kindred</h2><div class="kh-sub">${v.sub}</div></div>`;
+  if (v.count === 0 || !ts) {
+    slot.innerHTML = `<div class="kindred-section">${header}<div class="kindred-empty">Your kindred are still out of focus — souls becoming who they are, near where you’re becoming who you are. They come clear as you get closer to yourself. Keep walking; the road does the introducing.</div></div>`;
+    return;
+  }
+  const colorOf = f => (typeof hzToColor === 'function') ? hzToColor(f)[2] : 'var(--mint)';
+  const mine = ts.freq, myC = closeness;
+  const cand = KINDRED_POOL
+    .map(k => ({ k, fd: Math.abs(k.freq - mine), cd: Math.abs(k.closeness - myC) }))
+    .filter(x => x.fd <= v.freqWin && x.cd <= v.closeWin)
+    .sort((a, b) => (a.fd / Math.max(1, v.freqWin) + a.cd / Math.max(1, v.closeWin)) - (b.fd / Math.max(1, v.freqWin) + b.cd / Math.max(1, v.closeWin)))
+    .slice(0, v.count)
+    .map(x => x.k);
+  const cardHtml = cand.map((k, i) => {
+    const c = colorOf(k.freq);
+    const arch = (typeof TRUE_SELF_ARCHETYPES !== 'undefined' && TRUE_SELF_ARCHETYPES[k.num]) ? TRUE_SELF_ARCHETYPES[k.num].name : 'a soul';
+    const off = K_RING_CIRC * (1 - k.closeness / 100);
+    const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+    return `<div class="kindred-card" data-ki="${i}" style="--kn-c:${c}1f; --kn-orb:${c};">
+      <div class="kindred-orb"><svg viewBox="0 0 44 44"><circle class="kn-track" cx="22" cy="22" r="19"></circle><circle class="kn-fill" cx="22" cy="22" r="19" style="stroke-dasharray:${K_RING_CIRC}; stroke-dashoffset:${off};"></circle></svg><div class="kn-core">${escapeHtml(k.name[0])}</div></div>
+      <div class="kindred-info">
+        <div class="kindred-name">${escapeHtml(k.name)}</div>
+        <div class="kindred-sub">${escapeHtml(arch)} · ${k.freq} Hz · ${quiet ? (k.closeness >= 70 ? 'far along' : 'on the way') : k.closeness + '% home'}</div>
+        <div class="kindred-line">“${escapeHtml(k.line)}”</div>
+      </div>
+      <div class="kindred-arrow">→</div>
+    </div>`;
+  }).join('');
+  const whole = (closeness >= 100) ? `<div class="kindred-whole">Your circle is whole. You’re not walking alone — you never were. The ones who were always your kindred just couldn’t see you yet, the way you couldn’t see them.</div>` : '';
+  const focusNote = v.focusing ? `<div class="kindred-focus-note">They’re blurred because you are — to yourself. Each step toward your true self brings them into focus.</div>` : '';
+  slot.innerHTML = `<div class="kindred-section">${header}<div class="kindred-list${v.focusing ? ' focusing' : ''}">${cardHtml || '<div class="kindred-empty">No one is on a path close enough to yours at this resolution yet. Get a little closer to yourself — the field re-sorts.</div>'}</div>${focusNote}${whole}</div>`;
+  slot.querySelectorAll('.kindred-card').forEach(el => { el.addEventListener('click', () => { const k = cand[parseInt(el.dataset.ki)]; if (k) openKindredPath(k); }); });
+}
+let _kpathTarget = null;
+function openKindredPath(k) {
+  _kpathTarget = k;
+  const c = (typeof hzToColor === 'function') ? hzToColor(k.freq)[2] : 'var(--mint)';
+  const arch = ((typeof TRUE_SELF_ARCHETYPES !== 'undefined' && TRUE_SELF_ARCHETYPES[k.num]) || {}).name || 'a soul';
+  const ts = (typeof ensureTrueSelf === 'function') ? ensureTrueSelf() : { freq: 432, archetype: null };
+  const myArch = ts.archetype;
+  document.getElementById('kpathOrb').style.setProperty('--wm-c', c);
+  document.getElementById('kpathName').textContent = k.name;
+  document.getElementById('kpathArch').textContent = arch + ' · true self at ' + k.freq + ' Hz · ' + k.closeness + '% home';
+  const freqGap = Math.abs(k.freq - ts.freq), cGap = Math.abs(k.closeness - Math.round(closeness));
+  const lines = [];
+  lines.push((myArch && myArch === arch) ? `You are <b>both ${arch}</b> — the same archetype, the same kind of work.` : `You’re <b>${myArch || 'on your path'}</b>; they’re <b>${arch}</b>. Different shapes, adjacent paths.`);
+  lines.push(freqGap <= 30 ? `Your true selves resonate at <b>almost the same frequency</b> — ${freqGap} Hz apart.` : `Your true selves are about <b>${freqGap} Hz apart</b> — close enough to hear each other.`);
+  lines.push(cGap <= 10 ? `You’re at <b>nearly the same place on the road</b> — ${cGap}% apart.` : `You’re <b>${cGap}% apart</b> on the way home; one of you a few steps ahead.`);
+  document.getElementById('kpathOverlap').innerHTML = lines.join(' ');
+  document.getElementById('kpathModal').classList.add('show');
+}
+document.getElementById('kpathClose').addEventListener('click', () => document.getElementById('kpathModal').classList.remove('show'));
+document.getElementById('kpathWaveBtn').addEventListener('click', () => {
+  if (!_kpathTarget) return;
+  const myHz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432;
+  if (typeof floatGain === 'function') floatGain('Wave sent ✦');
+  toast('A wave is on its way to ' + _kpathTarget.name + ' — your ' + myHz + ' Hz. They’ll feel a soul on a path like theirs reaching back.', 'ok');
+  document.getElementById('kpathModal').classList.remove('show');
+});
+document.getElementById('kpathVisitBtn').addEventListener('click', async () => {
+  if (!_kpathTarget) return;
+  const hz = _kpathTarget.freq, name = _kpathTarget.name;
+  if (typeof ensureAudio === 'function') await ensureAudio();
+  if (typeof stopAllTones === 'function') stopAllTones();
+  applyFrequency(hz);
+  if (typeof startTone === 'function') startTone(hz, 'manual');
+  const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Stop Sync'; mp.classList.add('active'); }
+  if (typeof gotoTab === 'function') gotoTab('sync');
+  document.getElementById('kpathModal').classList.remove('show');
+  toast('Standing where ' + name + '’s true self resonates · ' + hz + ' Hz', 'ok');
+});
+(function () { if (typeof addCloseness === 'function') { const _ac = addCloseness; addCloseness = function (a, r) { _ac(a, r); if (typeof renderKindred === 'function') renderKindred(); }; } })();
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderKindred, 1750));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderKindred, 1750));
+renderKindred();
 
 renderLadder();
 </script>
