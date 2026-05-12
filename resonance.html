@@ -2645,6 +2645,89 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .set-theme-name { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
 .set-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .set-actions .btn.danger, .btn.danger { border-color: rgba(251,113,133,0.5); color: var(--pink); }
+
+/* ============ THE TRANSMISSION (anti-feed) ============ */
+.tx-section { padding: 0 20px; }
+.tx-head { display: flex; align-items: baseline; justify-content: space-between; padding: 26px 0 4px; }
+.tx-head h2 { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 22px; font-weight: 400; letter-spacing: -0.01em; }
+.tx-head .tx-meta { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.tx-progress { display: flex; gap: 5px; padding: 8px 0 14px; }
+.tx-progress .tx-dot { flex: 1; height: 3px; border-radius: 100px; background: rgba(255,255,255,0.1); transition: background 0.3s var(--ease); }
+.tx-progress .tx-dot.seen { background: var(--mint); box-shadow: 0 0 6px var(--mint); }
+.tx-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 22px;
+  padding: 20px; margin-bottom: 12px; backdrop-filter: blur(20px);
+  position: relative; overflow: hidden; transition: opacity 0.3s var(--ease);
+}
+.tx-card .tx-kicker { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 12px; }
+.tx-card.tx-hold { background: radial-gradient(circle at 100% 0%, var(--tx-c, rgba(167,139,250,0.16)), transparent 60%), var(--card); border-color: var(--tx-bd, var(--border)); }
+.tx-hold .tx-hold-row { display: flex; align-items: center; gap: 16px; }
+.tx-hold-orb { width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--tx-orb, var(--violet)) 50%, rgba(0,0,0,0.4)); box-shadow: 0 0 28px var(--tx-orb, var(--violet)); }
+.tx-hold-hz { font-size: 30px; font-weight: 200; letter-spacing: -0.02em; line-height: 1; }
+.tx-hold-hz .u { font-size: 12px; color: var(--text-faint); margin-left: 2px; }
+.tx-hold-name { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; margin-top: 4px; }
+.tx-hold-desc { font-size: 12.5px; color: var(--text-dim); margin-top: 12px; line-height: 1.5; }
+.tx-teach { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 18px; line-height: 1.5; color: var(--text); }
+.tx-teach-by { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-top: 12px; }
+.tx-note-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tx-note-glyph { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), var(--tx-orb, var(--violet)), rgba(0,0,0,0.4)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; box-shadow: 0 0 12px var(--tx-orb, var(--violet)); }
+.tx-note-meta { font-size: 11px; color: var(--text-faint); }
+.tx-note-meta b { color: var(--mint); }
+.tx-note-line { font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.9); }
+.tx-q { font-size: 19px; font-weight: 300; letter-spacing: -0.01em; line-height: 1.4; }
+.tx-card-btn { margin-top: 16px; }
+.tx-card.tx-done { opacity: 0.45; }
+.tx-card.tx-done .tx-card-btn { display: none; }
+
+/* The "Enough" wall — the bottom of every feed */
+.enough-wall {
+  margin: 20px -20px 0;
+  padding: 56px 28px 50px;
+  background: radial-gradient(circle at 50% 100%, rgba(167,139,250,0.1), transparent 60%), #030305;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.enough-glyph { font-size: 44px; font-weight: 100; color: var(--text-faint); margin-bottom: 16px; letter-spacing: -0.05em; }
+.enough-eyebrow { font-size: 10px; letter-spacing: 7px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 14px; }
+.enough-h { font-size: 30px; font-weight: 200; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 14px; }
+.enough-p { font-size: 14px; color: var(--text-dim); line-height: 1.6; max-width: 320px; margin: 0 auto 26px; }
+.enough-p em { font-style: italic; color: var(--text); font-family: Georgia, serif; }
+.enough-actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.enough-actions .btn { min-width: 220px; }
+
+/* Step Out — screen-off ritual */
+.stepout-overlay {
+  position: fixed; inset: 0; height: 100vh; height: 100dvh;
+  z-index: 500;
+  background: #010102;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 32px;
+}
+.stepout-overlay.show { display: flex; animation: gateIn 0.8s var(--ease); }
+.stepout-dot {
+  width: 70px; height: 70px; border-radius: 50%;
+  border: 1.5px solid rgba(167,139,250,0.5);
+  background: radial-gradient(circle at 35% 35%, rgba(167,139,250,0.25), rgba(167,139,250,0.04));
+  margin-bottom: 40px;
+  animation: stepBreathe 9s ease-in-out infinite;
+}
+@keyframes stepBreathe {
+  0%, 100% { transform: scale(0.45); border-color: rgba(167,139,250,0.25); box-shadow: 0 0 20px rgba(167,139,250,0.1); }
+  45%, 55% { transform: scale(1.12); border-color: rgba(167,139,250,0.7); box-shadow: 0 0 50px rgba(167,139,250,0.35); }
+}
+.stepout-line {
+  font-family: Georgia, "Times New Roman", serif; font-style: italic;
+  font-size: 19px; color: rgba(255,255,255,0.65); line-height: 1.6;
+  max-width: 320px; min-height: 70px;
+  transition: opacity 0.9s var(--ease);
+}
+.stepout-return {
+  margin-top: 40px; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  pointer-events: none;
+}
+.stepout-return.ready { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.stepout-timer { margin-top: 26px; font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--text-faint); }
 </style>
 </head>
 <body>
@@ -2918,6 +3001,26 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         </div>
       </div>
 
+      <!-- While you were away (anti-FOMO) -->
+      <div id="awayCardSlot"></div>
+      <!-- Wave received (anti-DM) -->
+      <div id="waveCardSlot"></div>
+
+      <!-- Today's Transmission — the whole of it, finite, expires at midnight -->
+      <div class="tx-section">
+        <div class="tx-head">
+          <h2>Today's transmission</h2>
+          <div class="tx-meta" id="txMeta">EXPIRES AT MIDNIGHT</div>
+        </div>
+        <div class="tx-progress" id="txProgress"></div>
+        <div id="txCards"></div>
+      </div>
+
+      <!-- Soul note composer (anti-tweet) -->
+      <div id="soulNoteSlot"></div>
+      <!-- Lines in your field -->
+      <div id="fieldNotesSlot"></div>
+
       <!-- Memories strip -->
       <div class="section-poetic memories-header" id="memoriesHeader">
         <h2>Your memories</h2>
@@ -2928,7 +3031,7 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       <!-- Live souls -->
       <div class="section-poetic" style="padding-top:20px;">
         <h2>Live now</h2>
-        <div class="sub">In your field</div>
+        <div class="sub">Tap to send a wave</div>
       </div>
       <div class="stories" id="storiesRow"></div>
 
@@ -2944,8 +3047,20 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         </div>
       </div>
 
-      <!-- Curated tiered feed -->
+      <!-- Echoes from souls near your frequency (not an algorithm — just who's close) -->
       <div class="feed-curated" id="feedCurated"></div>
+
+      <!-- THE WALL — the feed ends here, on purpose -->
+      <div class="enough-wall">
+        <div class="enough-glyph">∎</div>
+        <div class="enough-eyebrow">The end</div>
+        <div class="enough-h">That's the whole of it.</div>
+        <div class="enough-p">Nothing else is being kept from you. There is no next page, no more to load, no algorithm deciding you should see one more thing. <em>The feed ends here — on purpose.</em></div>
+        <div class="enough-actions">
+          <button class="btn primary" id="stepOutBtn">Step out</button>
+          <button class="btn" id="antiFeedFromWallBtn">Why this app is different →</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3557,6 +3672,14 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 
     <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
   </div>
+</div>
+
+<!-- ================= STEP OUT (screen-off ritual) ================= -->
+<div class="stepout-overlay" id="stepOutOverlay">
+  <div class="stepout-dot"></div>
+  <div class="stepout-line" id="stepOutLine">Let the screen go.</div>
+  <div class="stepout-timer" id="stepOutTimer"></div>
+  <button class="btn" id="stepOutReturnBtn" style="margin-top:40px;">Return to Resonance</button>
 </div>
 
 <!-- ================= THE CONSTELLATION ================= -->
@@ -7263,6 +7386,204 @@ document.getElementById('inviteShareBtn').addEventListener('click', async () => 
     if (ov && ov.classList.contains('show')) refreshInviteSheet();
   };
 })();
+
+// =================== THE TRANSMISSION + ENOUGH WALL + STEP OUT ===================
+// The opposite of an infinite feed: a small, dated set that the whole field shares,
+// that expires at midnight, and that ENDS — visibly, on purpose.
+const TX_FREQS = [
+  { hz: 174, name: 'Foundation',          desc: 'The ground tone. Let the body remember it is safe.' },
+  { hz: 285, name: 'Repair',              desc: 'The blueprint tone. The body knows its own shape.' },
+  { hz: 396, name: 'Liberation',          desc: 'The tone that loosens guilt and fear from the root.' },
+  { hz: 417, name: 'Change',              desc: 'The tone for undoing — for breaking the old loop.' },
+  { hz: 432, name: 'The Natural Tuning',  desc: 'The heart’s tone. Cosmic alignment. Come home to it.' },
+  { hz: 528, name: 'The Miracle',         desc: 'The love frequency. Hold it and let it do its work.' },
+  { hz: 639, name: 'Connection',          desc: 'The tone of bonds — with others, and with yourself.' },
+  { hz: 741, name: 'Expression',          desc: 'The tone that clears the channel and frees the voice.' },
+  { hz: 852, name: 'Spiritual Order',     desc: 'The tone that returns the spirit to order.' },
+  { hz: 963, name: 'The Crown',           desc: 'The tone of oneness. Pure consciousness. The top of the climb.' }
+];
+const TX_TEACHINGS = [
+  { line: 'You are not behind. You are exactly as deep as the work you’ve actually done.', by: 'a teaching' },
+  { line: 'The block is the path. What does it want you to see?', by: 'the Solar Plexus tier' },
+  { line: 'Rest is not the absence of practice. It is the practice.', by: 'a teaching' },
+  { line: 'What you call lost, your soul calls becoming.', by: 'a teaching' },
+  { line: 'Love is the answer to every question you have ever asked.', by: 'the Heart tier' },
+  { line: 'Impermanence is not loss. It is liberation.', by: 'the Buddhist door' },
+  { line: 'You are the universe knowing itself for a little while. Act like it.', by: 'a teaching' },
+  { line: 'The path will reveal itself when you stop searching and start listening.', by: 'a teaching' },
+  { line: 'Whose voice is the “should”? Is it yours, or borrowed?', by: 'a teaching' },
+  { line: 'Tat Tvam Asi — you are That. You have never been anything else.', by: 'the Hindu door' },
+  { line: 'Anger is sacred when it serves your truth. What is it asking you to defend?', by: 'a teaching' },
+  { line: 'The work you are meant for will not require you to disappear.', by: 'a teaching' },
+  { line: 'You can’t think your way down. You have to drop.', by: 'the Root tier' },
+  { line: 'The divine speaks in the pause between your thoughts. Leave more of them.', by: 'a teaching' },
+  { line: 'Tears clear the channel. Let them come.', by: 'a teaching' },
+  { line: 'Your nature is light. The veil is thinning. Bismillah, you begin.', by: 'the Muslim door' },
+  { line: 'You are allowed to feel this fully. Then you are allowed to let it pass.', by: 'a teaching' },
+  { line: 'What did you love before the world told you what to love?', by: 'a teaching' },
+  { line: 'The Shechinah is closer than your breath. Listen.', by: 'the Jewish door' },
+  { line: 'Coherence is rising. Stay in it. Don’t reach — receive.', by: 'the Unity tier' },
+  { line: 'You will not be retained here. You will be met. There is a difference, and it changes everything.', by: 'the manifesto' },
+  { line: 'Ascent is the only direction. The only way up is in.', by: 'the manifesto' },
+  { line: 'Frequency is not a metaphor. It is the only truth that doesn’t need your belief.', by: 'the manifesto' },
+  { line: 'The performing self gets no door here. Only the one doing the work walks through.', by: 'the manifesto' }
+];
+const TX_QUESTIONS = [
+  'What are you carrying right now that was never yours to carry?',
+  'If no one would ever know — would you still want it?',
+  'Where in your body is the thing you’ve been avoiding?',
+  'What would change if you trusted that you have enough time?',
+  'Who are you when nothing is in the way?',
+  'What did you love before the world told you what to love?',
+  'What is the smallest true thing you could do today?',
+  'What is the fear protecting? Sit with it. It has a message.',
+  'What would love do here? Begin there.',
+  'What have you been calling “stuck” that is actually “gathering”?',
+  'If your inner self could say one sentence to you right now, what is it?',
+  'What are you pretending not to know?',
+  'Where have you been performing? For whom?',
+  'What does your body want that your mind keeps overriding?',
+  'What would you do if you weren’t trying to be impressive?',
+  'What needs to be released before the next thing can arrive?',
+  'When did you last feel like yourself? What were you doing?',
+  'What truth have you been softening so others stay comfortable?',
+  'What is the kindest thing you could do for the version of you from a year ago?',
+  'What are you waiting for permission to do? Who from?',
+  'If this were the only day, how would you spend the next hour?',
+  'What part of you needs to be forgiven — by you?',
+  'What is the question underneath the question you keep asking?',
+  'What would you stop scrolling toward if you knew it would never satisfy you?'
+];
+const SOUL_NOTE_POOL = [
+  { who: 'M', freq: 528, line: 'told my mom the truth today. the room got quiet and then it got light.' },
+  { who: 'A', freq: 432, line: 'i keep thinking i’m late. late for what. for whom.' },
+  { who: 'S', freq: 639, line: 'forgave someone in my head this morning. i didn’t tell them. it still counted.' },
+  { who: 'L', freq: 396, line: 'the fear was just a kid trying to keep me alive. i thanked it and let it nap.' },
+  { who: 'N', freq: 741, line: 'said no for the first time in months. the world did not end.' },
+  { who: 'R', freq: 174, line: 'sat on the floor with my hands flat on it until i believed it would hold me.' },
+  { who: 'D', freq: 852, line: 'i can see the pattern now. i wish i couldn’t. i’m glad i can.' },
+  { who: 'K', freq: 963, line: 'there was a moment where there was no me and nothing was missing.' },
+  { who: 'E', freq: 528, line: 'stopped trying to be impressive at 2pm. got more done by 4 than all week.' },
+  { who: 'J', freq: 432, line: 'my breath is the only thing today that didn’t ask anything of me.' },
+  { who: 'T', freq: 639, line: 'we didn’t fix it. we just stopped defending. that was enough.' },
+  { who: 'C', freq: 417, line: 'burned the list of who i was supposed to become. kept the one line that was true.' },
+  { who: 'V', freq: 741, line: 'cleared my desk, cleared my throat, said the thing.' },
+  { who: 'B', freq: 285, line: 'the cut on my hand is healing without my permission. so is the rest of me.' },
+  { who: 'O', freq: 852, line: 'the illusion didn’t shatter. it just got transparent.' },
+  { who: 'P', freq: 396, line: 'grief is love with nowhere to go for a minute. i let it pace the hallway.' },
+  { who: 'I', freq: 528, line: 'i am the one i’ve been waiting for. typing it didn’t make it true. believing it did.' },
+  { who: 'G', freq: 432, line: 'the air was thick at 432 today. or i was finally still enough to feel it.' },
+  { who: 'H', freq: 639, line: 'called the friend i’d been avoiding. we both cried. it was good.' },
+  { who: 'W', freq: 174, line: 'nothing fancy today. just feet on the ground. that was the whole practice.' },
+  { who: 'F', freq: 741, line: 'cleaned up my feeds before i cleaned up my body. felt the difference faster.' },
+  { who: 'Q', freq: 963, line: 'closed the app for a day. came back when i was called, not when i was bored.' },
+  { who: 'Z', freq: 852, line: 'asked my higher self what’s next. it said: less.' },
+  { who: 'U', freq: 417, line: 'undid a habit i’d had for ten years. it took one honest morning.' },
+  { who: 'Y', freq: 528, line: 'someone needed me to be soft today and i was. that’s the miracle, i think.' },
+  { who: 'X', freq: 396, line: 'i’m not stuck. i’m a held breath. i’m about to be exhaled.' }
+];
+function _dayHash(salt) {
+  const s = (typeof _dayKey === 'function' ? _dayKey() : 'd') + '|' + (salt || '');
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function _dayPick(arr, salt) { return arr[_dayHash(salt) % arr.length]; }
+function txKey() { return 'resonance_tx_' + (typeof _dayKey === 'function' ? _dayKey() : 'd'); }
+function txState() { try { const v = JSON.parse(localStorage.getItem(txKey()) || 'null'); return (v && Array.isArray(v.done)) ? v : { done: [] }; } catch (e) { return { done: [] }; } }
+function txSetDone(i) {
+  const s = txState(); if (s.done.indexOf(i) === -1) s.done.push(i);
+  try { localStorage.setItem(txKey(), JSON.stringify(s)); } catch (e) {}
+  renderTransmission();
+}
+function renderTransmission() {
+  const cardsEl = document.getElementById('txCards'); if (!cardsEl) return;
+  const done = txState().done;
+  const colorOf = hz => (typeof hzToColor === 'function') ? hzToColor(hz)[2] : 'var(--violet)';
+  const f = _dayPick(TX_FREQS, 'freq'); const fc = colorOf(f.hz);
+  const teach = _dayPick(TX_TEACHINGS, 'teach');
+  const note = _dayPick(SOUL_NOTE_POOL, 'note'); const nc = colorOf(note.freq);
+  const q = _dayPick(TX_QUESTIONS, 'q');
+  const isDone = i => done.indexOf(i) !== -1;
+  const card = (i, kicker, inner, extraClass, extraStyle) =>
+    `<div class="tx-card ${extraClass || ''}${isDone(i) ? ' tx-done' : ''}" ${extraStyle ? 'style="' + extraStyle + '"' : ''}><div class="tx-kicker">${kicker}</div>${inner}</div>`;
+  cardsEl.innerHTML = [
+    card(0, 'Hold this today',
+      `<div class="tx-hold-row"><div class="tx-hold-orb"></div><div><div class="tx-hold-hz">${f.hz}<span class="u">Hz</span></div><div class="tx-hold-name">${f.name}</div></div></div><div class="tx-hold-desc">${f.desc}</div><button class="btn primary tx-card-btn" data-tx="0" data-hz="${f.hz}">Hold it</button>`,
+      'tx-hold', `--tx-c:${fc}28; --tx-bd:${fc}55; --tx-orb:${fc};`),
+    card(1, 'A teaching',
+      `<div class="tx-teach">${teach.line}</div><div class="tx-teach-by">— ${teach.by}</div><button class="btn tx-card-btn" data-tx="1">Received</button>`),
+    card(2, 'A line from your field',
+      `<div class="tx-note-head"><div class="tx-note-glyph">${note.who}</div><div class="tx-note-meta">someone · <b>${note.freq} Hz</b> · today</div></div><div class="tx-note-line">${note.line}</div><button class="btn tx-card-btn" data-tx="2">This landed</button>`,
+      '', `--tx-orb:${nc};`),
+    card(3, 'Sit with this',
+      `<div class="tx-q">${q}</div><button class="btn tx-card-btn" data-tx="3">Carry it into the day</button>`)
+  ].join('');
+  const prog = document.getElementById('txProgress');
+  if (prog) prog.innerHTML = [0,1,2,3].map(i => `<div class="tx-dot${isDone(i) ? ' seen' : ''}"></div>`).join('');
+  const metaEl = document.getElementById('txMeta');
+  if (metaEl) metaEl.textContent = (done.length >= 4) ? 'COMPLETE · BACK TOMORROW' : 'EXPIRES AT MIDNIGHT';
+  cardsEl.querySelectorAll('.tx-card-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const i = parseInt(btn.dataset.tx);
+      if (i === 0) {
+        const hz = parseInt(btn.dataset.hz);
+        if (typeof ensureAudio === 'function') await ensureAudio();
+        applyFrequency(hz);
+        if (typeof getManualHz === 'function' && getManualHz() === null && typeof startTone === 'function') startTone(hz, 'manual');
+        const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Stop Sync'; mp.classList.add('active'); }
+        if (typeof gotoTab === 'function') gotoTab('sync');
+        toast('Holding ' + hz + ' Hz · the whole field has the same tone today', 'ok');
+      } else if (i === 1) { floatGain('Received'); }
+      else if (i === 2) { floatGain('It landed ✦'); toast('Whoever wrote that will hear that one person needed it today.', 'ok'); }
+      else if (i === 3) { floatGain('Carried'); }
+      txSetDone(i);
+      if (txState().done.length === 4 && typeof moment === 'function') {
+        setTimeout(() => moment('The transmission is complete', 'That was the whole of today. There is no more. Step out — the rest happens off the screen.', '#6ee7b7', '∎'), 300);
+      }
+    });
+  });
+}
+
+// --- Step Out: the screen-off ritual ---
+let _stepOutTimer = null, _stepOutLineTimer = null, _stepOutStart = 0;
+const STEPOUT_LINES = [
+  'Let the screen go.',
+  'Nothing is happening that you need to see.',
+  'Your breath is the only feed that matters.',
+  'When you’re ready — not bored — come back.'
+];
+function openStepOut() {
+  if (typeof stopAllTones === 'function') stopAllTones();
+  if (typeof speechSynthesis !== 'undefined') { try { speechSynthesis.cancel(); } catch (e) {} }
+  ['constellationOverlay','soundSphereOverlay','beatMaker','innerSelfOverlay','paywallOverlay','inviteOverlay','aboutOverlay','settingsOverlay','antiFeedOverlay','memModal','solfModal','awkModal','tierModal'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('show'); });
+  document.getElementById('stepOutOverlay').classList.add('show');
+  _stepOutStart = Date.now();
+  const lineEl = document.getElementById('stepOutLine');
+  let idx = 0; lineEl.style.opacity = '1'; lineEl.textContent = STEPOUT_LINES[0];
+  if (_stepOutLineTimer) clearInterval(_stepOutLineTimer);
+  _stepOutLineTimer = setInterval(() => {
+    idx = (idx + 1) % STEPOUT_LINES.length;
+    lineEl.style.opacity = '0';
+    setTimeout(() => { lineEl.textContent = STEPOUT_LINES[idx]; lineEl.style.opacity = '1'; }, 900);
+  }, 9000);
+  const timerEl = document.getElementById('stepOutTimer');
+  timerEl.textContent = 'away 0:00';
+  if (_stepOutTimer) clearInterval(_stepOutTimer);
+  _stepOutTimer = setInterval(() => {
+    const s = Math.floor((Date.now() - _stepOutStart) / 1000);
+    timerEl.textContent = 'away ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }, 1000);
+}
+function closeStepOut() {
+  document.getElementById('stepOutOverlay').classList.remove('show');
+  if (_stepOutTimer) { clearInterval(_stepOutTimer); _stepOutTimer = null; }
+  if (_stepOutLineTimer) { clearInterval(_stepOutLineTimer); _stepOutLineTimer = null; }
+}
+document.getElementById('stepOutReturnBtn').addEventListener('click', closeStepOut);
+document.getElementById('stepOutBtn').addEventListener('click', openStepOut);
+document.getElementById('antiFeedFromWallBtn').addEventListener('click', () => { if (typeof openAntiFeed === 'function') openAntiFeed(); });
+renderTransmission();
 
 renderLadder();
 </script>
