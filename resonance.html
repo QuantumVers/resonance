@@ -3061,6 +3061,22 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 .cvo-grat-stream-head { font-family: Georgia, serif; font-style: italic; font-size: 18px; margin-bottom: 4px; }
 .cvo-grat-stream-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; margin-bottom: 16px; }
 
+/* ============ THE FIELD, RIGHT NOW ============ */
+.field-strip {
+  margin: 12px 20px 0; padding: 11px 14px; border-radius: 16px;
+  background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(20px);
+  display: flex; align-items: center; gap: 10px; overflow: hidden;
+  transition: border-color 0.4s var(--ease);
+}
+.field-strip.converging { border-color: var(--fs-c, var(--violet)); box-shadow: 0 0 24px var(--fs-c, rgba(167,139,250,0.3)); }
+.field-strip .fs-pulse { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--fs-c, var(--mint)); box-shadow: 0 0 8px var(--fs-c, var(--mint)); animation: dotPulse 2.4s ease-in-out infinite; }
+.field-strip.converging .fs-pulse { animation-duration: 1s; }
+.field-strip .fs-text { flex: 1; min-width: 0; font-size: 11.5px; color: var(--text-dim); font-family: ui-monospace, 'SF Mono', monospace; letter-spacing: 0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.field-strip .fs-label { color: var(--text); font-weight: 600; }
+.field-strip .fs-state { color: var(--fs-c, var(--mint)); font-style: italic; font-family: Georgia, serif; }
+.field-strip .fs-attune { flex-shrink: 0; background: none; border: none; color: var(--fs-c, var(--mint)); font-size: 11px; letter-spacing: 0.5px; cursor: pointer; font-family: inherit; padding: 3px 4px; }
+.field-strip .fs-attune:hover { text-decoration: underline; text-underline-offset: 3px; }
+
 /* gratitude card on the Hub */
 .gratitude-card {
   margin: 12px 20px 0; padding: 18px 18px 16px; border-radius: 22px;
@@ -3351,6 +3367,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <div id="gratitudeSlot"></div>
       <!-- Your true self + how close you are to it -->
       <div id="trueSelfSlot"></div>
+      <!-- The field, right now — a collective vital sign -->
+      <div id="fieldStripSlot"></div>
       <!-- While you were away (anti-FOMO) -->
       <div id="awayCardSlot"></div>
       <!-- Wave received (anti-DM) -->
@@ -9230,6 +9248,60 @@ function renderGratitudeCard() {
 renderGratitudeCard();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderGratitudeCard, 2100));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderGratitudeCard, 2100));
+
+// =================== THE FIELD, RIGHT NOW ===================
+// A collective vital sign — not a feed. You don't see what everyone's posting; you see how
+// everyone is: the field's average tone, how many are live, what state it's in. A glance, then on with your day.
+function fieldNow() {
+  const now = Date.now();
+  const hr = (new Date()).getHours() + (new Date()).getMinutes() / 60;
+  const dh = (typeof _dayHash === 'function') ? _dayHash('fieldnow') : 1234;
+  let avg = 480 + Math.sin(now / 2400000 + dh) * 135 + Math.sin(now / 470000 + dh * 1.7) * 38;
+  let converging = false;
+  if (typeof convStatus === 'function' && convStatus(now) === 'open' && typeof convFreqObj === 'function') {
+    avg = avg * 0.32 + convFreqObj().hz * 0.68; converging = true;
+  }
+  avg = Math.max(80, Math.min(963, Math.round(avg)));
+  const diurnal = 0.4 + 0.6 * (0.5 + 0.5 * Math.cos((hr - 21) / 24 * 2 * Math.PI)); // peak ~9pm, trough ~9am
+  let souls = Math.round((12 + (dh % 22)) * diurnal + Math.sin(now / 47000) * 3 + 4);
+  if (converging && typeof convCount === 'function') souls = Math.max(souls, convCount(now));
+  souls = Math.max(3, souls);
+  let state;
+  if (converging) state = 'the field is converging';
+  else if (avg < 220) state = 'the field is grounding';
+  else if (avg < 400) state = 'the field is steadying';
+  else if (avg < 520) state = 'the field is in its heart';
+  else if (avg < 700) state = 'the field is finding its voice';
+  else if (avg < 880) state = 'the field is rising';
+  else state = 'the field is wide open';
+  return { avg, souls, state, converging };
+}
+function renderFieldStrip() {
+  const slot = document.getElementById('fieldStripSlot'); if (!slot) return;
+  const f = fieldNow();
+  const c = (typeof hzToColor === 'function') ? hzToColor(f.avg)[2] : 'var(--mint)';
+  const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+  const hzTxt = quiet ? ('~' + (f.avg < 400 ? 'low' : f.avg < 600 ? 'mid' : 'high')) : (f.avg + ' Hz');
+  const soulsTxt = quiet ? ((f.souls < 15 ? 'a few' : f.souls < 40 ? 'some' : 'many') + ' here') : (f.souls + ' live');
+  slot.innerHTML = `<div class="field-strip${f.converging ? ' converging' : ''}" style="--fs-c:${c};">
+    <div class="fs-pulse"></div>
+    <div class="fs-text"><span class="fs-label">The field</span> · ${hzTxt} · ${soulsTxt} · <span class="fs-state">${f.state}</span></div>
+    <button class="fs-attune" id="fieldAttuneBtn">attune →</button>
+  </div>`;
+  document.getElementById('fieldAttuneBtn').addEventListener('click', async () => {
+    const ff = fieldNow();
+    if (typeof ensureAudio === 'function') await ensureAudio();
+    if (typeof applyFrequency === 'function') applyFrequency(ff.avg);
+    if (typeof getManualHz === 'function' && getManualHz() === null && typeof startTone === 'function') startTone(ff.avg, 'manual');
+    const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Stop Sync'; mp.classList.add('active'); }
+    if (typeof gotoTab === 'function') gotoTab('sync');
+    if (typeof toast === 'function') toast('Matching the field · ' + ff.avg + ' Hz — ' + ff.state, 'ok');
+  });
+}
+renderFieldStrip();
+setInterval(renderFieldStrip, 20000);
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderFieldStrip, 2200));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderFieldStrip, 2200));
 
 renderLadder();
 </script>
