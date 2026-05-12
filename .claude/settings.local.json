@@ -8,7 +8,13 @@
       "Bash(git init *)",
       "Bash(git config *)",
       "Bash(cat)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git mv *)",
+      "Bash(git commit -q -m 'Rename working file to resonance.html \\(keep resonance_app_v1.html as prior-version reference\\) *)",
+      "Bash",
+      "Edit",
+      "Write",
+      "Read"
     ]
   }
 }

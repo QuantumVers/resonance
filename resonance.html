@@ -2238,11 +2238,61 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
   20% { opacity: 1; transform: translateY(-10px) scale(1); }
   100% { opacity: 0; transform: translateY(-80px) scale(0.95); }
 }
+
+/* ============ TOAST ============ */
+.toast-host {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 600;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  width: 100%;
+  max-width: 460px;
+  padding: 0 20px;
+}
+.toast {
+  pointer-events: auto;
+  font-family: ui-monospace, 'SF Mono', 'Menlo', monospace;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  line-height: 1.4;
+  color: var(--text);
+  background: rgba(13,13,20,0.92);
+  border: 1px solid rgba(157,92,255,0.55);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 24px rgba(157,92,255,0.25);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 14px;
+  padding: 12px 16px;
+  max-width: 100%;
+  text-align: center;
+  animation: toastIn 0.32s var(--pop) forwards;
+}
+.toast.out { animation: toastOut 0.45s var(--ease) forwards; }
+.toast .toast-glyph { color: var(--violet); margin-right: 6px; }
+.toast.ok { border-color: rgba(0,245,212,0.5); box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 24px rgba(0,245,212,0.2); }
+.toast.ok .toast-glyph { color: var(--mint); }
+.toast.warn { border-color: rgba(255,184,0,0.55); box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 24px rgba(255,184,0,0.22); }
+.toast.warn .toast-glyph { color: var(--gold); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(14px) scale(0.98); }
+}
 </style>
 </head>
 <body>
 
 <canvas id="bgCanvas"></canvas>
+<div class="toast-host" id="toastHost"></div>
 
 <!-- ================= SIGNUP FLOW ================= -->
 <div class="gate" id="signup">
@@ -2928,6 +2978,24 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 </div>
 
 <script>
+// =================== TOAST ===================
+// Floating bottom toast — replaces alert(). type: '' | 'ok' | 'warn'
+function toast(message, type) {
+  let host = document.getElementById('toastHost');
+  if (!host) { host = document.createElement('div'); host.className = 'toast-host'; host.id = 'toastHost'; document.body.appendChild(host); }
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  const glyph = type === 'ok' ? '✦' : type === 'warn' ? '◬' : '◐';
+  el.innerHTML = `<span class="toast-glyph">${glyph}</span>${String(message)}`;
+  host.appendChild(el);
+  // Keep at most 3 visible
+  while (host.children.length > 3) host.removeChild(host.firstChild);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 450);
+  }, 2400);
+}
+
 // =================== STATE ===================
 let userPhoto = null;
 let userFreq = 432;
@@ -3089,7 +3157,7 @@ document.getElementById('voiceRecordBtn').addEventListener('click', async () => 
     return;
   }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert('Microphone access requires HTTPS or localhost. Try opening this on a deployed URL.');
+    toast('Mic needs HTTPS or localhost — try a deployed URL', 'warn');
     return;
   }
   try {
@@ -3155,7 +3223,7 @@ document.getElementById('voiceRecordBtn').addEventListener('click', async () => 
     if (err.name === 'NotAllowedError') msg = 'Microphone access was denied. Enable it in browser settings and try again.';
     else if (err.name === 'NotFoundError') msg = 'No microphone detected.';
     else if (err.name === 'NotReadableError') msg = 'Microphone is already in use by another app.';
-    alert(msg);
+    toast(msg, 'warn');
   }
 });
 
@@ -3493,7 +3561,7 @@ document.getElementById('innerSelfCloseBtn').addEventListener('click', () => {
 document.getElementById('isMicBtn').addEventListener('click', () => {
   if (!speechRecognition) speechRecognition = setupSpeechRecognition();
   if (!speechRecognition) {
-    alert('Voice input not supported in this browser. Try Chrome, Edge, or Safari. You can type below instead.');
+    toast('Voice input not supported here — type below instead', 'warn');
     document.getElementById('isTypeBtn').click();
     return;
   }
@@ -3549,7 +3617,7 @@ document.getElementById('startCameraBtn').addEventListener('click', async () => 
     document.getElementById('startCameraBtn').style.display = 'none';
     document.getElementById('uploadBtn').style.display = 'none';
   } catch (err) {
-    alert('Camera access needed. Try uploading a photo instead.');
+    toast('Camera access needed — try uploading a photo instead', 'warn');
   }
 });
 
@@ -4073,7 +4141,7 @@ async function toggleMic() {
     return;
   }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert('Microphone access is not available in this browser. Try Chrome, Safari, or Firefox over HTTPS.');
+    toast('Mic not available — try Chrome, Safari, or Firefox over HTTPS', 'warn');
     return;
   }
   try {
@@ -4096,7 +4164,7 @@ async function toggleMic() {
     if (err.name === 'NotAllowedError') msg = 'Microphone access denied. Enable it in browser settings and reload.';
     else if (err.name === 'NotFoundError') msg = 'No microphone detected on this device.';
     else if (err.name === 'NotReadableError') msg = 'Microphone is in use by another app.';
-    alert(msg);
+    toast(msg, 'warn');
   }
 }
 function detectMicFrequency() {
