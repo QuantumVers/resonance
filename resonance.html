@@ -4114,6 +4114,7 @@ function updateMainFreq(hz) {
 document.getElementById('mirrorToggle').addEventListener('click', e => {
   mirrorMode = !mirrorMode;
   e.target.classList.toggle('active');
+  if (typeof saveModeToggles === 'function') saveModeToggles();
   // If a manual tone is playing, restart it to apply mirror mode
   const cur = getManualHz();
   if (cur !== null) {
@@ -4249,9 +4250,30 @@ document.getElementById('manualPlay').addEventListener('click', async () => {
     btn.classList.remove('active');
   }
 });
-document.getElementById('binauralToggle').addEventListener('click', e => { binauralMode = !binauralMode; e.target.classList.toggle('active'); });
-document.getElementById('harmonicToggle').addEventListener('click', e => { harmonicMode = !harmonicMode; e.target.classList.toggle('active'); });
-document.getElementById('breathToggle').addEventListener('click', e => { e.target.classList.toggle('active'); document.getElementById('breathGuide').classList.toggle('active'); });
+document.getElementById('binauralToggle').addEventListener('click', e => { binauralMode = !binauralMode; e.target.classList.toggle('active'); saveModeToggles(); });
+document.getElementById('harmonicToggle').addEventListener('click', e => { harmonicMode = !harmonicMode; e.target.classList.toggle('active'); saveModeToggles(); });
+document.getElementById('breathToggle').addEventListener('click', e => { e.target.classList.toggle('active'); document.getElementById('breathGuide').classList.toggle('active'); saveModeToggles(); });
+
+// Persist mode toggles (binaural / mirror / harmonics / breath) across sessions
+function saveModeToggles() {
+  try {
+    localStorage.setItem('resonance_modes', JSON.stringify({
+      binaural: binauralMode,
+      harmonics: harmonicMode,
+      mirror: mirrorMode,
+      breath: document.getElementById('breathToggle').classList.contains('active')
+    }));
+  } catch (e) {}
+}
+(function restoreModeToggles() {
+  let m = null;
+  try { m = JSON.parse(localStorage.getItem('resonance_modes') || 'null'); } catch (e) {}
+  if (!m) return;
+  if (m.binaural) { binauralMode = true; document.getElementById('binauralToggle').classList.add('active'); }
+  if (m.harmonics) { harmonicMode = true; document.getElementById('harmonicToggle').classList.add('active'); }
+  if (m.mirror) { mirrorMode = true; document.getElementById('mirrorToggle').classList.add('active'); }
+  if (m.breath) { document.getElementById('breathToggle').classList.add('active'); document.getElementById('breathGuide').classList.add('active'); }
+})();
 
 document.querySelectorAll('.sync-mode-toggle button').forEach(btn => {
   btn.addEventListener('click', () => {
