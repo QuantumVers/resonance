@@ -782,7 +782,27 @@ input[type="date"].signup-input {
   justify-content: space-between;
   gap: 12px;
 }
-.user-tag { display: flex; align-items: center; gap: 10px; }
+.user-tag { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+.status-actions { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.awk-star {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.3);
+  color: var(--gold);
+  padding: 6px 10px; border-radius: 100px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.3px;
+  white-space: nowrap; cursor: pointer; font-family: inherit;
+}
+.awk-star:active { transform: scale(0.95); }
+.gear-btn {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim); cursor: pointer; transition: all 0.2s var(--ease);
+}
+.gear-btn:hover { color: var(--text); border-color: var(--border-hi); }
+.gear-btn:active { transform: scale(0.92) rotate(40deg); }
+.gear-btn svg { width: 17px; height: 17px; }
 .avatar-mini {
   width: 36px; height: 36px;
   border-radius: 50%;
@@ -798,9 +818,9 @@ input[type="date"].signup-input {
   overflow: hidden;
 }
 .avatar-mini img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.greeting-row { display: flex; flex-direction: column; line-height: 1.2; }
-.greeting-row .greet { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); }
-.greeting-row .name { font-size: 15px; font-weight: 600; }
+.greeting-row { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.greeting-row .greet { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.greeting-row .name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38vw; }
 .level-pill {
   display: flex; align-items: center; gap: 8px;
   background: var(--card);
@@ -1081,6 +1101,16 @@ input[type="date"].signup-input {
 .solf-text { font-size: 13px; line-height: 1.55; color: rgba(255,255,255,0.82); }
 .solf-chakra-chip { display: inline-block; padding: 4px 12px; border-radius: 100px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); color: var(--violet); }
 .preset-card { -webkit-touch-callout: none; }
+
+/* Awakening modal */
+#awkModal .mem-modal-card, #settingsModal .mem-modal-card { max-width: 380px; max-height: 88vh; overflow-y: auto; }
+.awk-glyph { font-size: 72px; line-height: 1; margin: 6px auto 14px; filter: drop-shadow(0 0 24px currentColor); animation: glyphBreathe 3s ease-in-out infinite; text-align: center; }
+.awk-glyph.locked { opacity: 0.32; filter: grayscale(0.7); }
+.awk-progress-text { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; margin-bottom: 8px; font-family: ui-monospace, 'SF Mono', monospace; }
+.awk-progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+.awk-progress-fill { height: 100%; background: linear-gradient(90deg, var(--violet), var(--mint)); border-radius: 100px; transition: width 0.4s var(--ease); box-shadow: 0 0 10px rgba(110,231,183,0.4); }
+.badge { cursor: pointer; transition: transform 0.2s var(--pop); }
+.badge:active { transform: scale(0.95); }
 
 .stories { display: flex; gap: 12px; overflow-x: auto; padding: 8px 20px 4px; scrollbar-width: none; }
 .stories::-webkit-scrollbar { display: none; }
@@ -2607,12 +2637,12 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         <div class="name" id="userGreetName">Hey, Soul</div>
       </div>
     </div>
-    <div style="display:flex; gap:8px;">
+    <div class="status-actions">
       <div class="streak cold" id="streakPill" title="Daily sync streak">◌ Day 0</div>
-      <div class="level-pill">
-        <div class="level-badge">7</div>
-        <div class="xp-bar"><div class="xp-fill"></div></div>
-      </div>
+      <button class="awk-star" id="awakeningsStar" title="Awakenings">★ 0</button>
+      <button class="gear-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
     </div>
   </div>
 
@@ -2696,6 +2726,21 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         <button class="btn primary" id="solfPlayBtn">Play this</button>
         <button class="btn" id="solfSaveBtn">Save as memory</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Awakening modal -->
+  <div class="mem-modal" id="awkModal">
+    <div class="mem-modal-card" style="text-align:center;">
+      <button class="mem-modal-close" id="awkModalClose">✕</button>
+      <div class="awk-glyph" id="awkGlyph">◎</div>
+      <div class="mem-modal-state" id="awkName" style="font-size:22px; color:var(--text); font-style:normal; font-weight:200;">—</div>
+      <div class="solf-text" id="awkDesc" style="margin-top:10px; text-align:center;">—</div>
+      <div id="awkProgressWrap" style="margin-top:18px;">
+        <div class="awk-progress-text" id="awkProgressText"></div>
+        <div class="awk-progress-bar"><div class="awk-progress-fill" id="awkProgressFill" style="width:0%;"></div></div>
+      </div>
+      <div id="awkUnlockedTag" style="margin-top:16px; display:none;"><span class="solf-chakra-chip" style="color:var(--mint); border-color:rgba(110,231,183,0.3); background:rgba(110,231,183,0.12);">✦ Unlocked</span></div>
     </div>
   </div>
 
@@ -2879,17 +2924,8 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         <div class="stat-card"><div class="stat-value">147</div><div class="stat-label">Sessions</div></div>
         <div class="stat-card"><div class="stat-value">38h</div><div class="stat-label">Synced</div></div>
       </div>
-      <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Badges</h2><button class="see-all">View all</button></div>
-      <div class="badge-grid">
-        <div class="badge" style="color:var(--gold);"><div class="badge-emoji">◎</div><div class="badge-name">Initiated</div></div>
-        <div class="badge" style="color:var(--mint);"><div class="badge-emoji">🌊</div><div class="badge-name">First Sync</div></div>
-        <div class="badge" style="color:var(--violet);"><div class="badge-emoji">✨</div><div class="badge-name">528 Master</div></div>
-        <div class="badge" style="color:var(--pink);"><div class="badge-emoji">💖</div><div class="badge-name">10 Vibes</div></div>
-        <div class="badge" style="color:var(--blue);"><div class="badge-emoji">🌀</div><div class="badge-name">Crown Open</div></div>
-        <div class="badge locked"><div class="badge-emoji">🔮</div><div class="badge-name">Locked</div></div>
-        <div class="badge locked"><div class="badge-emoji">⭐</div><div class="badge-name">Locked</div></div>
-        <div class="badge locked"><div class="badge-emoji">👁</div><div class="badge-name">Locked</div></div>
-      </div>
+      <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Awakenings</h2><span class="see-all" id="awkCountLabel">0 / 8</span></div>
+      <div class="badge-grid" id="awakeningsGrid"></div>
     </div>
   </div>
 
@@ -3131,6 +3167,7 @@ function recordDailySync() {
   if (m && typeof moment === 'function') {
     setTimeout(() => { moment(m.eyebrow, m.sub, m.color, m.glyph); floatGain('+' + (streakData.count * 10) + ' XP'); }, 400);
   }
+  if (typeof checkAwakenings === 'function') checkAwakenings();
 }
 function seedStreak(n) {
   streakData = { count: n, lastDay: _dayKey() };
@@ -3511,6 +3548,7 @@ function addTrust(amount) {
     const level = getTrustLevel();
     moment('Voice Clearing', level.name + ' · ' + Math.floor(soulTrust) + '%', '#a78bfa', '◐');
   }
+  if (typeof checkAwakenings === 'function') checkAwakenings();
 }
 loadTrust();
 
@@ -4960,6 +4998,7 @@ document.getElementById('manualPlay').addEventListener('click', () => {
     sessionStartFreq = parseInt(freqSlider.value);
     document.getElementById('heroSession').textContent = 'Active session';
     recordDailySync();
+    if (typeof unlockAwakening === 'function') unlockAwakening('firstSync');
   } else if (sessionStart) {
     // Ended a session — save memory if it lasted at least 20 seconds
     const duration = Date.now() - sessionStart;
@@ -5275,6 +5314,7 @@ applyFrequency = function(hz, fromSlider) {
   _lastTierN = currentTier.n;
   // (The "Anchored" moment for holding a Solfeggio for 20s is now driven by the
   //  hold-ring loop near the bottom of this script — see holdRingTick().)
+  if (typeof checkAwakenings === 'function') checkAwakenings();
 };
 
 // =================== GROUNDING MOMENT SYSTEM ===================
@@ -5319,6 +5359,7 @@ const _saveMemory = saveMemory;
 saveMemory = function(freq, label) {
   const m = _saveMemory(freq, label);
   floatGain('Memory saved');
+  if (typeof checkAwakenings === 'function') checkAwakenings();
   return m;
 };
 
@@ -5523,6 +5564,7 @@ document.getElementById('instSaveBtn').addEventListener('click', () => {
   stopAudition();
   document.getElementById('instModal').classList.remove('show');
   floatGain('Instrument saved');
+  if (typeof unlockAwakening === 'function') unlockAwakening('luthier');
 });
 
 function renderInstrumentList() {
@@ -6285,6 +6327,115 @@ function holdRingTick() {
   requestAnimationFrame(holdRingTick);
 }
 requestAnimationFrame(holdRingTick);
+function currentHoldSeconds() { return _holdRingHz != null ? (Date.now() - _holdRingStart) / 1000 : 0; }
+
+// =================== AWAKENINGS ===================
+const AWAKENINGS = [
+  { id: 'initiated', name: 'The Initiate',  glyph: '◎', color: '#fbbf24', desc: 'You passed the gate. The inner world opened to you.',
+    progressText: () => 'Pass the initiation', pct: () => isAwakened('initiated') ? 100 : 0 },
+  { id: 'firstSync', name: 'First Resonance', glyph: '◐', color: '#6ee7b7', desc: 'You held your first sync session.',
+    progressText: () => 'Begin one sync session', pct: () => isAwakened('firstSync') ? 100 : 0 },
+  { id: 'anchor',    name: 'The Anchor',     glyph: '✦', color: '#34d399', desc: 'You held a Solfeggio frequency, unbroken, for twenty seconds.',
+    progressText: () => 'Hold a Solfeggio for ' + Math.min(20, Math.floor(currentHoldSeconds())) + ' / 20 seconds',
+    pct: () => Math.min(100, currentHoldSeconds() / 20 * 100) },
+  { id: 'memory',    name: 'The Memory',     glyph: '◈', color: '#a78bfa', desc: 'You saved five moments of resonance.',
+    progressText: () => Math.min(5, memCount()) + ' / 5 memories saved', pct: () => Math.min(100, memCount() / 5 * 100) },
+  { id: 'streak7',   name: 'Seven Days',     glyph: '✷', color: '#6ee7b7', desc: 'Seven consecutive days of returning to yourself.',
+    progressText: () => 'Day ' + Math.min(7, streakData.count || 0) + ' / 7', pct: () => Math.min(100, (streakData.count || 0) / 7 * 100) },
+  { id: 'crown',     name: 'Crown Opening',  glyph: '☉', color: '#a78bfa', desc: 'You reached 852 Hz — the spiritual order tone.',
+    progressText: () => Math.min(852, Math.round(userFreq || 0)) + ' / 852 Hz', pct: () => Math.min(100, (userFreq || 0) / 852 * 100) },
+  { id: 'trueVoice', name: 'True Voice',     glyph: '●', color: '#fbbf24', desc: 'Your inner self spoke in its true, unmuffled voice.',
+    progressText: () => 'Relationship ' + Math.floor(soulTrust || 0) + ' / 100%', pct: () => Math.min(100, soulTrust || 0) },
+  { id: 'luthier',   name: 'The Luthier',    glyph: '✧', color: '#60a5fa', desc: 'You crafted your own instrument.',
+    progressText: () => 'Craft one instrument', pct: () => isAwakened('luthier') ? 100 : 0 }
+];
+const AWAKENINGS_BY_ID = {}; AWAKENINGS.forEach(a => AWAKENINGS_BY_ID[a.id] = a);
+function memCount() { return (typeof memories !== 'undefined' && Array.isArray(memories)) ? memories.length : 0; }
+let awakenings = [];
+function loadAwakenings() { try { const v = JSON.parse(localStorage.getItem('resonance_awakenings') || '[]'); if (Array.isArray(v)) awakenings = v; } catch (e) {} }
+function isAwakened(id) { return awakenings.indexOf(id) !== -1; }
+function awakenedCount() { return AWAKENINGS.filter(a => isAwakened(a.id)).length; }
+const _AWK_SILENT = { initiated: 1, firstSync: 1, anchor: 1, streak7: 1 };
+function unlockAwakening(id, opts) {
+  opts = opts || {};
+  if (isAwakened(id)) return;
+  const a = AWAKENINGS_BY_ID[id]; if (!a) return;
+  awakenings.push(id);
+  try { localStorage.setItem('resonance_awakenings', JSON.stringify(awakenings)); } catch (e) {}
+  renderAwakenings();
+  updateAwakeningsBadge();
+  if (opts.silent) return;
+  if (_AWK_SILENT[id]) { if (typeof floatGain === 'function') floatGain('Awakening · ' + a.name); return; }
+  if (typeof moment === 'function') {
+    setTimeout(() => { moment('Awakening · ' + a.name, a.desc, a.color, a.glyph); if (typeof floatGain === 'function') floatGain('+100 XP'); }, 350);
+  }
+}
+function checkAwakenings(silent) {
+  AWAKENINGS.forEach(a => {
+    if (isAwakened(a.id)) return;
+    let met = false;
+    switch (a.id) {
+      case 'memory':    met = memCount() >= 5; break;
+      case 'streak7':   met = (streakData.count || 0) >= 7; break;
+      case 'crown':     met = (userFreq || 0) >= 852; break;
+      case 'trueVoice': met = (soulTrust || 0) >= 100; break;
+      case 'luthier':   met = (typeof instruments !== 'undefined' && instruments.length >= 1); break;
+      // initiated / firstSync / anchor are unlocked imperatively elsewhere
+    }
+    if (met) unlockAwakening(a.id, { silent: !!silent });
+  });
+}
+function renderAwakenings() {
+  const grid = document.getElementById('awakeningsGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  AWAKENINGS.forEach(a => {
+    const unlocked = isAwakened(a.id);
+    const el = document.createElement('div');
+    el.className = 'badge' + (unlocked ? '' : ' locked');
+    el.style.color = a.color;
+    el.innerHTML = `<div class="badge-emoji">${a.glyph}</div><div class="badge-name">${a.name}</div>`;
+    el.addEventListener('click', () => openAwakeningModal(a.id));
+    grid.appendChild(el);
+  });
+  const cl = document.getElementById('awkCountLabel');
+  if (cl) cl.textContent = awakenedCount() + ' / ' + AWAKENINGS.length;
+}
+function updateAwakeningsBadge() {
+  const star = document.getElementById('awakeningsStar');
+  if (star) star.textContent = '★ ' + awakenedCount();
+  const cl = document.getElementById('awkCountLabel');
+  if (cl) cl.textContent = awakenedCount() + ' / ' + AWAKENINGS.length;
+}
+function openAwakeningModal(id) {
+  const a = AWAKENINGS_BY_ID[id]; if (!a) return;
+  const unlocked = isAwakened(id);
+  const g = document.getElementById('awkGlyph');
+  g.textContent = a.glyph;
+  g.className = 'awk-glyph' + (unlocked ? '' : ' locked');
+  g.style.color = a.color;
+  document.getElementById('awkName').textContent = a.name;
+  document.getElementById('awkDesc').textContent = a.desc;
+  const wrap = document.getElementById('awkProgressWrap');
+  const tag = document.getElementById('awkUnlockedTag');
+  if (unlocked) {
+    wrap.style.display = 'none'; tag.style.display = 'block';
+  } else {
+    wrap.style.display = 'block'; tag.style.display = 'none';
+    document.getElementById('awkProgressText').textContent = (a.progressText ? a.progressText() : 'In progress');
+    document.getElementById('awkProgressFill').style.width = (a.pct ? Math.max(0, Math.min(100, a.pct())) : 0) + '%';
+  }
+  document.getElementById('awkModal').classList.add('show');
+}
+document.getElementById('awkModalClose').addEventListener('click', () => document.getElementById('awkModal').classList.remove('show'));
+document.getElementById('awakeningsStar').addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('you'); });
+loadAwakenings();
+checkAwakenings(true);
+renderAwakenings();
+updateAwakeningsBadge();
+// Unlock "The Initiate" once the inner world opens
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(() => unlockAwakening('initiated'), 1400));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(() => unlockAwakening('initiated'), 1400));
 
 renderLadder();
 </script>
