@@ -105,6 +105,44 @@ input[type="date"].signup-input {
 .tradition-card .tn { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 2px; }
 .tradition-card .tl { font-size: 10px; color: var(--text-faint); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
 
+/* tradition "door opening" on confirm */
+.tradition-grid.choosing .tradition-card:not(.expanding) {
+  opacity: 0.12; transform: scale(0.9); filter: blur(2px);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease), filter 0.5s var(--ease);
+  pointer-events: none;
+}
+.tradition-card.expanding {
+  position: relative; z-index: 3;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 60px rgba(251,191,36,0.5) !important;
+  animation: doorOpen 0.65s var(--pop) forwards;
+}
+@keyframes doorOpen {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.2); }
+  100% { transform: scale(1.08); opacity: 0.85; filter: blur(1.5px); }
+}
+
+/* name input — staggered letter glow-in preview */
+.name-preview {
+  min-height: 50px;
+  margin: 0 auto 12px;
+  text-align: center;
+  font-size: 38px;
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  background: linear-gradient(135deg, var(--gold), var(--violet), var(--mint));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 16px rgba(167,139,250,0.25));
+}
+.name-preview .np-letter { display: inline-block; }
+@keyframes npGlow {
+  0% { opacity: 0; transform: translateY(10px) scale(0.55); filter: brightness(2.4) blur(5px); }
+  55% { opacity: 1; transform: translateY(-2px) scale(1.06); filter: brightness(1.6) blur(0.5px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1) blur(0); }
+}
+
 .reveal-grid {
   display: flex;
   flex-direction: column;
@@ -2318,6 +2356,7 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       <div class="gate-label">First — your name</div>
       <h1 class="gate-title">What name shall we <em>know you by</em>?</h1>
       <p class="gate-text">In every tradition, a name carries vibration. Yours will be measured.</p>
+      <div class="name-preview" id="namePreview"></div>
       <input type="text" id="nameInput" placeholder="Your name" class="signup-input" autocomplete="given-name" maxlength="40">
       <div class="gate-divider"></div>
       <button class="gate-btn" id="nameNextBtn" disabled>Continue</button>
@@ -3144,8 +3183,27 @@ function goSignup(n) {
 // Name input
 const nameInput = document.getElementById('nameInput');
 const nameNextBtn = document.getElementById('nameNextBtn');
+let _namePrevLen = 0;
+function renderNamePreview() {
+  const preview = document.getElementById('namePreview');
+  if (!preview) return;
+  const val = nameInput.value;
+  preview.innerHTML = '';
+  [...val].forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.className = 'np-letter';
+    span.textContent = ch === ' ' ? ' ' : ch;
+    if (i >= _namePrevLen) {
+      span.style.animation = 'npGlow 0.55s var(--pop) backwards';
+      span.style.animationDelay = ((i - _namePrevLen) * 0.04) + 's';
+    }
+    preview.appendChild(span);
+  });
+  _namePrevLen = [...val].length;
+}
 nameInput.addEventListener('input', () => {
   nameNextBtn.disabled = nameInput.value.trim().length < 2;
+  renderNamePreview();
 });
 nameNextBtn.addEventListener('click', () => {
   userProfile.name = nameInput.value.trim();
@@ -3192,7 +3250,21 @@ function renderTraditionGrid() {
 }
 document.getElementById('traditionNextBtn').addEventListener('click', () => {
   userProfile.numerology = computeNumerology(userProfile.name);
-  goSignup(5);
+  const grid = document.getElementById('traditionGrid');
+  const sel = grid ? grid.querySelector('.tradition-card.selected') : null;
+  if (sel && grid) {
+    grid.classList.add('choosing');
+    sel.classList.add('expanding');
+    document.getElementById('traditionNextBtn').disabled = true;
+    setTimeout(() => {
+      grid.classList.remove('choosing');
+      sel.classList.remove('expanding');
+      sel.style.animation = '';
+      goSignup(5);
+    }, 660);
+  } else {
+    goSignup(5);
+  }
 });
 
 // =================== VOICE CLONING (signup step 5) ===================
