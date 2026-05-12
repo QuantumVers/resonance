@@ -2667,7 +2667,7 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
         <label><span>Earth · Organ</span><span>Voice</span><span>Heaven · Shimmer</span></label>
         <input type="range" id="voiceSlider" min="0" max="100" value="50" step="1">
       </div>
-      <div class="controls"><button class="btn primary" id="manualPlay">Begin Sync</button></div>
+      <div class="controls"><button class="btn primary" id="manualPlay">Begin Sync</button><button class="btn" id="shareFreqBtn">Share this moment</button></div>
       <div style="text-align:center; margin-top:14px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
         <button class="inner-self-btn" id="innerSelfOpenBtn">Talk to your Inner Self</button>
         <button class="inner-self-btn" id="soundSphereOpenBtn" style="background:linear-gradient(135deg, rgba(96,165,250,0.15), rgba(167,139,250,0.1)); border-color:rgba(96,165,250,0.4); color:var(--blue);">Sound Sphere</button>
@@ -5907,6 +5907,84 @@ _manualPlayBtn.addEventListener('click', () => {
   // Trust grows slightly with each sync session begun
   if (_manualPlayBtn.classList.contains('active')) addTrust(0.5);
 });
+
+// =================== TAB HELPER ===================
+function gotoTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// =================== SHARE THIS MOMENT ===================
+function activeModeNames() {
+  const m = [];
+  if (binauralMode) m.push('binaural');
+  if (mirrorMode) m.push('mirror');
+  if (harmonicMode) m.push('harmonics');
+  if (document.getElementById('breathToggle').classList.contains('active')) m.push('breath');
+  return m;
+}
+function buildShareUrl(hz, modes) {
+  const base = location.origin + (location.pathname && location.pathname !== '/' ? location.pathname : '/resonance.html');
+  let u = base + '?hz=' + hz;
+  if (modes && modes.length) u += '&modes=' + modes.join(',');
+  return u;
+}
+async function copyTextFallback(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok;
+  } catch (e) { return false; }
+}
+document.getElementById('shareFreqBtn').addEventListener('click', async () => {
+  const hz = parseInt(freqSlider.value);
+  const modes = activeModeNames();
+  const url = buildShareUrl(hz, modes);
+  const tail = (modes.length ? ' · ' + modes.join(' + ') : '');
+  if (navigator.share) {
+    try { await navigator.share({ title: 'RESONANCE', text: `I am resonating at ${hz} Hz`, url }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const copied = await copyTextFallback(url);
+  toast(copied ? `Link copied · ${hz} Hz${tail}` : url, copied ? 'ok' : '');
+});
+
+// =================== URL PARAMS — open a shared frequency ===================
+(function loadSharedFromURL() {
+  let params;
+  try { params = new URLSearchParams(location.search); } catch (e) { return; }
+  const hzParam = params.get('hz');
+  if (!hzParam) return;
+  const hz = Math.max(20, Math.min(1000, parseInt(hzParam) || 432));
+  const modes = (params.get('modes') || params.get('mode') || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const setMode = (name, on) => {
+    if (name === 'binaural') { binauralMode = on; document.getElementById('binauralToggle').classList.toggle('active', on); }
+    else if (name === 'mirror') { mirrorMode = on; document.getElementById('mirrorToggle').classList.toggle('active', on); }
+    else if (name === 'harmonics' || name === 'harmonic') { harmonicMode = on; document.getElementById('harmonicToggle').classList.toggle('active', on); }
+    else if (name === 'breath') { document.getElementById('breathToggle').classList.toggle('active', on); document.getElementById('breathGuide').classList.toggle('active', on); }
+  };
+  modes.forEach(m => setMode(m, true));
+  userFreq = hz;
+  applyFrequency(hz);
+  window.__pendingSharedHz = hz;
+  // After the gate is dismissed, surface it on the Sync tab
+  const onEnter = () => {
+    if (window.__pendingSharedHz == null) return;
+    const shz = window.__pendingSharedHz; window.__pendingSharedHz = null;
+    setTimeout(() => {
+      applyFrequency(shz);
+      gotoTab('sync');
+      toast(`Shared frequency loaded · ${shz} Hz — tap Begin Sync`, 'ok');
+    }, 300);
+  };
+  document.getElementById('enterInnerBtn').addEventListener('click', onEnter);
+  document.getElementById('devSkipBtn').addEventListener('click', onEnter);
+})();
 
 renderLadder();
 </script>
