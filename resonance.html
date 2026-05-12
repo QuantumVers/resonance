@@ -784,15 +784,18 @@ input[type="date"].signup-input {
 .xp-bar { width: 72px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 100px; overflow: hidden; }
 .xp-fill { width: 64%; height: 100%; background: linear-gradient(90deg, var(--gold), var(--mint)); border-radius: 100px; }
 .streak {
-  display: flex; align-items: center; gap: 4px;
-  background: rgba(251,113,133,0.12);
-  border: 1px solid rgba(251,113,133,0.3);
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(110,231,183,0.12);
+  border: 1px solid rgba(110,231,183,0.3);
   padding: 6px 10px;
   border-radius: 100px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--pink);
+  color: var(--mint);
+  white-space: nowrap;
 }
+.streak.cold { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text-faint); }
+.streak.milestone { box-shadow: 0 0 16px rgba(110,231,183,0.4); }
 
 .page { display: none; animation: pageIn 0.4s var(--pop); }
 .page.active { display: block; }
@@ -2534,7 +2537,7 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
       </div>
     </div>
     <div style="display:flex; gap:8px;">
-      <div class="streak">🔥 7</div>
+      <div class="streak cold" id="streakPill" title="Daily sync streak">◌ Day 0</div>
       <div class="level-pill">
         <div class="level-badge">7</div>
         <div class="xp-bar"><div class="xp-fill"></div></div>
@@ -2995,6 +2998,50 @@ function toast(message, type) {
     setTimeout(() => el.remove(), 450);
   }, 2400);
 }
+
+// =================== STREAKS ===================
+const STREAK_MILESTONES = {
+  3:  { eyebrow: '3 Day Streak',  sub: 'The pattern is forming. Three days of returning.', color: '#6ee7b7', glyph: '◔' },
+  7:  { eyebrow: '7 Day Streak',  sub: 'A week of coming home to yourself.',                 color: '#6ee7b7', glyph: '◑' },
+  30: { eyebrow: '30 Day Streak', sub: 'Thirty days. This is who you are now.',               color: '#fbbf24', glyph: '◕' },
+  90: { eyebrow: '90 Day Streak', sub: 'The frequency has become your home.',                 color: '#a78bfa', glyph: '●' }
+};
+let streakData = { count: 0, lastDay: null };
+function _dayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function loadStreak() {
+  try { const v = JSON.parse(localStorage.getItem('resonance_streak') || 'null'); if (v && typeof v.count === 'number') streakData = v; } catch (e) {}
+}
+function saveStreak() { try { localStorage.setItem('resonance_streak', JSON.stringify(streakData)); } catch (e) {} }
+function updateStreakUI() {
+  const el = document.getElementById('streakPill');
+  if (!el) return;
+  const n = streakData.count || 0;
+  const today = _dayKey();
+  const yesterday = _dayKey(new Date(Date.now() - 86400000));
+  const live = n > 0 && (streakData.lastDay === today || streakData.lastDay === yesterday);
+  el.classList.toggle('cold', !live);
+  el.classList.toggle('milestone', live && !!STREAK_MILESTONES[n]);
+  el.textContent = (live ? '🔥' : '◌') + ' Day ' + n;
+}
+function recordDailySync() {
+  const today = _dayKey();
+  const yesterday = _dayKey(new Date(Date.now() - 86400000));
+  if (streakData.lastDay === today) return; // already counted today
+  if (streakData.lastDay === yesterday) streakData.count = (streakData.count || 0) + 1;
+  else streakData.count = 1;
+  streakData.lastDay = today;
+  saveStreak();
+  updateStreakUI();
+  const m = STREAK_MILESTONES[streakData.count];
+  if (m && typeof moment === 'function') {
+    setTimeout(() => { moment(m.eyebrow, m.sub, m.color, m.glyph); floatGain('+' + (streakData.count * 10) + ' XP'); }, 400);
+  }
+}
+function seedStreak(n) {
+  streakData = { count: n, lastDay: _dayKey() };
+  saveStreak(); updateStreakUI();
+}
+loadStreak();
 
 // =================== STATE ===================
 let userPhoto = null;
@@ -3849,6 +3896,7 @@ function applyUserProfileToApp() {
   document.getElementById('profTraditionGlyph').style.color = t.accent;
   document.getElementById('profTradition').textContent = t.name;
   document.getElementById('profTraditionDivine').textContent = t.divine;
+  updateStreakUI();
 }
 
 document.getElementById('enterInnerBtn').addEventListener('click', () => {
@@ -3902,6 +3950,7 @@ document.getElementById('devSkipBtn').addEventListener('click', () => {
     persistMemories();
     renderMemories();
   }
+  if (!streakData.lastDay) seedStreak(5);
 });
 
 // =================== AUDIO ENGINE ===================
@@ -4699,6 +4748,7 @@ document.getElementById('manualPlay').addEventListener('click', () => {
     sessionStart = Date.now();
     sessionStartFreq = parseInt(freqSlider.value);
     document.getElementById('heroSession').textContent = 'Active session';
+    recordDailySync();
   } else if (sessionStart) {
     // Ended a session — save memory if it lasted at least 20 seconds
     const duration = Date.now() - sessionStart;
@@ -5901,6 +5951,10 @@ window.addEventListener('resize', () => {
 
 renderBeatList();
 updateTrustUI();
+updateStreakUI();
+// Daily streak ticks when the user enters the inner world
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(recordDailySync, 1400));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(recordDailySync, 1400));
 // Add trust for completing first session (hook into existing manualPlay handler stack)
 const _manualPlayBtn = document.getElementById('manualPlay');
 _manualPlayBtn.addEventListener('click', () => {
