@@ -2390,6 +2390,64 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
   from { opacity: 1; transform: translateY(0) scale(1); }
   to { opacity: 0; transform: translateY(14px) scale(0.98); }
 }
+
+/* ============ THEME ACCENTS ============ */
+:root[data-theme="gold"] {
+  --violet: #e3b13e;
+  --mint: #f6dd84;
+  --pink: #ef9f3a;
+  --blue: #cf9a3f;
+  --gold: #ffb800;
+}
+:root[data-theme="mint"] {
+  --violet: #2dd4bf;
+  --mint: #6ee7b7;
+  --pink: #34d399;
+  --blue: #22d3ee;
+  --gold: #5eead4;
+}
+
+/* ============ SETTINGS ============ */
+.settings-overlay {
+  position: fixed; inset: 0;
+  z-index: 320;
+  background: radial-gradient(circle at 50% 0%, rgba(167,139,250,0.12), transparent 50%), #050507;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 20px 20px 40px;
+}
+.settings-overlay.show { display: flex; animation: gateIn 0.4s var(--ease); }
+.settings-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.settings-title { font-family: Georgia, serif; font-style: italic; font-size: 22px; }
+.settings-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 4px; }
+.set-section { max-width: 460px; width: 100%; margin: 18px auto 0; }
+.set-section + .set-section { border-top: 1px solid var(--border); padding-top: 18px; }
+.set-label { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 10px; }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 8px; }
+.set-row-name { font-size: 14px; font-weight: 500; }
+.set-row-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+.set-volval { font-size: 13px; color: var(--mint); font-variant-numeric: tabular-nums; font-family: ui-monospace, monospace; }
+.set-switch {
+  width: 46px; height: 26px; border-radius: 100px; flex-shrink: 0;
+  background: rgba(255,255,255,0.1); border: 1px solid var(--border);
+  position: relative; cursor: pointer; transition: background 0.25s var(--ease);
+}
+.set-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.25s var(--pop); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+.set-switch.on { background: rgba(110,231,183,0.4); border-color: rgba(110,231,183,0.6); }
+.set-switch.on::after { transform: translateX(20px); }
+.set-theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.set-theme-card {
+  background: var(--card); border: 1.5px solid var(--border); border-radius: 16px;
+  padding: 14px 8px 12px; text-align: center; cursor: pointer; transition: all 0.2s var(--pop);
+  backdrop-filter: blur(20px);
+}
+.set-theme-card:active { transform: scale(0.97); }
+.set-theme-card.active { border-color: var(--gold); box-shadow: 0 0 20px rgba(251,191,36,0.2); }
+.set-theme-swatch { width: 44px; height: 44px; border-radius: 50%; margin: 0 auto 8px; }
+.set-theme-name { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
+.set-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.set-actions .btn.danger, .btn.danger { border-color: rgba(251,113,133,0.5); color: var(--pink); }
 </style>
 </head>
 <body>
@@ -3111,6 +3169,61 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
   </div>
 </div>
 
+<!-- ================= SETTINGS ================= -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-top">
+    <div>
+      <div class="settings-eyebrow">Resonance</div>
+      <div class="settings-title">Settings</div>
+    </div>
+    <button class="inner-self-close" id="settingsCloseBtn">✕</button>
+  </div>
+
+  <div class="set-section">
+    <div class="set-label">Sound</div>
+    <div class="set-row">
+      <div><div class="set-row-name">Master volume</div><div class="set-row-sub">Affects all tones, beats and synthesis</div></div>
+      <div class="set-volval" id="setVolumeVal">80%</div>
+    </div>
+    <input type="range" id="setVolume" min="0" max="100" value="80" step="1">
+  </div>
+
+  <div class="set-section">
+    <div class="set-label">Notifications</div>
+    <div class="set-row">
+      <div><div class="set-row-name">Daily resonance reminder</div><div class="set-row-sub">A gentle nudge to return (interface only)</div></div>
+      <div class="set-switch" id="setNotify" role="switch" tabindex="0"></div>
+    </div>
+  </div>
+
+  <div class="set-section">
+    <div class="set-label">Accent</div>
+    <div class="set-theme-grid">
+      <div class="set-theme-card active" data-theme="violet">
+        <div class="set-theme-swatch" style="background: conic-gradient(from 0deg, #6ee7b7, #a78bfa, #fb7185, #60a5fa, #6ee7b7);"></div>
+        <div class="set-theme-name">Violet</div>
+      </div>
+      <div class="set-theme-card" data-theme="gold">
+        <div class="set-theme-swatch" style="background: conic-gradient(from 0deg, #ffb800, #f6dd84, #ef9f3a, #cf9a3f, #ffb800);"></div>
+        <div class="set-theme-name">Gold</div>
+      </div>
+      <div class="set-theme-card" data-theme="mint">
+        <div class="set-theme-swatch" style="background: conic-gradient(from 0deg, #6ee7b7, #2dd4bf, #22d3ee, #34d399, #6ee7b7);"></div>
+        <div class="set-theme-name">Mint</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="set-section">
+    <div class="set-label">Your data</div>
+    <div class="set-row-sub" style="margin-bottom:12px;">Everything you do here is stored only in this browser.</div>
+    <div class="set-actions">
+      <button class="btn" id="setExportBtn">Export JSON</button>
+      <button class="btn" id="setResetBtn">Reset all data</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // =================== TOAST ===================
 // Floating bottom toast — replaces alert(). type: '' | 'ok' | 'warn'
@@ -3129,6 +3242,19 @@ function toast(message, type) {
     setTimeout(() => el.remove(), 450);
   }, 2400);
 }
+
+// =================== SETTINGS (state) ===================
+const DEFAULT_SETTINGS = { volume: 80, notify: false, theme: 'violet' };
+let appSettings = Object.assign({}, DEFAULT_SETTINGS);
+function loadSettings() { try { const v = JSON.parse(localStorage.getItem('resonance_settings') || 'null'); if (v && typeof v === 'object') appSettings = Object.assign({}, DEFAULT_SETTINGS, v); } catch (e) {} }
+function saveSettings() { try { localStorage.setItem('resonance_settings', JSON.stringify(appSettings)); } catch (e) {} }
+function volumeMul() { return (appSettings.volume == null ? 80 : appSettings.volume) / 80; }
+function applyTheme(name) {
+  if (!name || name === 'violet') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', name);
+}
+loadSettings();
+applyTheme(appSettings.theme);
 
 // =================== STREAKS ===================
 const STREAK_MILESTONES = {
@@ -4143,7 +4269,7 @@ async function ensureAudio() {
   reverb = new Tone.Reverb({ decay: 12, wet: 0.55 }).toDestination();
   hiShelf = new Tone.EQ3({ low: 0, mid: 0, high: 0, lowFrequency: 400, highFrequency: 2500 }).connect(reverb);
   mainFilter = new Tone.Filter({ frequency: 3500, type: 'lowpass', Q: 0.7 }).connect(hiShelf);
-  masterGain = new Tone.Gain(0.4).connect(mainFilter);
+  masterGain = new Tone.Gain(0.4 * volumeMul()).connect(mainFilter);
   analyserMain = new Tone.Analyser('fft', 256);
   masterGain.connect(analyserMain);
   applyVoiceToMaster();
@@ -5712,7 +5838,7 @@ function emptyPattern() {
 
 function initDrumSynths() {
   if (drumSynths) return;
-  drumGain = new Tone.Gain(0.7).toDestination();
+  drumGain = new Tone.Gain(0.7 * volumeMul()).toDestination();
   drumSynths = {
     kick: new Tone.MembraneSynth({
       pitchDecay: 0.06,
@@ -6436,6 +6562,74 @@ updateAwakeningsBadge();
 // Unlock "The Initiate" once the inner world opens
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(() => unlockAwakening('initiated'), 1400));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(() => unlockAwakening('initiated'), 1400));
+
+// =================== SETTINGS (UI) ===================
+function applyVolume() {
+  const mul = volumeMul();
+  try { if (typeof masterGain !== 'undefined' && masterGain) masterGain.gain.rampTo(0.4 * mul, 0.1); } catch (e) {}
+  try { if (typeof drumGain !== 'undefined' && drumGain) drumGain.gain.rampTo(0.7 * mul, 0.1); } catch (e) {}
+}
+function openSettings() {
+  document.getElementById('setVolume').value = appSettings.volume;
+  document.getElementById('setVolumeVal').textContent = appSettings.volume + '%';
+  document.getElementById('setNotify').classList.toggle('on', !!appSettings.notify);
+  document.querySelectorAll('.set-theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === (appSettings.theme || 'violet')));
+  document.getElementById('settingsOverlay').classList.add('show');
+}
+document.getElementById('settingsBtn').addEventListener('click', openSettings);
+document.getElementById('settingsCloseBtn').addEventListener('click', () => document.getElementById('settingsOverlay').classList.remove('show'));
+document.getElementById('setVolume').addEventListener('input', e => {
+  appSettings.volume = parseInt(e.target.value);
+  document.getElementById('setVolumeVal').textContent = appSettings.volume + '%';
+  applyVolume(); saveSettings();
+});
+function _toggleNotify() {
+  appSettings.notify = !appSettings.notify;
+  document.getElementById('setNotify').classList.toggle('on', appSettings.notify);
+  saveSettings();
+  toast(appSettings.notify ? 'Reminders on · interface only for now' : 'Reminders off');
+}
+document.getElementById('setNotify').addEventListener('click', _toggleNotify);
+document.getElementById('setNotify').addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); _toggleNotify(); } });
+document.querySelectorAll('.set-theme-card').forEach(card => {
+  card.addEventListener('click', () => {
+    appSettings.theme = card.dataset.theme;
+    document.querySelectorAll('.set-theme-card').forEach(c => c.classList.toggle('active', c === card));
+    applyTheme(appSettings.theme);
+    saveSettings();
+  });
+});
+document.getElementById('setExportBtn').addEventListener('click', () => {
+  const out = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.indexOf('resonance_') === 0) { try { out[k] = JSON.parse(localStorage.getItem(k)); } catch (e) { out[k] = localStorage.getItem(k); } }
+  }
+  out._exportedAt = new Date().toISOString();
+  if (typeof userProfile !== 'undefined') out._profile = userProfile;
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'resonance-data-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 200);
+  toast('Data exported', 'ok');
+});
+let _resetArmed = false, _resetTimer = null;
+document.getElementById('setResetBtn').addEventListener('click', () => {
+  const btn = document.getElementById('setResetBtn');
+  if (!_resetArmed) {
+    _resetArmed = true; btn.textContent = 'Tap again to confirm'; btn.classList.add('danger');
+    _resetTimer = setTimeout(() => { _resetArmed = false; btn.textContent = 'Reset all data'; btn.classList.remove('danger'); }, 4000);
+    return;
+  }
+  if (_resetTimer) clearTimeout(_resetTimer);
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('resonance_') === 0) keys.push(k); }
+  keys.forEach(k => localStorage.removeItem(k));
+  toast('All data cleared — reloading', 'warn');
+  setTimeout(() => location.reload(), 900);
+});
 
 renderLadder();
 </script>
