@@ -2930,6 +2930,70 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 .ascend-up-list li .ul-mark { color: var(--mint); flex-shrink: 0; }
 .ascend-up-enter { position: relative; z-index: 1; opacity: 0; transform: translateY(8px); transition: opacity 0.6s var(--ease) 0.2s, transform 0.6s var(--ease) 0.2s; }
 .ascend-up-enter.in { opacity: 1; transform: translateY(0); }
+
+/* ============ THE PLATES (a reward for living at your highest path) ============ */
+/* a medallion: a disc with an escalating conic-gradient ring + a glyph */
+.plate-medallion {
+  width: var(--pm-size, 88px); height: var(--pm-size, 88px); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: var(--pm-ring, conic-gradient(from 0deg, #e8e8ee, #c8c8d0, #fff, #c8c8d0, #e8e8ee));
+  padding: 4px; position: relative;
+}
+.plate-medallion > .pm-face {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: var(--pm-face, radial-gradient(circle at 32% 30%, rgba(255,255,255,0.7), #b9b9c2 60%, #6f6f7a));
+  display: flex; align-items: center; justify-content: center;
+  font-size: calc(var(--pm-size, 88px) * 0.42); font-weight: 200; line-height: 1;
+  color: var(--pm-glyph, #2a2a30);
+  box-shadow: inset 0 0 calc(var(--pm-size,88px)*0.18) rgba(0,0,0,0.25), inset 0 calc(var(--pm-size,88px)*0.08) calc(var(--pm-size,88px)*0.16) rgba(255,255,255,0.4);
+}
+.plate-medallion.locked { filter: grayscale(0.9) brightness(0.5); opacity: 0.55; }
+.plate-medallion.glow { box-shadow: 0 0 calc(var(--pm-size,88px)*0.5) var(--pm-shadow, rgba(251,191,36,0.5)); }
+.plate-medallion.spin { animation: rotateBorder 14s linear infinite; }
+/* tier finishes */
+.plate-arrival   { --pm-ring: conic-gradient(from 0deg, #f4f4f8, #c9c9d4, #ffffff, #d6d6e0, #f4f4f8); --pm-face: radial-gradient(circle at 32% 30%, rgba(255,255,255,0.85), #c4c4ce 58%, #7a7a86); --pm-glyph: #2a2a30; --pm-shadow: rgba(220,220,235,0.5); }
+.plate-hearth    { --pm-ring: conic-gradient(from 0deg, #ffd97a, #fbbf24, #fff1c4, #e0a82e, #ffd97a); --pm-face: radial-gradient(circle at 32% 30%, rgba(255,250,235,0.85), #f0b948 58%, #9c6f12); --pm-glyph: #3a2606; --pm-shadow: rgba(251,191,36,0.55); }
+.plate-pillar    { --pm-ring: conic-gradient(from 0deg, #c8b6ff, #a78bfa, #efe7ff, #7c5fd6, #c8b6ff); --pm-face: radial-gradient(circle at 32% 30%, rgba(245,240,255,0.8), #b69cf5 58%, #5b3fb0); --pm-glyph: #1f1230; --pm-shadow: rgba(167,139,250,0.55); }
+.plate-beacon    { --pm-ring: conic-gradient(from 0deg, #6ee7b7, #2dd4bf, #c4fff0, #22d3ee, #6ee7b7); --pm-face: radial-gradient(circle at 32% 30%, rgba(230,255,250,0.82), #5fe3cf 58%, #0e9e8a); --pm-glyph: #052820; --pm-shadow: rgba(45,212,191,0.5); }
+.plate-lighthouse{ --pm-ring: conic-gradient(from 0deg, #6ee7b7, #a78bfa, #fb7185, #fbbf24, #60a5fa, #6ee7b7); --pm-face: radial-gradient(circle at 32% 30%, rgba(255,255,255,0.9), rgba(167,139,250,0.6) 45%, rgba(15,15,35,0.95)); --pm-glyph: #fff; --pm-shadow: rgba(255,255,255,0.45); }
+
+/* the shelf on the You page */
+.plate-shelf-wrap { padding: 0; }
+.plate-shelf { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 12px; }
+.plate-shelf-item { display: flex; flex-direction: column; align-items: center; gap: 7px; cursor: pointer; }
+.plate-shelf-item .ps-name { font-size: 8.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); font-weight: 700; text-align: center; line-height: 1.2; }
+.plate-shelf-item .ps-req { font-size: 8px; letter-spacing: 0.5px; color: var(--text-faint); text-align: center; }
+.plate-shelf-item.earned .ps-name { color: var(--text); }
+.plate-now { font-family: Georgia, serif; font-style: italic; font-size: 13px; color: var(--text-dim); margin-top: 14px; line-height: 1.5; }
+
+/* small inline plate mark (avatar badge / kindred row) */
+.avatar-plate-badge {
+  position: absolute; bottom: -3px; right: -3px; width: 16px; height: 16px; border-radius: 50%;
+  display: none; align-items: center; justify-content: center; font-size: 9px; line-height: 1;
+  border: 2px solid var(--bg);
+}
+.avatar-plate-badge.show { display: flex; }
+.profile-avatar .avatar-plate-badge { bottom: 4px; right: 4px; width: 30px; height: 30px; font-size: 16px; border-width: 3px; }
+.kindred-plate { font-size: 11px; margin-left: 4px; }
+
+/* the cinematic plate-award overlay */
+.plate-overlay {
+  position: fixed; inset: 0; height: 100vh; height: 100dvh;
+  z-index: 525;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 32px 24px; overflow: hidden;
+  background: radial-gradient(circle at 50% 28%, var(--po-c1, rgba(220,220,235,0.18)), transparent 55%), radial-gradient(circle at 50% 92%, var(--po-c2, rgba(167,139,250,0.16)), transparent 55%), #020203;
+}
+.plate-overlay.show { display: flex; animation: gateIn 0.8s var(--ease); }
+.plate-overlay .po-particles { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.plate-overlay .po-particle { position: absolute; bottom: -10px; width: 5px; height: 5px; border-radius: 50%; background: var(--po-p, #e0e0ee); box-shadow: 0 0 12px var(--po-p, #e0e0ee); opacity: 0; animation: particleDrift 5.5s ease-out forwards; }
+.plate-overlay .po-eyebrow { font-size: 10px; letter-spacing: 8px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 22px; position: relative; z-index: 1; }
+.plate-overlay .po-medallion-wrap { position: relative; z-index: 1; margin-bottom: 24px; animation: verdictIn 1.1s var(--pop); }
+.plate-overlay .po-name { font-size: 38px; font-weight: 200; letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 8px; position: relative; z-index: 1; }
+.plate-overlay .po-tagline { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 18px; position: relative; z-index: 1; }
+.plate-overlay .po-line { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.82); max-width: 340px; margin: 0 auto 22px; position: relative; z-index: 1; }
+.plate-overlay .po-meta { font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; letter-spacing: 1.5px; color: var(--text-faint); margin-bottom: 28px; position: relative; z-index: 1; }
+.plate-overlay .po-enter { position: relative; z-index: 1; }
 </style>
 </head>
 <body>
@@ -3171,7 +3235,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 <div class="app" id="app">
   <div class="status-bar">
     <div class="user-tag">
-      <div class="avatar-mini"><div id="userAvatarMini">E</div></div>
+      <div class="avatar-mini" style="position:relative;"><div id="userAvatarMini">E</div><div class="avatar-plate-badge" id="avatarPlateBadge"></div></div>
       <div class="greeting-row">
         <div class="greet">Inner World</div>
         <div class="name" id="userGreetName">Hey, Soul</div>
@@ -3496,13 +3560,15 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="page" id="page-you">
     <div class="profile-page">
       <div class="profile-hero">
-        <div class="profile-avatar"><div id="profileAvatar">E</div></div>
+        <div class="profile-avatar" style="position:relative;"><div id="profileAvatar">E</div><div class="avatar-plate-badge" id="profileAvatarPlateBadge"></div></div>
         <div class="profile-name" id="profileName">Soul</div>
         <div class="profile-handle">Resonating at <span style="color:var(--mint);" id="profileFreqDisp">432 Hz</span></div>
         <div class="profile-tier" id="profileTier">◎ Initiated</div>
         <div><span class="tier-pill free" id="tierPill" style="cursor:pointer;">Free</span></div>
       </div>
       <div id="trueSelfYouSlot"></div>
+      <div class="section-h" style="padding-left:0; padding-right:0;"><h2>The Plates</h2><span class="see-all" id="platesCountLabel">0 / 5</span></div>
+      <div class="plate-shelf-wrap"><div class="plate-shelf" id="plateShelf"></div><div class="plate-now" id="plateNowLine"></div></div>
       <div class="profile-level-card">
         <div class="profile-level-row">
           <div class="profile-level-info">
@@ -3973,6 +4039,18 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 
     <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
   </div>
+</div>
+
+<!-- ================= THE PLATE (award moment) ================= -->
+<div class="plate-overlay" id="plateOverlay">
+  <div class="po-particles" id="plateParticles"></div>
+  <div class="po-eyebrow" id="plateEyebrow">Your plate</div>
+  <div class="po-medallion-wrap" id="plateMedallionWrap"></div>
+  <div class="po-name" id="plateName">—</div>
+  <div class="po-tagline" id="plateTagline">Living at your highest path</div>
+  <div class="po-line" id="plateLine">—</div>
+  <div class="po-meta" id="plateMeta"></div>
+  <button class="btn primary po-enter" id="plateEnterBtn">Carry it</button>
 </div>
 
 <!-- ================= ASCENSION (upgrade) ================= -->
@@ -8376,7 +8454,7 @@ function renderKindred() {
     return `<div class="kindred-card" data-ki="${i}" style="--kn-c:${c}1f; --kn-orb:${c};">
       <div class="kindred-orb"><svg viewBox="0 0 44 44"><circle class="kn-track" cx="22" cy="22" r="19"></circle><circle class="kn-fill" cx="22" cy="22" r="19" style="stroke-dasharray:${K_RING_CIRC}; stroke-dashoffset:${off};"></circle></svg><div class="kn-core">${escapeHtml(k.name[0])}</div></div>
       <div class="kindred-info">
-        <div class="kindred-name">${escapeHtml(k.name)}</div>
+        <div class="kindred-name">${escapeHtml(k.name)}${k.closeness >= 88 ? '<span class="kindred-plate" style="color:#fbbf24;">✦</span>' : k.closeness >= 70 ? '<span class="kindred-plate" style="color:#cdb8ff;">◈</span>' : ''}</div>
         <div class="kindred-sub">${escapeHtml(arch)} · ${k.freq} Hz · ${quiet ? (k.closeness >= 70 ? 'far along' : 'on the way') : k.closeness + '% home'}</div>
         <div class="kindred-line">“${escapeHtml(k.line)}”</div>
       </div>
@@ -8576,7 +8654,7 @@ function renderCouncil() {
       const off = 119 * (1 - k.closeness / 100);
       return `<div class="kindred-card" data-ci="${i}" style="--kn-c:${c}24; --kn-orb:${c};">
         <div class="kindred-orb"><svg viewBox="0 0 44 44"><circle class="kn-track" cx="22" cy="22" r="19"></circle><circle class="kn-fill" cx="22" cy="22" r="19" style="stroke-dasharray:119; stroke-dashoffset:${off};"></circle></svg><div class="kn-core">${escapeHtml(k.name[0])}</div></div>
-        <div class="kindred-info"><div class="kindred-name">${escapeHtml(k.name)} ✦</div><div class="kindred-sub">${escapeHtml(arch)} · ${k.freq} Hz · ${quiet ? (k.closeness >= 70 ? 'far along' : 'on the way') : k.closeness + '% home'}</div><div class="kindred-line">“${escapeHtml(k.line)}”</div></div>
+        <div class="kindred-info"><div class="kindred-name">${escapeHtml(k.name)}${k.closeness >= 88 ? '<span class="kindred-plate" style="color:#fbbf24;">✦</span>' : k.closeness >= 70 ? '<span class="kindred-plate" style="color:#cdb8ff;">◈</span>' : ''}</div><div class="kindred-sub">${escapeHtml(arch)} · ${k.freq} Hz · ${quiet ? (k.closeness >= 70 ? 'far along' : 'on the way') : k.closeness + '% home'}</div><div class="kindred-line">“${escapeHtml(k.line)}”</div></div>
         <div class="kindred-arrow">→</div>
       </div>`;
     }).join('') + `</div></div>`;
@@ -8587,6 +8665,134 @@ applyTierGates();
 renderCouncil();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(applyTierGates, 1750));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(applyTierGates, 1750));
+
+// =================== THE PLATES ===================
+// The reward for living at your highest path. Reach 100% closeness → The Arrival (you got home,
+// and you're among the first who did). Stay home 7 / 30 / 108 / 365 days → Hearth / Pillar / Beacon / Lighthouse.
+const PLATES = [
+  { id: 'arrival',    name: 'The Arrival',    cls: 'plate-arrival',    glyph: '◈', tagline: 'You walked all the way home', short: 'Reach your true self',
+    line: 'Most never walk all the way home. You did — and you’re among the first who did, here. The path is a little clearer for the next one because you stood at the end of it.' },
+  { id: 'hearth',     name: 'The Hearth',     cls: 'plate-hearth',     glyph: '✦', tagline: 'Seven days at your highest path', days: 7,  short: '7 days home',
+    line: 'Seven days living at your true self — not finding it, living it. The fire is lit, it’s yours, and it’s warm enough now to draw others toward it.' },
+  { id: 'pillar',     name: 'The Pillar',     cls: 'plate-pillar',     glyph: '❖', tagline: 'Thirty days at your highest path', days: 30, short: '30 days home',
+    line: 'Thirty days at your highest path. You’re not visiting anymore — you’re holding it up. For yourself, and for the field that leans on the ones who stay.' },
+  { id: 'beacon',     name: 'The Beacon',     cls: 'plate-beacon',     glyph: '✷', tagline: 'A hundred and eight days', days: 108, short: '108 days home',
+    line: 'A hundred and eight days home. People can find their way by you now. You’re a fixed point — the kind someone else navigates toward in the dark without ever telling you.' },
+  { id: 'lighthouse', name: 'The Lighthouse', cls: 'plate-lighthouse', glyph: '☀', tagline: 'A year at your true self', days: 365, short: '365 days home',
+    line: 'A year. A whole year living at your true self. You’re not on the path anymore — you ARE the path, for everyone still walking it. There’s no plate above this. There’s only continuing.' }
+];
+const PLATE_BY_ID = {}; PLATES.forEach(p => PLATE_BY_ID[p.id] = p);
+const PLATE_ORDER = PLATES.map(p => p.id);
+function loadPlateState() { try { const v = JSON.parse(localStorage.getItem('resonance_plates') || 'null'); if (v && Array.isArray(v.earned)) return v; } catch (e) {} return { firstDay: null, daysAtHome: 0, lastHomeDay: null, earned: [] }; }
+function savePlateState(s) { try { localStorage.setItem('resonance_plates', JSON.stringify(s)); } catch (e) {} }
+function plateState() { return loadPlateState(); }
+function highestPlateId() { const s = plateState(); for (let i = PLATE_ORDER.length - 1; i >= 0; i--) if (s.earned.indexOf(PLATE_ORDER[i]) !== -1) return PLATE_ORDER[i]; return null; }
+function medallionHtml(plateId, size, opts) {
+  const p = PLATE_BY_ID[plateId]; if (!p) return '';
+  opts = opts || {};
+  const cls = 'plate-medallion ' + p.cls + (opts.locked ? ' locked' : (opts.glow ? ' glow' : '')) + (opts.spin ? ' spin' : '');
+  return `<div class="${cls}" style="--pm-size:${size || 88}px;"><div class="pm-face">${p.glyph}</div></div>`;
+}
+function checkPlates(opts) {
+  const cl = (typeof closeness !== 'undefined') ? closeness : 0;
+  if (cl < 100) return;
+  const today = (typeof _dayKey === 'function') ? _dayKey() : 'd';
+  const s = loadPlateState();
+  let newPlate = null;
+  if (!s.firstDay) { s.firstDay = today; s.daysAtHome = 1; s.lastHomeDay = today; if (s.earned.indexOf('arrival') === -1) { s.earned.push('arrival'); newPlate = 'arrival'; } }
+  else if (s.lastHomeDay !== today) { s.daysAtHome = (s.daysAtHome || 1) + 1; s.lastHomeDay = today; }
+  PLATES.forEach(p => { if (p.days && (s.daysAtHome || 0) >= p.days && s.earned.indexOf(p.id) === -1) { s.earned.push(p.id); newPlate = p.id; } });
+  savePlateState(s);
+  renderPlateShelf(); updatePlateMark();
+  if (newPlate && !(opts && opts.silent)) setTimeout(() => showPlate(newPlate, s.daysAtHome), 350);
+}
+let _plateTimers = [];
+async function showPlate(plateId, daysAtHome) {
+  const p = PLATE_BY_ID[plateId]; if (!p) return;
+  const ov = document.getElementById('plateOverlay'); if (!ov) return;
+  _plateTimers.forEach(clearTimeout); _plateTimers = [];
+  const partColor = (plateId === 'lighthouse' || plateId === 'beacon') ? 'var(--mint)' : plateId === 'pillar' ? 'var(--violet)' : plateId === 'hearth' ? 'var(--gold)' : '#e0e0ee';
+  ov.style.setProperty('--po-p', partColor);
+  ov.style.setProperty('--po-c1', plateId === 'arrival' ? 'rgba(220,220,235,0.18)' : 'rgba(251,191,36,0.16)');
+  ov.style.setProperty('--po-c2', plateId === 'lighthouse' ? 'rgba(110,231,183,0.18)' : 'rgba(167,139,250,0.16)');
+  const pc = document.getElementById('plateParticles'); pc.innerHTML = '';
+  for (let i = 0; i < 40; i++) { const d = document.createElement('div'); d.className = 'po-particle'; d.style.left = (Math.random() * 100) + '%'; d.style.animationDelay = (Math.random() * 2) + 's'; d.style.animationDuration = (4 + Math.random() * 2.5) + 's'; const sz = 4 + Math.random() * 6; d.style.width = sz + 'px'; d.style.height = sz + 'px'; pc.appendChild(d); }
+  document.getElementById('plateEyebrow').textContent = plateId === 'arrival' ? 'You arrived' : 'Your plate';
+  document.getElementById('plateMedallionWrap').innerHTML = medallionHtml(plateId, 132, { glow: true, spin: true });
+  document.getElementById('plateName').textContent = p.name;
+  document.getElementById('plateTagline').textContent = p.tagline;
+  document.getElementById('plateLine').textContent = p.line;
+  const _d = daysAtHome || p.days;
+  document.getElementById('plateMeta').textContent = p.days ? ((_d === 1 ? 'one day' : _d + ' days') + ' at your highest path') : 'Among the first to walk all the way home';
+  document.getElementById('plateEnterBtn').textContent = 'Carry it';
+  ov.classList.add('show');
+  if (typeof floatGain === 'function') floatGain(p.name + ' ✦');
+  try {
+    if (typeof ensureAudio === 'function') await ensureAudio();
+    if (typeof Tone !== 'undefined' && Tone.Synth) {
+      const syn = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.02, decay: 0.4, sustain: 0.35, release: 2.4 }, volume: -7 }).toDestination();
+      const seqs = { arrival: ['C4', 'G4', 'C5'], hearth: ['C4', 'E4', 'G4', 'C5'], pillar: ['C4', 'Eb4', 'G4', 'C5', 'Eb5'], beacon: ['C4', 'E4', 'G4', 'B4', 'D5', 'G5'], lighthouse: ['C4', 'E4', 'G4', 'C5', 'E5', 'G5', 'C6'] };
+      (seqs[plateId] || seqs.arrival).forEach((n, i) => { try { syn.triggerAttackRelease(n, '4n', '+' + (i * 0.22)); } catch (e) {} });
+      setTimeout(() => { try { syn.dispose(); } catch (e) {} }, 5000);
+    }
+  } catch (e) {}
+}
+function closePlate() { document.getElementById('plateOverlay').classList.remove('show'); _plateTimers.forEach(clearTimeout); _plateTimers = []; }
+document.getElementById('plateEnterBtn').addEventListener('click', closePlate);
+function renderPlateShelf() {
+  const shelf = document.getElementById('plateShelf'); if (!shelf) return;
+  const s = plateState();
+  shelf.innerHTML = PLATES.map(p => {
+    const earned = s.earned.indexOf(p.id) !== -1;
+    return `<div class="plate-shelf-item${earned ? ' earned' : ''}" data-plate="${p.id}">${medallionHtml(p.id, 52, { locked: !earned })}<div class="ps-name">${escapeHtml(p.name.replace('The ', ''))}</div><div class="ps-req">${escapeHtml(p.short)}</div></div>`;
+  }).join('');
+  shelf.querySelectorAll('.plate-shelf-item').forEach(el => el.addEventListener('click', () => {
+    const id = el.dataset.plate; const p = PLATE_BY_ID[id]; const st = plateState(); const earned = st.earned.indexOf(id) !== -1;
+    if (earned) { showPlate(id, st.daysAtHome); return; }
+    const cl = (typeof closeness !== 'undefined') ? closeness : 0;
+    if (p.days) toast(st.firstDay ? ((st.daysAtHome || 1) + ' / ' + p.days + ' days at your highest path') : ('First reach 100% — then live there ' + p.days + ' days'), '');
+    else toast(cl >= 100 ? 'Earned — it’s yours' : (Math.round(cl) + '% to your true self · arriving at 100% earns this'), '');
+  }));
+  const lbl = document.getElementById('platesCountLabel');
+  if (lbl) lbl.textContent = (typeof appSettings !== 'undefined' && appSettings.quietMetrics) ? (s.earned.length ? (s.earned.length >= 5 ? 'all' : 'some') : 'none yet') : (s.earned.length + ' / ' + PLATES.length);
+  const now = document.getElementById('plateNowLine');
+  if (now) {
+    const cl = (typeof closeness !== 'undefined') ? closeness : 0;
+    if (s.earned.indexOf('lighthouse') !== -1) now.textContent = 'A year home. There’s nothing above this — there’s only continuing. Keep the light on.';
+    else if (s.firstDay) now.textContent = ((s.daysAtHome || 1) === 1 ? 'One day' : (s.daysAtHome || 1) + ' days') + ' living at your true self. Keep coming back — the next plate is just more of this.';
+    else if (cl >= 100) now.textContent = 'You’re home. The Arrival is yours. Come back tomorrow and the count begins.';
+    else now.textContent = (typeof appSettings !== 'undefined' && appSettings.quietMetrics) ? 'The Plates begin where the journey ends — at your true self.' : (Math.round(cl) + '% of the way home. The Plates begin where the journey ends — at 100%.');
+  }
+}
+function updatePlateMark() {
+  const id = highestPlateId();
+  ['avatarPlateBadge', 'profileAvatarPlateBadge'].forEach(bid => {
+    const el = document.getElementById(bid); if (!el) return;
+    if (id) { const p = PLATE_BY_ID[id]; el.className = 'avatar-plate-badge show ' + p.cls; el.style.background = 'var(--pm-ring)'; el.innerHTML = `<span style="color:var(--pm-glyph);">${p.glyph}</span>`; }
+    else { el.className = 'avatar-plate-badge'; el.innerHTML = ''; el.style.background = ''; }
+  });
+}
+// hooks
+(function () {
+  if (typeof addCloseness === 'function') { const _ac = addCloseness; addCloseness = function (a, r) { _ac(a, r); if (typeof checkPlates === 'function') checkPlates(); }; }
+  if (typeof recordDailySync === 'function') { const _rd = recordDailySync; recordDailySync = function () { _rd(); if (typeof checkPlates === 'function') checkPlates(); }; }
+})();
+// holding a tone on/near your true-self frequency drips closeness — the practice that gets you home
+setInterval(() => {
+  try {
+    if (typeof getManualHz !== 'function' || getManualHz() === null) return;
+    const ts = (typeof ensureTrueSelf === 'function') ? ensureTrueSelf() : null;
+    if (!ts || typeof userFreq === 'undefined') return;
+    const d = Math.abs(Math.round(userFreq) - ts.freq);
+    if (d <= 8) { if (typeof addCloseness === 'function') addCloseness(1, 'home-sit'); }
+    else if (typeof findNamedFreq === 'function' && findNamedFreq(Math.round(userFreq)) && typeof addCloseness === 'function') { addCloseness(0.3, 'sit'); }
+  } catch (e) {}
+}, 9000);
+checkPlates({ silent: true });
+renderPlateShelf();
+updatePlateMark();
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(() => { checkPlates(); renderPlateShelf(); updatePlateMark(); }, 1800));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(() => { checkPlates(); renderPlateShelf(); updatePlateMark(); }, 1800));
 
 renderLadder();
 </script>
