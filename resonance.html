@@ -4580,9 +4580,52 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   padding: 22px 24px calc(28px + env(safe-area-inset-bottom, 0px));
   background: radial-gradient(circle at 50% 24%, var(--ro-c, rgba(167,139,250,0.16)), transparent 58%), radial-gradient(circle at 50% 100%, rgba(110,231,183,0.08), transparent 55%), #010103;
 }
-.reading-overlay.show { display: flex; animation: gateIn 0.7s var(--ease); }
-.reading-overlay .ro-top { width: 100%; display: flex; justify-content: flex-end; }
-.reading-overlay .ro-orb { width: 110px; height: 110px; border-radius: 50%; margin: 6px auto 18px; flex-shrink: 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--ro-orb, var(--violet)) 50%, rgba(0,0,0,0.55)); box-shadow: 0 0 56px var(--ro-orb, var(--violet)); animation: pulse 4s ease-in-out infinite; }
+.reading-overlay.show { display: flex; animation: readingOverlayIn 0.9s cubic-bezier(.16,.84,.32,1); }
+.reading-overlay.show::before {
+  content: ''; position: absolute; inset: -20%; pointer-events: none;
+  background: radial-gradient(circle at 50% 30%, var(--ro-orb, var(--violet)), transparent 55%);
+  opacity: 0; filter: blur(40px);
+  animation: readingHalo 1.8s ease-out forwards;
+}
+@keyframes readingOverlayIn {
+  0%   { opacity: 0; transform: scale(0.98); filter: blur(10px); }
+  55%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes readingHalo {
+  0%   { opacity: 0; transform: scale(0.7); }
+  40%  { opacity: 0.55; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+.reading-overlay .ro-top { width: 100%; display: flex; justify-content: flex-end; position: relative; z-index: 2; }
+.reading-overlay .ro-orb {
+  width: 124px; height: 124px; border-radius: 50%; margin: 8px auto 20px;
+  flex-shrink: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), var(--ro-orb, var(--violet)) 50%, rgba(0,0,0,0.55));
+  box-shadow: 0 0 72px var(--ro-orb, var(--violet)), 0 0 24px rgba(255,255,255,0.18);
+  animation: pulse 4s ease-in-out infinite, roOrbIn 1.2s cubic-bezier(.16,.78,.32,1);
+  position: relative; z-index: 2;
+}
+.reading-overlay .ro-orb::after {
+  content: ''; position: absolute; inset: -14px; border-radius: 50%;
+  border: 1px solid var(--ro-orb, var(--violet));
+  opacity: 0; transform: scale(0.8);
+  animation: roOrbRing 1.6s ease-out 0.2s forwards;
+}
+@keyframes roOrbIn {
+  0%   { opacity: 0; transform: scale(0.55); filter: blur(14px); }
+  60%  { opacity: 1; filter: blur(0); transform: scale(1.06); }
+  100% { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+@keyframes roOrbRing {
+  0%   { opacity: 0; transform: scale(0.8); }
+  40%  { opacity: 0.9; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.32); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reading-overlay.show, .reading-overlay.show::before,
+  .reading-overlay .ro-orb, .reading-overlay .ro-orb::after { animation: none; opacity: 1; }
+}
 .reading-overlay .ro-eyebrow { font-size: 10px; letter-spacing: 6px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 4px; }
 .reading-overlay .ro-date { font-family: ui-monospace, 'SF Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-faint); margin-bottom: 22px; }
 .reading-overlay .ro-block { max-width: 380px; width: 100%; margin-bottom: 20px; opacity: 0; transform: translateY(8px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
