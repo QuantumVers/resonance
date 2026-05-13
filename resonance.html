@@ -2230,6 +2230,17 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .sd-meta { display: flex; justify-content: space-between; align-items: baseline; font-family: ui-monospace, monospace; font-size: 10.5px; }
 .sd-key { color: var(--text-soft); }
 .sd-size { color: var(--text-faint); }
+/* ============ DATA_AGENT · QUARANTINE ============ */
+.quarantine-section .quarantine-list { display: flex; flex-direction: column; gap: 6px; }
+.qr-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,184,0,0.06); border: 1px solid rgba(255,184,0,0.3); border-radius: 10px; }
+.qr-row .qr-meta { display: flex; flex-direction: column; gap: 2px; }
+.qr-row .qr-key { font-family: ui-monospace, monospace; font-size: 11px; color: var(--gold); }
+.qr-row .qr-when { font-family: ui-monospace, monospace; font-size: 9px; color: var(--text-faint); }
+.qr-row .qr-actions { display: flex; gap: 6px; }
+.qr-row .qr-btn { padding: 4px 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 6px; color: var(--text-soft); font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; }
+.qr-row .qr-btn.qr-purge { color: var(--gold); border-color: rgba(255,184,0,0.4); }
+/* ============ /DATA_AGENT ============ */
+
 /* ============ /DATA_AGENT ============ */
 
 /* ============ /DATA_AGENT ============ */
@@ -5051,6 +5062,12 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="set-row-sub" style="margin-bottom:12px;">Up to three recent auto-snapshots — tap one to step back to that moment, double-tap to confirm.</div>
     <div class="tm-list" id="timeMachineList"></div>
   </div>
+  <div class="set-section quarantine-section" id="quarantineWrap" style="display:none;">
+    <div class="set-label">Quarantine</div>
+    <div class="set-row-sub" style="margin-bottom:12px;">Keys that didn't match their schema — preserved for inspection, not used by the app.</div>
+    <div class="quarantine-list" id="quarantineList"></div>
+  </div>
+
   <details class="set-section storage-detail-section">
     <summary>
       <span class="set-label">Storage detail</span>
@@ -13845,6 +13862,61 @@ window.statsTopFreqByTime = function () {
     } catch (e) {}
   };
   try { renderStatsPage(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · QUARANTINE SURFACE ===================
+// If validators have quarantined any keys, surface them quietly in Settings
+// with a "recover" affordance. Each quarantine row shows the bad-key name and
+// timestamp; tap once to view (logs to console), tap "purge" to delete.
+function _listQuarantines() {
+  if (!window.RState) return [];
+  return RState._raw.keys().filter(k => k.indexOf('resonance__quarantine_') === 0).map(k => {
+    const m = /^resonance__quarantine_(.+)_(\d+)$/.exec(k);
+    return { key: k, bare: m ? m[1] : k, t: m ? parseInt(m[2], 10) : 0 };
+  }).sort((a, b) => b.t - a.t);
+}
+function renderQuarantineList() {
+  const host = document.getElementById('quarantineList'); if (!host) return;
+  const wrap = document.getElementById('quarantineWrap'); if (!wrap) return;
+  const items = _listQuarantines();
+  if (!items.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  host.innerHTML = items.map(it => {
+    const dt = new Date(it.t);
+    return '<div class="qr-row" data-qkey="' + it.key + '">'
+         +   '<div class="qr-meta">'
+         +     '<div class="qr-key">' + it.bare + '</div>'
+         +     '<div class="qr-when">' + dt.toLocaleString() + '</div>'
+         +   '</div>'
+         +   '<div class="qr-actions">'
+         +     '<button class="qr-btn qr-view" data-act="view">view</button>'
+         +     '<button class="qr-btn qr-purge" data-act="purge">purge</button>'
+         +   '</div>'
+         + '</div>';
+  }).join('');
+  host.querySelectorAll('.qr-btn').forEach(b => {
+    b.addEventListener('click', e => {
+      const row = e.target.closest('.qr-row'); if (!row) return;
+      const k = row.dataset.qkey; if (!k) return;
+      if (e.target.dataset.act === 'view') {
+        try { const v = window.RState._raw.getRaw(k); console.log('[quarantine]', k, v); if (typeof toast === 'function') toast('Logged to console', 'ok'); } catch (er) {}
+      } else if (e.target.dataset.act === 'purge') {
+        try { window.RState._raw.removeRaw(k); } catch (er) {}
+        row.remove();
+        if (!_listQuarantines().length) wrap.style.display = 'none';
+      }
+    });
+  });
+}
+(function () {
+  const setBtn = document.getElementById('settingsBtn');
+  if (setBtn) setBtn.addEventListener('click', () => setTimeout(renderQuarantineList, 50));
+  // Boot announcement: if any quarantines exist, log + notify quietly.
+  const items = _listQuarantines();
+  if (items.length && typeof notify === 'function') {
+    setTimeout(() => notify(items.length + ' key' + (items.length === 1 ? '' : 's') + ' quarantined', 'Open Settings to view', '◬', '#fbbf24'), 3500);
+    console.warn('[RState] quarantined:', items.map(i => i.bare));
+  }
 })();
 // =================== /DATA_AGENT ===================
 
