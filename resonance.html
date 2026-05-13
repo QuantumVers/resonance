@@ -3142,9 +3142,13 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="gate-content">
       <div class="gate-glyph">◎</div>
       <div class="gate-label">Resonance</div>
-      <h1 class="gate-title">Before you ascend, we must know <em>who arrives</em>.</h1>
-      <p class="gate-text">Your name carries its own frequency. Your birth carries its own sky. Your tradition shapes how the divine speaks to you. Tell us, so we may meet you where you are.</p>
-      <button class="gate-btn" onclick="goSignup(2)">Begin</button>
+      <div id="inviteWelcomeNote" style="display:none; margin:0 auto 24px; max-width:380px; padding:14px 18px; border-radius:16px; background:radial-gradient(circle at 0% 0%, rgba(110,231,183,0.14), transparent 55%), var(--card); border:1px solid rgba(110,231,183,0.3); backdrop-filter:blur(20px);">
+        <div style="font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--mint); font-weight:700; margin-bottom:6px;" id="inviteWelcomeKicker">SOMEONE BROUGHT YOU HERE</div>
+        <div style="font-family:Georgia, serif; font-style:italic; font-size:15px; line-height:1.45; color:var(--text);" id="inviteWelcomeBody">—</div>
+      </div>
+      <h1 class="gate-title">You've been performing for so long you forgot there was a <em>you</em> underneath.</h1>
+      <p class="gate-text">There is. This app finds them — your true self, the frequency that's actually yours — and then walks you home to it. Three things first, so we can meet you where you are: your name, your sky, the language the divine speaks to you in.</p>
+      <button class="gate-btn" onclick="goSignup(2)">Find them</button>
     </div>
   </div>
 
@@ -3344,6 +3348,10 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <div class="verdict-score-lbl">Tier</div>
           <div class="verdict-score-val" id="finalTier" style="color:var(--mint);">—</div>
         </div>
+      </div>
+      <div id="verdictInviteCompare" style="display:none; margin:0 auto 8px; max-width:380px; padding:14px 18px; border-radius:16px; background:radial-gradient(circle at 100% 0%, rgba(110,231,183,0.12), transparent 55%), var(--card); border:1px solid rgba(110,231,183,0.28); backdrop-filter:blur(20px);">
+        <div style="font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--mint); font-weight:700; margin-bottom:6px;" id="verdictInviteKicker">—</div>
+        <div style="font-family:Georgia, serif; font-style:italic; font-size:15px; line-height:1.45; color:var(--text);" id="verdictInviteBody">—</div>
       </div>
       <p class="gate-text">The inner world is now open to you. Welcome.</p>
       <button class="gate-btn" id="enterInnerBtn">Enter The Inner World</button>
@@ -4080,17 +4088,19 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   </div>
   <div class="sheet-body">
     <h1 class="sheet-h1">Bring <em>one person</em> in.</h1>
-    <p class="sheet-lede">When they open your link, Resonance meets them on this exact frequency — the one you're holding right now.</p>
+    <p class="sheet-lede">When they open your link, Resonance opens on this exact frequency — the one you're holding right now — and tells them what you heard in them.</p>
 
     <div class="invite-card" id="inviteCard">
       <div class="invite-orb" id="inviteOrb"></div>
       <div class="invite-card-from" id="inviteCardFrom">— is resonating at</div>
       <div class="invite-card-freq"><span id="inviteCardFreq">432</span><span class="u">Hz</span></div>
       <div class="invite-card-state" id="inviteCardState">The natural tuning.</div>
-      <div class="invite-card-line">They want you here.</div>
+      <div class="invite-card-line" id="inviteCardLine">They want you here.</div>
     </div>
 
-    <div class="about-section-label" style="margin-top:0;">Sign it (optional)</div>
+    <div class="about-section-label" style="margin-top:0;">What did you hear in them? (optional)</div>
+    <input type="text" class="invite-name-input" id="inviteNoteInput" placeholder="“this is your frequency.”" maxlength="90">
+    <div class="about-section-label">Sign it (optional)</div>
     <input type="text" class="invite-name-input" id="inviteNameInput" placeholder="Your name" maxlength="40" autocomplete="given-name">
 
     <div class="about-section-label">The link</div>
@@ -5230,6 +5240,19 @@ function showVerdict() {
   document.getElementById('finalScore').textContent = userAlignment;
   document.getElementById('finalFreq').textContent = userFreq + ' Hz';
   document.getElementById('finalTier').textContent = tier;
+
+  // If a friend sent them with "I heard X Hz in you", show the comparison on the verdict
+  try {
+    const ic = window.__pendingInviteCompare;
+    const box = document.getElementById('verdictInviteCompare');
+    if (ic && ic.from && box) {
+      const k = document.getElementById('verdictInviteKicker');
+      const b = document.getElementById('verdictInviteBody');
+      if (k) k.textContent = 'WHAT ' + ic.from.toUpperCase() + ' HEARD IN YOU';
+      if (b) b.innerHTML = (ic.note ? '“' + escapeHtml(ic.note) + '” — ' : '') + escapeHtml(ic.from) + ' heard <b>' + ic.hz + ' Hz</b> in you. You scanned <b>' + Math.round(userFreq) + ' Hz</b> — ' + _inviteVerdict(ic.hz, userFreq);
+      box.style.display = 'block';
+    } else if (box) { box.style.display = 'none'; }
+  } catch (e) {}
 
   // Pass threshold: 65+
   if (userAlignment >= 65) {
@@ -7498,12 +7521,20 @@ function setModesExact(modes) {
   sync('harmonics', harmonicMode, () => document.getElementById('harmonicToggle').click());
   sync('breath', document.getElementById('breathToggle').classList.contains('active'), () => document.getElementById('breathToggle').click());
 }
-function buildShareUrl(hz, modes, from) {
+function buildShareUrl(hz, modes, from, note) {
   const base = location.origin + (location.pathname && location.pathname !== '/' ? location.pathname : '/resonance.html');
   let u = base + '?hz=' + hz;
   if (modes && modes.length) u += '&modes=' + modes.join(',');
   if (from && from.trim()) u += '&from=' + encodeURIComponent(from.trim().slice(0, 40));
+  if (note && note.trim()) u += '&note=' + encodeURIComponent(note.trim().slice(0, 90));
   return u;
+}
+function _inviteVerdict(theirHz, yourHz) {
+  const d = Math.abs(Math.round(theirHz) - Math.round(yourHz));
+  if (d < 12) return 'the same tone. They were right.';
+  if (d < 50) return 'close enough to be kindred. They were nearly right.';
+  if (d < 150) return 'an adjacent path — a different stretch of the same road. Worth knowing each other.';
+  return 'a different stretch of the road than they guessed — but they sent you here, and here you are.';
 }
 async function copyTextFallback(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -7532,12 +7563,30 @@ document.getElementById('shareFreqBtn').addEventListener('click', () => { if (ty
     else if (name === 'harmonics' || name === 'harmonic') { harmonicMode = on; document.getElementById('harmonicToggle').classList.toggle('active', on); }
     else if (name === 'breath') { document.getElementById('breathToggle').classList.toggle('active', on); document.getElementById('breathGuide').classList.toggle('active', on); }
   };
-  modes.forEach(m => setMode(m, true));
   const fromName = (params.get('from') || '').trim().slice(0, 40);
+  const inviteNote = (params.get('note') || '').trim().slice(0, 90);
   userFreq = hz;
-  applyFrequency(hz);
+  // Defer the audio/render side-effects until after the whole script has evaluated
+  // (applyFrequency is wrapped to touch awakenings/true-self/field, whose data is defined later — TDZ otherwise).
+  setTimeout(() => {
+    try { modes.forEach(m => setMode(m, true)); } catch (e) {}
+    try { applyFrequency(hz); } catch (e) {}
+  }, 0);
   window.__pendingSharedHz = hz;
   window.__invitedBy = fromName || null;
+  // surface the invite on the very first screen + remember it for the verdict comparison
+  if (fromName) {
+    window.__pendingInviteCompare = { from: fromName, hz: hz, note: inviteNote || null };
+    const box = document.getElementById('inviteWelcomeNote');
+    if (box) {
+      const k = document.getElementById('inviteWelcomeKicker'); if (k) k.textContent = fromName.toUpperCase() + ' BROUGHT YOU HERE';
+      const b = document.getElementById('inviteWelcomeBody');
+      if (b) b.innerHTML = inviteNote
+        ? '“' + escapeHtml(inviteNote) + '” — ' + escapeHtml(fromName) + ' heard ' + hz + ' Hz in you. In a few minutes you’ll find out if they were right.'
+        : escapeHtml(fromName) + ' heard ' + hz + ' Hz in you. In a few minutes you’ll find out if they were right.';
+      box.style.display = 'block';
+    }
+  }
   // After the gate is dismissed, surface it on the Sync tab
   const onEnter = () => {
     if (window.__pendingSharedHz == null) return;
@@ -7944,16 +7993,18 @@ document.getElementById('setRepairBtn').addEventListener('click', openRepair);
 document.getElementById('repairCloseBtn').addEventListener('click', () => document.getElementById('repairOverlay').classList.remove('show'));
 
 // =================== INVITE / SHARE RESONANCE (deep flow) ===================
-let _inviteName = '';
+let _inviteName = '', _inviteNote = '';
 function inviteSenderDefault() {
   if (_inviteName) return _inviteName;
   if (typeof userProfile !== 'undefined' && userProfile.name) return userProfile.name.split(' ')[0];
   return '';
 }
+function inviteNoteDefault() { return _inviteNote || ''; }
 function refreshInviteSheet() {
   const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : parseInt(freqSlider.value);
   const modes = activeModeNames();
   const from = inviteSenderDefault();
+  const note = inviteNoteDefault();
   const st = (typeof frequencyState === 'function') ? frequencyState(hz) : { long: 'Your resonance.', color: '#a78bfa' };
   document.getElementById('inviteOrb').style.setProperty('--iv-orb', st.color || '#a78bfa');
   const card = document.getElementById('inviteCard');
@@ -7961,13 +8012,18 @@ function refreshInviteSheet() {
   document.getElementById('inviteCardFrom').textContent = (from ? from : 'Someone') + ' is resonating at';
   document.getElementById('inviteCardFreq').textContent = hz;
   document.getElementById('inviteCardState').textContent = st.long || 'Your resonance.';
-  const url = buildShareUrl(hz, modes, from);
+  const lineEl = document.getElementById('inviteCardLine');
+  if (lineEl) lineEl.innerHTML = note
+    ? '“' + escapeHtml(note) + '”<br><span style="font-size:11px; color:var(--text-faint); letter-spacing:1px;">— ' + escapeHtml(from || 'they') + ', about you</span>'
+    : 'They want you here.';
+  const url = buildShareUrl(hz, modes, from, note);
   document.getElementById('inviteLinkBox').textContent = url.replace(/^https?:\/\//, '');
   document.getElementById('inviteLinkBox').dataset.url = url;
 }
 function openInvite() {
   document.getElementById('settingsOverlay').classList.remove('show');
   document.getElementById('inviteNameInput').value = inviteSenderDefault();
+  const ni = document.getElementById('inviteNoteInput'); if (ni) ni.value = inviteNoteDefault();
   refreshInviteSheet();
   document.getElementById('inviteOverlay').classList.add('show');
   document.getElementById('inviteOverlay').scrollTop = 0;
@@ -7975,6 +8031,7 @@ function openInvite() {
 document.getElementById('setInviteBtn').addEventListener('click', openInvite);
 document.getElementById('inviteCloseBtn').addEventListener('click', () => document.getElementById('inviteOverlay').classList.remove('show'));
 document.getElementById('inviteNameInput').addEventListener('input', e => { _inviteName = e.target.value.trim(); refreshInviteSheet(); });
+{ const ni = document.getElementById('inviteNoteInput'); if (ni) ni.addEventListener('input', e => { _inviteNote = e.target.value.trim(); refreshInviteSheet(); }); }
 document.getElementById('inviteCopyBtn').addEventListener('click', async () => {
   const url = document.getElementById('inviteLinkBox').dataset.url || ('https://' + document.getElementById('inviteLinkBox').textContent);
   const ok = await copyTextFallback(url);
@@ -7985,7 +8042,10 @@ document.getElementById('inviteShareBtn').addEventListener('click', async () => 
   const url = document.getElementById('inviteLinkBox').dataset.url || ('https://' + document.getElementById('inviteLinkBox').textContent);
   const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : parseInt(freqSlider.value);
   const from = inviteSenderDefault();
-  const text = (from ? from + ' wants you on this frequency.' : 'Come resonate with me.') + ' ' + hz + ' Hz.';
+  const note = inviteNoteDefault();
+  const text = note
+    ? '“' + note + '” — that’s what I heard in you. Resonance will tell you if I’m right. ' + hz + ' Hz.'
+    : (from ? from + ' wants you on this frequency.' : 'Come resonate with me.') + ' ' + hz + ' Hz.';
   if (navigator.share) {
     try { await navigator.share({ title: 'RESONANCE — The Inner World', text, url }); return; }
     catch (e) { if (e && e.name === 'AbortError') return; }
