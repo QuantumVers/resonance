@@ -2217,6 +2217,21 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .tm-row .tm-when { font-size: 13px; font-weight: 500; }
 .tm-row .tm-ago { font-size: 10px; color: var(--text-faint); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; font-family: ui-monospace, monospace; }
 .tm-row .tm-restore { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--violet); font-weight: 700; }
+/* ============ DATA_AGENT · STORAGE DETAIL ============ */
+.storage-detail-section { padding-top: 14px; }
+.storage-detail-section summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; }
+.storage-detail-section summary::-webkit-details-marker { display: none; }
+.storage-detail-section summary::after { content: '+'; font-weight: 200; font-size: 22px; color: var(--text-faint); margin-left: 8px; transition: transform .3s; }
+.storage-detail-section[open] summary::after { transform: rotate(45deg); }
+.storage-detail-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
+.sd-row { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; background: rgba(20,20,28,0.55); border: 1px solid var(--border); border-radius: 8px; }
+.sd-bar { height: 3px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+.sd-bar-fill { height: 100%; background: linear-gradient(90deg, var(--violet), var(--mint)); border-radius: 99px; }
+.sd-meta { display: flex; justify-content: space-between; align-items: baseline; font-family: ui-monospace, monospace; font-size: 10.5px; }
+.sd-key { color: var(--text-soft); }
+.sd-size { color: var(--text-faint); }
+/* ============ /DATA_AGENT ============ */
+
 /* ============ /DATA_AGENT ============ */
 
 /* ============ /DATA_AGENT ============ */
@@ -5036,6 +5051,13 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="set-row-sub" style="margin-bottom:12px;">Up to three recent auto-snapshots — tap one to step back to that moment, double-tap to confirm.</div>
     <div class="tm-list" id="timeMachineList"></div>
   </div>
+  <details class="set-section storage-detail-section">
+    <summary>
+      <span class="set-label">Storage detail</span>
+      <span class="set-row-sub" id="storageDetailTotal">—</span>
+    </summary>
+    <div class="storage-detail-list" id="storageDetailList"></div>
+  </details>
 
   <div class="set-section" style="border-top:1px solid var(--border); padding-top:18px;">
     <div class="set-actions">
@@ -13659,6 +13681,40 @@ function renderTimeline() {
     renderStatsPage = function () { _r.apply(this, arguments); try { renderTimeline(); } catch (e) {} };
   }
   try { renderTimeline(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · STORAGE DETAIL ===================
+// A collapsible footer in Settings showing what's actually persisted, key by
+// key, with size in KB. Power-user reassurance: nothing hidden.
+function renderStorageDetail() {
+  const host = document.getElementById('storageDetailList'); if (!host || !window.RState) return;
+  const keys = RState.listKeys();
+  const rows = keys.map(k => {
+    let bytes = 0;
+    try { const v = RState._raw.getRaw(k); bytes = v ? v.length : 0; } catch (e) {}
+    return { key: k, bytes: bytes };
+  });
+  rows.sort((a, b) => b.bytes - a.bytes);
+  const total = rows.reduce((s, r) => s + r.bytes, 0);
+  const totalEl = document.getElementById('storageDetailTotal');
+  if (totalEl) totalEl.textContent = (total / 1024).toFixed(1) + ' KB · ' + rows.length + ' keys';
+  host.innerHTML = rows.map(r => {
+    const kb = (r.bytes / 1024);
+    const pct = total ? Math.round(r.bytes / total * 100) : 0;
+    const shortKey = r.key.replace(/^resonance_+/, '').replace(/^resonance__/, '__');
+    return '<div class="sd-row">'
+         +   '<div class="sd-bar"><div class="sd-bar-fill" style="width:' + pct + '%"></div></div>'
+         +   '<div class="sd-meta">'
+         +     '<span class="sd-key">' + shortKey + '</span>'
+         +     '<span class="sd-size">' + (kb < 0.1 ? r.bytes + ' B' : kb.toFixed(1) + ' KB') + '</span>'
+         +   '</div>'
+         + '</div>';
+  }).join('');
+}
+(function () {
+  const setBtn = document.getElementById('settingsBtn');
+  if (setBtn) setBtn.addEventListener('click', () => setTimeout(renderStorageDetail, 50));
+  try { renderStorageDetail(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
 
