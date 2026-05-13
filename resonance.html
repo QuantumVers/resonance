@@ -2210,6 +2210,15 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .stats-section .depth-identity-card .dic-row { display: flex; justify-content: space-between; align-items: baseline; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; }
 .stats-section .depth-identity-card .dic-k { color: var(--text-faint); letter-spacing: 3px; font-weight: 700; }
 .stats-section .depth-identity-card .dic-v { color: var(--text-soft); letter-spacing: 1.5px; }
+/* ============ DATA_AGENT · TIME MACHINE ============ */
+.tm-list { display: flex; flex-direction: column; gap: 7px; }
+.tm-row { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: rgba(20,20,28,0.55); border: 1px solid var(--border); border-radius: 12px; color: var(--text); cursor: pointer; transition: border-color .2s var(--ease), background .2s var(--ease); }
+.tm-row.armed { border-color: rgba(157,92,255,0.7); background: rgba(157,92,255,0.10); }
+.tm-row .tm-when { font-size: 13px; font-weight: 500; }
+.tm-row .tm-ago { font-size: 10px; color: var(--text-faint); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; font-family: ui-monospace, monospace; }
+.tm-row .tm-restore { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--violet); font-weight: 700; }
+/* ============ /DATA_AGENT ============ */
+
 /* ============ /DATA_AGENT ============ */
 
 /* ============ /DATA_AGENT ============ */
@@ -4979,6 +4988,11 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <button class="btn" id="setResetBtn">Reset all data</button>
     </div>
     <input type="file" id="setImportFile" accept="application/json,.json" style="display:none;">
+  </div>
+  <div class="set-section" id="timeMachineWrap" style="display:none;">
+    <div class="set-label">Time machine</div>
+    <div class="set-row-sub" style="margin-bottom:12px;">Up to three recent auto-snapshots — tap one to step back to that moment, double-tap to confirm.</div>
+    <div class="tm-list" id="timeMachineList"></div>
   </div>
 
   <div class="set-section" style="border-top:1px solid var(--border); padding-top:18px;">
@@ -13275,6 +13289,60 @@ function renderIdentityCard() {
   }
   // Defer past the gate's auto-skip + boot animations.
   setTimeout(_fire, 1800);
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · TIME MACHINE UI ===================
+// Auto-snapshots already roll forward silently. This surfaces them as actionable
+// recovery points in Settings. If today's data feels wrong, the user can step
+// back to yesterday or the day before.
+function renderTimeMachine() {
+  const host = document.getElementById('timeMachineList'); if (!host) return;
+  if (!window.RState || !RState.listAutoSnapshots) { host.parentElement.style.display = 'none'; return; }
+  const snaps = RState.listAutoSnapshots();
+  const wrap = document.getElementById('timeMachineWrap');
+  if (!snaps.length) { if (wrap) wrap.style.display = 'none'; return; }
+  if (wrap) wrap.style.display = '';
+  host.innerHTML = snaps.map((s, i) => {
+    const dt = new Date(s.t);
+    const dateStr = dt.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    const timeStr = dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    const ago = (function () {
+      const ms = Date.now() - s.t;
+      const h = ms / 3600000;
+      if (h < 24) return Math.round(h) + 'h ago';
+      return Math.round(h / 24) + 'd ago';
+    })();
+    return '<button class="tm-row" data-tm-idx="' + i + '">'
+         +   '<div class="tm-meta">'
+         +     '<div class="tm-when">' + dateStr + ' · ' + timeStr + '</div>'
+         +     '<div class="tm-ago">' + ago + ' · ' + s.keyCount + ' keys</div>'
+         +   '</div>'
+         +   '<div class="tm-restore">restore</div>'
+         + '</button>';
+  }).join('');
+  let armedIdx = -1;
+  host.querySelectorAll('.tm-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const idx = parseInt(row.dataset.tmIdx, 10);
+      if (armedIdx !== idx) {
+        armedIdx = idx;
+        host.querySelectorAll('.tm-row').forEach(r => { r.classList.remove('armed'); r.querySelector('.tm-restore').textContent = 'restore'; });
+        row.classList.add('armed');
+        row.querySelector('.tm-restore').textContent = 'tap again';
+        setTimeout(() => { if (armedIdx === idx) { armedIdx = -1; row.classList.remove('armed'); const r = row.querySelector('.tm-restore'); if (r) r.textContent = 'restore'; } }, 4000);
+        return;
+      }
+      const ok = RState.restoreAutoSnapshot(idx);
+      if (ok) { if (typeof toast === 'function') toast('Restored — reloading', 'ok'); setTimeout(() => location.reload(), 900); }
+      else if (typeof toast === 'function') toast('Couldn’t restore', 'warn');
+    });
+  });
+}
+(function () {
+  // Repaint on settings open + once after boot.
+  const setBtn = document.getElementById('settingsBtn');
+  if (setBtn) setBtn.addEventListener('click', () => setTimeout(renderTimeMachine, 50));
+  try { renderTimeMachine(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
 
