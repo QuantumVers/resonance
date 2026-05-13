@@ -2330,6 +2330,33 @@ input[type="date"].signup-input {
   transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
   cursor: grab; z-index: 2; user-select: none; touch-action: none;
 }
+/* ============ UX_AGENT · MAIN-ORB PLAYING STATE ============ */
+/* When a manual tone is held, the orb gets a second rotating ring + a brighter
+   inner highlight. Visual cue that the room is humming. */
+.main-orb.playing { box-shadow: 0 0 120px var(--orb-glow, var(--violet)), inset 0 0 90px rgba(255,255,255,0.18) !important; }
+.main-orb.playing::before {
+  content: ''; position: absolute; inset: -12px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.16);
+  border-top-color: rgba(255,255,255,0.6);
+  border-right-color: rgba(255,255,255,0.35);
+  pointer-events: none;
+  animation: mainOrbRing 9s linear infinite;
+}
+.main-orb.playing::after {
+  content: ''; position: absolute; inset: -2px; border-radius: 50%;
+  box-shadow: inset 0 0 36px rgba(255,255,255,0.25);
+  opacity: 0; pointer-events: none;
+  animation: mainOrbBreath 2.4s ease-in-out infinite;
+}
+@keyframes mainOrbRing { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes mainOrbBreath {
+  0%,100% { opacity: 0.30; transform: scale(1); }
+  50%     { opacity: 0.85; transform: scale(1.018); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .main-orb.playing::before, .main-orb.playing::after { animation: none; opacity: 0.4; }
+}
+/* ============ /UX_AGENT ============ */
 .freq-display { text-align: center; margin: 40px 0 24px; }
 .freq-value { font-size: 72px; font-weight: 200; letter-spacing: -0.04em; line-height: 1; }
 .freq-unit { font-size: 12px; letter-spacing: 4px; color: var(--text-faint); margin-top: 6px; text-transform: uppercase; }
@@ -8222,6 +8249,8 @@ function applyFrequency(hz, fromSlider = false) {
     orb.style.background = `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), ${c1} 40%, ${c2} 100%)`;
     orb.style.boxShadow = `0 0 80px ${c1}, inset 0 0 80px rgba(255,255,255,0.1)`;
     orb.style.animationDuration = `${Math.max(1.5, 4 - (hz/1000)*2.5)}s`;
+    // UX_AGENT — keep the .playing halo colour synced to the current freq
+    orb.style.setProperty('--orb-glow', c1);
   }
   if (getManualHz() !== null) updateMainFreq(hz);
 }
@@ -8234,11 +8263,20 @@ document.getElementById('manualPlay').addEventListener('click', async () => {
     startTone(parseInt(freqSlider.value), 'manual');
     btn.textContent = 'Stop Sync';
     btn.classList.add('active');
+    // UX_AGENT — mirror the playing state onto the orb so it visibly hums
+    const _orb = document.getElementById('mainOrb'); if (_orb) {
+      _orb.classList.add('playing');
+      try {
+        const [c1] = hzToColor(parseInt(freqSlider.value));
+        _orb.style.setProperty('--orb-glow', c1 || 'var(--violet)');
+      } catch(e){}
+    }
     if (Math.abs(parseInt(freqSlider.value) - 528) < 10) document.getElementById('questFill').style.width = '100%';
   } else {
     stopTone(getManualHz());
     btn.textContent = 'Begin Sync';
     btn.classList.remove('active');
+    const _orb = document.getElementById('mainOrb'); if (_orb) _orb.classList.remove('playing');
   }
 });
 document.getElementById('binauralToggle').addEventListener('click', e => { binauralMode = !binauralMode; e.target.classList.toggle('active'); saveModeToggles(); });
