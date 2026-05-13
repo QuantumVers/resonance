@@ -2218,6 +2218,72 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .toggle { background: var(--card); border: 1px solid var(--border); color: var(--text-dim); padding: 8px 14px; border-radius: 100px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; transition: all 0.2s var(--ease); backdrop-filter: blur(20px); }
 .toggle.active { background: rgba(110,231,183,0.15); border-color: rgba(110,231,183,0.45); color: var(--mint); }
 
+/* ============ UX_AGENT · SYNC HIERARCHY (one primary, the rest supporting) ============ */
+/* On the Sync page, manualPlay is the hero. Larger, gold→violet breathing,
+   a diagonal sheen sweep, and a clear distance from the secondary controls. */
+.sync-page .controls { gap: 14px; margin-top: 32px; }
+.sync-page #manualPlay {
+  position: relative; overflow: hidden;
+  padding: 18px 44px;
+  font-size: 13.5px; letter-spacing: 3px; font-weight: 700;
+  border-radius: 100px;
+  background: linear-gradient(135deg, #fff 0%, #f3eaff 50%, #d4d4d8 100%);
+  color: #050507;
+  box-shadow: 0 12px 36px rgba(255,255,255,0.12), 0 0 32px rgba(167,139,250,0.16);
+  animation: syncHeroBreath 4.5s ease-in-out infinite;
+}
+.sync-page #manualPlay::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,184,0,0.28) 45%, rgba(167,139,250,0.30) 55%, transparent 70%);
+  transform: translateX(-110%);
+  animation: syncHeroSheen 4s ease-in-out 0.6s infinite;
+}
+.sync-page #manualPlay.active {
+  background: linear-gradient(135deg, var(--mint), var(--violet));
+  color: #fff;
+  animation: syncHeroBreath 2.4s ease-in-out infinite;
+  box-shadow: 0 12px 36px rgba(110,231,183,0.30), 0 0 44px rgba(167,139,250,0.30);
+}
+@keyframes syncHeroBreath {
+  0%,100% { box-shadow: 0 12px 36px rgba(255,255,255,0.12), 0 0 32px rgba(167,139,250,0.16); transform: translateY(0); }
+  50%     { box-shadow: 0 16px 44px rgba(255,255,255,0.20), 0 0 50px rgba(255,184,0,0.22); transform: translateY(-1px); }
+}
+@keyframes syncHeroSheen {
+  0%   { transform: translateX(-110%); }
+  60%  { transform: translateX(110%); }
+  100% { transform: translateX(110%); }
+}
+/* the secondary "Share this moment" button quiets down beside the hero */
+.sync-page #shareFreqBtn {
+  background: transparent; color: var(--text-dim);
+  border: 1px solid var(--border); font-size: 11px;
+}
+.sync-page #shareFreqBtn:hover { color: var(--text); border-color: var(--border-hi); }
+
+/* a "more tools" tray for Inner Self + Sound Sphere — quieter, recessed, secondary */
+.sync-page .inner-self-btn { font-size: 11px; padding: 9px 16px; }
+
+/* mode-toggle group: a single contiguous pill instead of disconnected chips */
+.sync-page .mode-toggles {
+  margin: 16px auto 8px; gap: 0; padding: 4px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 100px; display: inline-flex; max-width: 100%;
+  backdrop-filter: blur(20px);
+}
+.sync-page .mode-toggles .toggle {
+  border: 0; background: transparent; padding: 9px 14px; border-radius: 100px;
+  color: var(--text-faint); transition: color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.sync-page .mode-toggles .toggle.active {
+  background: linear-gradient(135deg, rgba(110,231,183,0.20), rgba(167,139,250,0.20));
+  color: var(--text);
+  box-shadow: 0 0 18px rgba(110,231,183,0.18);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sync-page #manualPlay, .sync-page #manualPlay::after { animation: none; }
+}
+/* ============ /UX_AGENT ============ */
+
 /* ============ AUDIO_AGENT · SOUNDSCAPE SELECTOR ============ */
 .soundscape-row {
   margin-top: 14px;
