@@ -2197,6 +2197,16 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .stats-section .sc-value { font-size: 26px; font-weight: 200; color: var(--text); letter-spacing: -0.5px; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .stats-section .sc-sub { font-size: 10.5px; color: var(--text-faint); margin-top: 2px; }
 body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
+/* ============ DATA_AGENT · ACTIVITY HEATMAP ============ */
+.stats-section .act-heatmap-wrap { margin-top: 14px; padding: 14px 14px 12px; background: rgba(20,20,28,0.55); border: 1px solid var(--border); border-radius: 14px; }
+.stats-section .act-heatmap-header { display: flex; justify-content: space-between; align-items: baseline; }
+.stats-section .ahw-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.stats-section .ahw-meta { font-size: 10px; color: var(--text-soft); font-style: italic; font-family: Georgia, serif; }
+.stats-section .act-heatmap { display: grid; grid-template-columns: repeat(15, 1fr); gap: 3px; margin-top: 10px; }
+.stats-section .hm-cell { aspect-ratio: 1 / 1; border-radius: 3px; background: rgba(255,255,255,0.05); }
+.stats-section .hm-cell.hit { background: var(--violet); box-shadow: 0 0 6px rgba(157,92,255,0.42); }
+/* ============ /DATA_AGENT ============ */
+
 /* ============ /DATA_AGENT ============ */
 /* ============ DATA_AGENT · STATS HEALTH FOOTER ============ */
 .stats-health-footer { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; flex-wrap: wrap; gap: 6px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
@@ -4487,6 +4497,13 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
             <div class="sc-value" id="statMemoriesCount">—</div>
             <div class="sc-sub">saved</div>
           </div>
+        </div>
+        <div class="act-heatmap-wrap">
+          <div class="act-heatmap-header">
+            <div class="ahw-label">When you've shown up</div>
+            <div class="ahw-meta" id="actHeatmapLabel">last 90 days</div>
+          </div>
+          <div class="act-heatmap" id="actHeatmap"></div>
         </div>
         <button class="walk-share-btn" id="walkShareBtn">
           <span class="wsb-glyph">✦</span>
@@ -12975,6 +12992,59 @@ function renderOnThisDay() {
     renderDepth = function () { _rd.apply(this, arguments); try { renderOnThisDay(); } catch (e) {} };
   }
   try { renderOnThisDay(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · DAILY VISIT HEATMAP ===================
+// Track which days the user opened the app — write the date once per boot/day,
+// surface the last 90 days as a heat-grid on Stats. Pure data, no scoring,
+// no streak-pressure language.
+(function () {
+  if (!window.RState) return;
+  function _today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  let visits = RState.get('day_visits', []);
+  if (!Array.isArray(visits)) visits = [];
+  const today = _today();
+  if (!visits.length || visits[visits.length - 1] !== today) {
+    visits.push(today);
+    // keep only the last 365 entries — that's enough for any heatmap window
+    if (visits.length > 400) visits = visits.slice(-400);
+    RState.set('day_visits', visits);
+  }
+  window._dayVisits = visits;
+})();
+
+function renderActivityHeatmap() {
+  const host = document.getElementById('actHeatmap'); if (!host) return;
+  const visits = (window._dayVisits || (window.RState && RState.get('day_visits', [])) || []);
+  const set = new Set(visits);
+  // Render the last 90 days, grouped into 13 columns × 7 rows (newest top-right).
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const cells = [];
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const k = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    cells.push({ d: k, hit: set.has(k), date: new Date(d) });
+  }
+  const visitedCount = cells.filter(c => c.hit).length;
+  host.innerHTML = cells.map(c => {
+    const ds = c.date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    return '<div class="hm-cell ' + (c.hit ? 'hit' : '') + '" title="' + ds + (c.hit ? ' · here' : '') + '"></div>';
+  }).join('');
+  const label = document.getElementById('actHeatmapLabel');
+  if (label) {
+    const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+    label.textContent = quiet
+      ? (visitedCount >= 60 ? 'most days' : visitedCount >= 30 ? 'half the days' : visitedCount >= 10 ? 'some days' : 'a few days')
+      : (visitedCount + ' / 90 days · last 90');
+  }
+}
+(function () {
+  if (typeof renderStatsPage === 'function') {
+    const _r = renderStatsPage;
+    renderStatsPage = function () { _r.apply(this, arguments); try { renderActivityHeatmap(); } catch (e) {} };
+  }
+  try { renderActivityHeatmap(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
 
