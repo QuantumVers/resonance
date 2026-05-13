@@ -1921,6 +1921,17 @@ input[type="date"].signup-input {
 .sync-mode-toggle button.active { background: rgba(255,255,255,0.12); color: var(--text); }
 .orb-stage { position: relative; width: 300px; height: 300px; margin: 20px auto 0; }
 .spectrum-canvas { position: absolute; top: -40px; left: -40px; width: 380px; height: 380px; z-index: 1; pointer-events: none; }
+/* ============ COORD · CYMATIC RIPPLES (when a manual tone plays) ============ */
+.orb-ripples { position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: 0; transition: opacity .8s ease; }
+.orb-stage.ringing .orb-ripples { opacity: 1; }
+.orb-ripple { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--ripple-c, var(--mint)); transform: scale(0.7); opacity: 0; }
+.orb-stage.ringing .orb-ripple { animation: orbRipple 4.2s cubic-bezier(.2,.7,.2,1) infinite; }
+.orb-stage.ringing .orb-ripple:nth-child(2) { animation-delay: 1.4s; }
+.orb-stage.ringing .orb-ripple:nth-child(3) { animation-delay: 2.8s; }
+@keyframes orbRipple { 0% { transform: scale(0.7); opacity: 0; border-width: 1.5px; } 15% { opacity: 0.55; } 75% { opacity: 0.18; } 100% { transform: scale(1.75); opacity: 0; border-width: 0.4px; } }
+@media (prefers-reduced-motion: reduce) { .orb-stage.ringing .orb-ripple { animation-duration: 7s; } }
+/* ============ /COORD ============ */
+
 /* ============ COORD · SACRED GEOMETRY (Flower of Life behind the orb) ============ */
 .sacred-geom { position: absolute; top: -30px; left: -30px; width: 360px; height: 360px; z-index: 0; pointer-events: none; color: var(--sg-c, var(--violet)); opacity: 0.085; mix-blend-mode: screen; filter: drop-shadow(0 0 18px var(--sg-c, var(--violet))); }
 .sacred-geom .sg-rotor { transform-origin: 0 0; animation: sacredRotate 90s linear infinite; }
@@ -4459,6 +4470,12 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       </div>
       <div class="orb-stage">
         <canvas class="spectrum-canvas" id="spectrumCanvas"></canvas>
+        <!-- COORD · cymatic ripples — expand outward when a manual tone plays -->
+        <div class="orb-ripples" id="orbRipples" aria-hidden="true">
+          <div class="orb-ripple"></div>
+          <div class="orb-ripple"></div>
+          <div class="orb-ripple"></div>
+        </div>
         <!-- COORD · sacred geometry behind the orb (Flower of Life, 19 circles, slow rotate) -->
         <svg class="sacred-geom" id="sacredGeom" viewBox="-160 -160 320 320" aria-hidden="true">
           <g class="sg-rotor">
@@ -13711,6 +13728,28 @@ function renderCouncil() {
 (function(){ if (typeof applyFrequency === 'function') { const _af = applyFrequency; applyFrequency = function(hz, fromSlider){ _af(hz, fromSlider); if (typeof renderLobby === 'function') renderLobby(); }; } })();
 // COORD: sacred-geometry tint follows the current frequency
 (function(){ if (typeof applyFrequency === 'function') { const _af = applyFrequency; applyFrequency = function(hz, fromSlider){ _af(hz, fromSlider); const sg = document.getElementById('sacredGeom'); if (sg && typeof hzToColor === 'function') { const [, , a] = hzToColor(hz); sg.style.color = a || 'var(--violet)'; } }; } })();
+// COORD: cymatic ripples — count active manual tones; orb-stage.ringing while > 0
+(function(){
+  let _manualCount = 0;
+  function _setRippleColor(hz) { const stage = document.querySelector('.orb-stage'); if (!stage || typeof hzToColor !== 'function') return; const [, , a] = hzToColor(hz); stage.style.setProperty('--ripple-c', a || 'var(--mint)'); }
+  function _updateRinging() { const stage = document.querySelector('.orb-stage'); if (!stage) return; stage.classList.toggle('ringing', _manualCount > 0); }
+  if (typeof startTone === 'function') {
+    const _st = startTone;
+    startTone = function(hz, label) {
+      const before = (typeof activeTones !== 'undefined' && activeTones.has) ? activeTones.has(hz) : false;
+      _st(hz, label);
+      if (label === 'manual' && !before) { _manualCount++; _setRippleColor(hz); _updateRinging(); }
+    };
+  }
+  if (typeof stopTone === 'function') {
+    const _sp = stopTone;
+    stopTone = function(hz) { const was = (typeof activeTones !== 'undefined' && activeTones.has) ? activeTones.has(hz) : false; _sp(hz); if (was) { _manualCount = Math.max(0, _manualCount - 1); _updateRinging(); } };
+  }
+  if (typeof stopAllTones === 'function') {
+    const _sa = stopAllTones;
+    stopAllTones = function() { _sa(); _manualCount = 0; _updateRinging(); };
+  }
+})();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
 renderLobby();
