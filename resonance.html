@@ -135,6 +135,79 @@ html, body {
 }
 
 
+
+/* ============ CONNECT (wavelength rooms) ============ */
+.connect-page { padding: 16px 20px 28px; }
+.connect-header { padding: 4px 0 18px; }
+.connect-eyebrow { font-size: 9px; letter-spacing: 5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 6px; }
+.connect-header h1 { font-size: 36px; font-weight: 200; letter-spacing: -0.02em; line-height: 1.05; margin: 0 0 8px; }
+.connect-header p { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13.5px; color: var(--text-dim); line-height: 1.55; max-width: 360px; margin: 0; }
+.wavelength-list { display: flex; flex-direction: column; gap: 10px; }
+.wavelength-card {
+  position: relative; padding: 16px 18px; border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.55);
+  border: 1px solid var(--wv-c, rgba(255,255,255,0.12));
+  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 0 22px var(--wv-c, rgba(255,255,255,0.04)), 0 8px 24px rgba(0,0,0,0.35);
+  cursor: pointer; transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+.wavelength-card:active { transform: scale(0.985); }
+.wavelength-card:hover { box-shadow: 0 0 32px var(--wv-c, rgba(255,255,255,0.08)), 0 12px 32px rgba(0,0,0,0.4); }
+.wavelength-card .wc-row { display: flex; align-items: center; gap: 14px; }
+.wavelength-card .wc-orb { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), var(--wv-c, var(--violet)) 40%, rgba(15,5,40,0.95) 100%); box-shadow: 0 0 22px var(--wv-c, var(--violet)); animation: lobbyPulse 3.6s ease-in-out infinite; }
+.wavelength-card .wc-body { flex: 1; min-width: 0; }
+.wavelength-card .wc-name { font-size: 17px; font-weight: 300; letter-spacing: -0.01em; color: var(--text); }
+.wavelength-card .wc-range { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.5px; color: var(--text-faint); margin-top: 2px; }
+.wavelength-card .wc-presence { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.wavelength-card .wc-presence .wc-live { width: 6px; height: 6px; border-radius: 50%; background: var(--wv-c, var(--mint)); box-shadow: 0 0 8px var(--wv-c, var(--mint)); animation: dotPulse 1.6s ease-in-out infinite; }
+.wavelength-card .wc-presence span { font-size: 11px; color: var(--text-dim); letter-spacing: 0.3px; }
+.wavelength-card .wc-cta { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; color: var(--wv-c, var(--mint)); flex-shrink: 0; }
+.connect-honesty { font-size: 10.5px; line-height: 1.6; color: var(--text-faint); text-align: center; max-width: 360px; margin: 18px auto 0; font-style: italic; }
+
+/* ============ WAVELENGTH ROOM overlay (voice + presence) ============ */
+.wave-room-overlay {
+  position: fixed; inset: 0; z-index: 547; display: none; flex-direction: column;
+  background: linear-gradient(0deg, #010103 0%, #06060b 45%, #0a0a14 100%);
+  overflow: hidden;
+}
+.wave-room-overlay.show { display: flex; animation: gateIn 0.45s var(--ease); }
+.wro-top { position: relative; padding: 16px 20px 8px; text-align: center; }
+.wro-top .wro-eyebrow { font-size: 9px; letter-spacing: 5px; text-transform: uppercase; color: var(--wr-c, var(--mint)); font-weight: 700; }
+.wro-top .wro-title { font-size: 28px; font-weight: 200; letter-spacing: -0.01em; margin-top: 4px; }
+.wro-top .wro-sub { font-family: Georgia, serif; font-style: italic; font-size: 12.5px; color: var(--text-dim); margin-top: 6px; }
+.wro-orbs { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 14px; padding: 22px 24px 12px; overflow-y: auto; align-content: start; }
+.wro-orbs .wro-soul { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.wro-orbs .wro-soul .wso-orb { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.4), var(--wso-c, var(--mint)) 50%, rgba(15,5,40,0.85)); box-shadow: 0 0 16px var(--wso-c, var(--mint)); animation: lobbyPulse 3.4s ease-in-out infinite; }
+.wro-orbs .wro-soul.you .wso-orb { width: 56px; height: 56px; box-shadow: 0 0 32px var(--wr-c, var(--mint)), inset 0 0 14px rgba(255,255,255,0.20); animation-duration: 2.4s; }
+.wro-orbs .wro-soul .wso-name { font-size: 9.5px; color: var(--text-faint); max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wro-orbs .wro-soul.you .wso-name { color: var(--wr-c, var(--mint)); font-weight: 700; letter-spacing: 0.5px; }
+.wro-controls { display: flex; gap: 10px; padding: 8px 18px 6px; }
+.wro-controls .wro-btn { flex: 1; padding: 11px 14px; border-radius: 100px; font-size: 12px; letter-spacing: 0.5px; font-weight: 600; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--text); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); transition: transform .2s var(--ease), background .2s var(--ease); }
+.wro-controls .wro-btn:active { transform: scale(0.98); }
+.wro-controls .wro-btn.mic.live { background: var(--wr-c, var(--mint)); color: #050507; border-color: var(--wr-c, var(--mint)); }
+.wro-controls .wro-btn.mic { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.wro-controls .wro-mic-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: dotPulse 1.4s ease-in-out infinite; }
+.wro-controls .wro-btn.tone.live { background: var(--wr-c, var(--violet)); color: #050507; border-color: var(--wr-c, var(--violet)); }
+.wro-foot { font-size: 10px; letter-spacing: 0.3px; line-height: 1.55; color: var(--text-faint); text-align: center; padding: 8px 22px calc(16px + env(safe-area-inset-bottom, 0px)); font-style: italic; }
+
+/* ============ Sync header — Workshop + Circle corner buttons ============ */
+.sync-workshop-btn, .sync-council-btn {
+  position: absolute; top: 8px;
+  padding: 7px 13px; border-radius: 100px; font-size: 11px; letter-spacing: 0.5px; font-weight: 600;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.55);
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+  color: var(--text);
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+}
+.sync-workshop-btn { left: 16px; border-color: rgba(110,231,183,0.32); }
+.sync-council-btn { right: 16px; border-color: rgba(251,191,36,0.32); }
+.sync-workshop-btn:active, .sync-council-btn:active { transform: scale(0.95); }
+.sync-workshop-btn .swb-lbl, .sync-council-btn .swb-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; }
+.sync-header { position: relative; padding-top: 8px; }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4229,6 +4302,23 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="ax-foot">tap anywhere to return</div>
 </div>
 
+
+<!-- ============ WAVELENGTH ROOM (voice + presence) ============ -->
+<div class="wave-room-overlay" id="waveRoomOverlay" role="dialog">
+  <div class="wro-top">
+    <button class="inner-self-close" id="wroCloseBtn">✕</button>
+    <div class="wro-eyebrow" id="wroEyebrow">The Wavelength</div>
+    <div class="wro-title" id="wroTitle">Heart · 528</div>
+    <div class="wro-sub" id="wroSub">Everyone here is on your wavelength.</div>
+  </div>
+  <div class="wro-orbs" id="wroOrbs"></div>
+  <div class="wro-controls">
+    <button class="wro-btn mic" id="wroMicBtn"><span class="wro-mic-dot"></span>You're here · tap to speak</button>
+    <button class="wro-btn tone" id="wroToneBtn">Hold the tone together</button>
+  </div>
+  <div class="wro-foot">Voice opens with the next backbone. Presence is real now — your light is in this room.</div>
+</div>
+
 <!-- ================= NOTIFICATION STACK (iOS-style top drops, no more middle-of-screen pop-ups) ================= -->
 <div class="notify-stack" id="notifyStack" aria-live="polite"></div>
 
@@ -4763,10 +4853,12 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="page" id="page-sync">
     <div class="sync-page">
       <div class="sync-header">
+        <button class="sync-workshop-btn" id="syncWorkshopBtn" aria-label="Open Workshop">＋ <span class="swb-lbl">Workshop</span></button>
         <div class="sync-mode-toggle">
           <button class="active" data-mode="manual">Manual</button>
           <button data-mode="auto">Auto</button>
         </div>
+        <button class="sync-council-btn" id="syncCouncilBtn" aria-label="The Circle">◇ <span class="swb-lbl">Circle</span></button>
       </div>
       <div class="orb-stage">
         <canvas class="spectrum-canvas" id="spectrumCanvas"></canvas>
@@ -5164,14 +5256,27 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
   </div>
 
+  
+  <!-- ============ CONNECT (wavelength voice rooms) ============ -->
+  <div class="page" id="page-connect">
+    <div class="connect-page">
+      <div class="connect-header">
+        <div class="connect-eyebrow">Aligned</div>
+        <h1>Connect</h1>
+        <p>The souls already on your wavelength are already gathered. Step in. The room is open.</p>
+      </div>
+      <div class="wavelength-list" id="wavelengthList"></div>
+      <div class="connect-honesty">Live cross-device voice opens with the next backbone. For now the field is seeded so you can feel who's here — and your presence in a room is real.</div>
+    </div>
+  </div>
+
   <div class="tab-bar">
     <div class="tab-bar-inner">
-      <button class="tab-btn active" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h14V10"/></svg><span>Home</span></button>
-      <button class="tab-btn sync-tab" data-tab="sync"><div class="sync-icon"><div>◎</div></div><span>Sync</span></button>
-      <button class="tab-btn" data-tab="create"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/></svg><span>Create</span></button>
-      <button class="tab-btn" data-tab="depth"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6v15M4 6a2 2 0 012-2h12a2 2 0 012 2v15M9 21V9h6v12"/></svg><span>Depth</span></button>
-      <button class="tab-btn" data-tab="ascend"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L4 9h4v11h8V9h4z"/></svg><span>Ascend</span></button>
-      <button class="tab-btn" data-tab="council"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Council</span></button>
+      <button class="tab-btn active" data-tab="home" aria-label="Home"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h14V10"/></svg><span>Home</span></button>
+      <button class="tab-btn" data-tab="ascend" aria-label="Ascend"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L4 9h4v11h8V9h4z"/></svg><span>Ascend</span></button>
+      <button class="tab-btn sync-tab" data-tab="sync" aria-label="Sync"><div class="sync-icon"><div>◎</div></div><span>Sync</span></button>
+      <button class="tab-btn" data-tab="connect" aria-label="Connect"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12c2-3 5-4 8-4s6 1 8 4M4 7c3-4 7-5 8-5s5 1 8 5M4 17c3 4 7 5 8 5s5-1 8-5"/></svg><span>Connect</span></button>
+      <button class="tab-btn" data-tab="depth" aria-label="Aura"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7" opacity="0.55"/><circle cx="12" cy="12" r="10" opacity="0.3"/></svg><span>Aura</span></button>
     </div>
   </div>
 </div>
@@ -10364,6 +10469,7 @@ function gotoTab(name) {
   if (name === 'home' && typeof renderLobby === 'function') renderLobby();
   if (name === 'create' && typeof renderCreate === 'function') renderCreate();
   if (name === 'depth' && typeof renderDepth === 'function') renderDepth();
+  if (name === 'connect' && typeof renderConnect === 'function') renderConnect();
   if (name === 'council' && typeof renderCouncil === 'function') renderCouncil();
 }
 
@@ -14319,6 +14425,126 @@ function _bindLongPressOrb(el) {
 }
 ['lobbyOrb', 'mainOrb', 'soulFab'].forEach(id => { const e = document.getElementById(id); if (e) _bindLongPressOrb(e); });
 { const x = document.getElementById('axExit'); if (x) x.addEventListener('click', () => closeAssumption(true)); }
+
+
+
+// =================== CONNECT (wavelength rooms) ===================
+// Wavelength bands: each one is a room where everyone on that wavelength is gathered. Voice
+// opens with the next backbone — for now, presence is real (your orb appears in the room) and
+// the field is seeded so you can FEEL who's near you.
+const WAVELENGTHS = [
+  { id: 'root',     name: 'Root',         lo: 60,  hi: 230,  hz: 174, color: '#fb7185', tagline: 'Grounding. Body. The bones of the day.' },
+  { id: 'sacral',   name: 'Sacral',       lo: 230, hi: 350,  hz: 285, color: '#fbbf24', tagline: 'Feeling. Water. What you have been managing.' },
+  { id: 'solar',    name: 'Solar',        lo: 350, hi: 430,  hz: 396, color: '#fde68a', tagline: 'Will. Fire. Power that does not need to spend itself.' },
+  { id: 'heart',    name: 'Heart',        lo: 430, hi: 540,  hz: 528, color: '#6ee7b7', tagline: 'Love. The natural tunings. The shortest path home.' },
+  { id: 'throat',   name: 'Throat',       lo: 540, hi: 660,  hz: 639, color: '#34d399', tagline: 'Voice. What wants to be said.' },
+  { id: 'third-eye',name: 'Third Eye',    lo: 660, hi: 800,  hz: 741, color: '#60a5fa', tagline: 'Seeing. Knowing without proof.' },
+  { id: 'crown',    name: 'Crown',        lo: 800, hi: 9999, hz: 963, color: '#e0e7ff', tagline: 'Receiving. The ceiling. The room where the world is quiet.' }
+];
+function _waveSouls(w) {
+  const pool = (typeof storyUsers !== 'undefined' && Array.isArray(storyUsers)) ? storyUsers.slice() : [];
+  return pool.filter(u => (u.freq||440) >= w.lo && (u.freq||440) < w.hi);
+}
+function _waveCount(w) {
+  // a calm, deterministic "live" count derived from the day and the band's center — feels populated
+  const base = _waveSouls(w).length;
+  const wob = (typeof _dayHash === 'function') ? (_dayHash('wave:' + w.id) % 12) : 7;
+  const hourPulse = Math.floor(Math.sin(Date.now() / 600000) * 4 + 5);
+  return Math.max(2, base + wob + hourPulse);
+}
+function renderConnect() {
+  const host = document.getElementById('wavelengthList'); if (!host) return;
+  host.innerHTML = '';
+  const userHz = (typeof userFreq !== 'undefined') ? userFreq : 432;
+  const yourBand = WAVELENGTHS.find(w => userHz >= w.lo && userHz < w.hi) || WAVELENGTHS[3];
+  WAVELENGTHS.forEach(w => {
+    const card = document.createElement('div'); card.className = 'wavelength-card'; card.style.setProperty('--wv-c', w.color);
+    const here = (w.id === yourBand.id) ? "you're already on this wavelength" : "tap to step into this wavelength";
+    card.innerHTML = '<div class="wc-row">'
+      + '<div class="wc-orb"></div>'
+      + '<div class="wc-body">'
+      +   '<div class="wc-name">The ' + w.name + ' Wavelength</div>'
+      +   '<div class="wc-range">' + w.lo + ' – ' + (w.hi >= 9999 ? '∞' : w.hi) + ' Hz · ' + escapeHtml(w.tagline) + '</div>'
+      +   '<div class="wc-presence"><span class="wc-live"></span><span>' + _waveCount(w) + ' souls here · ' + here + '</span></div>'
+      + '</div>'
+      + '<div class="wc-cta">Step in →</div>'
+      + '</div>';
+    card.addEventListener('click', () => openWaveRoom(w));
+    host.appendChild(card);
+  });
+}
+let _wro = null;
+function openWaveRoom(w) {
+  const ov = document.getElementById('waveRoomOverlay'); if (!ov) return;
+  ov.style.setProperty('--wr-c', w.color);
+  document.getElementById('wroEyebrow').textContent = 'The ' + w.name + ' Wavelength';
+  document.getElementById('wroTitle').textContent = w.name + ' · ' + w.hz;
+  document.getElementById('wroSub').textContent = w.tagline;
+  // Seeded participants on this wavelength + you
+  const seeded = _waveSouls(w); const extras = Math.max(0, _waveCount(w) - seeded.length - 1);
+  const orbs = document.getElementById('wroOrbs'); orbs.innerHTML = '';
+  // YOU first
+  const youName = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name.split(' ')[0] : 'You';
+  const youColor = (typeof hzToColor === 'function' && typeof userFreq !== 'undefined') ? hzToColor(userFreq)[2] : w.color;
+  const youEl = document.createElement('div'); youEl.className = 'wro-soul you';
+  youEl.innerHTML = '<div class="wso-orb" style="--wso-c:' + youColor + '"></div><div class="wso-name">' + escapeHtml(youName) + '</div>';
+  orbs.appendChild(youEl);
+  seeded.slice(0, 36).forEach(s => {
+    const c = (typeof hzToColor === 'function') ? hzToColor(s.freq || w.hz)[2] : w.color;
+    const el = document.createElement('div'); el.className = 'wro-soul';
+    el.innerHTML = '<div class="wso-orb" style="--wso-c:' + c + '"></div><div class="wso-name">' + escapeHtml((s.name||'soul').split(' ')[0]) + '</div>';
+    orbs.appendChild(el);
+  });
+  for (let i = 0; i < Math.min(extras, 36); i++) {
+    const el = document.createElement('div'); el.className = 'wro-soul';
+    el.innerHTML = '<div class="wso-orb" style="--wso-c:' + w.color + '"></div><div class="wso-name">&nbsp;</div>';
+    orbs.appendChild(el);
+  }
+  document.getElementById('wroMicBtn').classList.remove('live');
+  document.getElementById('wroMicBtn').innerHTML = '<span class="wro-mic-dot"></span>You\'re here · tap to speak';
+  document.getElementById('wroToneBtn').classList.remove('live');
+  document.getElementById('wroToneBtn').textContent = 'Hold the ' + w.hz + ' Hz tone together';
+  _wro = { wavelength: w, micOn: false, toneOn: false };
+  ov.classList.add('show');
+  if (typeof notify === 'function') notify('Stepped into ' + w.name, _waveCount(w) + ' souls here · you are on the wavelength', '◎', w.color);
+}
+function closeWaveRoom() {
+  const ov = document.getElementById('waveRoomOverlay'); if (!ov) return;
+  if (_wro && _wro.toneOn && typeof stopAllTones === 'function') { try { stopAllTones(); } catch(e){} const mp=document.getElementById('manualPlay'); if(mp){mp.textContent='Begin Sync';mp.classList.remove('active');} }
+  _wro = null; ov.classList.remove('show');
+}
+document.getElementById('wroCloseBtn').addEventListener('click', closeWaveRoom);
+document.getElementById('wroMicBtn').addEventListener('click', () => {
+  if (!_wro) return;
+  _wro.micOn = !_wro.micOn;
+  const b = document.getElementById('wroMicBtn');
+  if (_wro.micOn) { b.classList.add('live'); b.innerHTML = '<span class="wro-mic-dot"></span>You\'re in voice · holding'; if (typeof notify === 'function') notify("You're in voice", 'Your light is in the room. Live cross-device voice opens with the next backbone.', '◎', _wro.wavelength.color); }
+  else { b.classList.remove('live'); b.innerHTML = '<span class="wro-mic-dot"></span>You\'re here · tap to speak'; }
+});
+document.getElementById('wroToneBtn').addEventListener('click', async () => {
+  if (!_wro) return;
+  const w = _wro.wavelength; const b = document.getElementById('wroToneBtn');
+  if (_wro.toneOn) {
+    if (typeof stopAllTones === 'function') stopAllTones();
+    _wro.toneOn = false; b.classList.remove('live'); b.textContent = 'Hold the ' + w.hz + ' Hz tone together';
+    const mp = document.getElementById('manualPlay'); if (mp){ mp.textContent='Begin Sync'; mp.classList.remove('active'); }
+    return;
+  }
+  try { await ensureAudio(); } catch(e){}
+  if (typeof applyFrequency === 'function') applyFrequency(w.hz);
+  if (typeof stopAllTones === 'function') stopAllTones();
+  if (typeof startTone === 'function') startTone(w.hz, 'manual');
+  _wro.toneOn = true; b.classList.add('live'); b.textContent = 'Holding ' + w.hz + ' Hz · tap to release';
+  const mp = document.getElementById('manualPlay'); if (mp){ mp.textContent='Stop Sync'; mp.classList.add('active'); }
+});
+
+// Workshop + Circle corner buttons on the Sync page
+{ const b = document.getElementById('syncWorkshopBtn'); if (b) b.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('create'); }); }
+{ const b = document.getElementById('syncCouncilBtn'); if (b) b.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('council'); }); }
+
+// Re-render Connect after sync finishes initializing
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderConnect, 2500));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderConnect, 2500));
 
 
 renderLadder();
