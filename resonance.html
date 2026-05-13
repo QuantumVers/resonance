@@ -418,6 +418,23 @@ body::before {
 .daily-ritual .dr-foot { margin-top: 10px; font-size: 10.5px; line-height: 1.55; color: var(--text-faint); font-family: Georgia, "Times New Roman", serif; font-style: italic; text-align: center; }
 
 
+
+/* ============ ROOM LIFE · souls breathing at staggered phase ============ */
+.wro-orbs .wro-soul .wso-orb { animation-name: lobbyPulse; animation-iteration-count: infinite; animation-direction: alternate; animation-timing-function: ease-in-out; }
+.wro-orbs .wro-soul:nth-child(7n+1) .wso-orb { animation-duration: 4.0s; }
+.wro-orbs .wro-soul:nth-child(7n+2) .wso-orb { animation-duration: 3.4s; animation-delay: -0.4s; }
+.wro-orbs .wro-soul:nth-child(7n+3) .wso-orb { animation-duration: 4.6s; animation-delay: -0.9s; }
+.wro-orbs .wro-soul:nth-child(7n+4) .wso-orb { animation-duration: 3.8s; animation-delay: -1.4s; }
+.wro-orbs .wro-soul:nth-child(7n+5) .wso-orb { animation-duration: 4.2s; animation-delay: -0.7s; }
+.wro-orbs .wro-soul:nth-child(7n+6) .wso-orb { animation-duration: 5.0s; animation-delay: -1.7s; }
+.wro-orbs .wro-soul:nth-child(7n+7) .wso-orb { animation-duration: 3.6s; animation-delay: -2.0s; }
+.wro-orbs .wro-soul { transition: transform 6s ease-in-out; }
+.wro-orbs .wro-soul.drift-a { transform: translateY(-3px); }
+.wro-orbs .wro-soul.drift-b { transform: translateY(2px); }
+.wro-orbs .wro-soul .wso-num { font-size: 8.5px; letter-spacing: 0.5px; color: rgba(255,255,255,0.45); margin-top: 1px; font-family: ui-monospace, monospace; }
+.wro-orbs .wro-soul.compat .wso-num { color: var(--mint); }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -15732,11 +15749,69 @@ if (typeof renderLobby === 'function') {
 setTimeout(() => { try { renderRitual(); } catch(e){} }, 2000);
 
 
+
+// =================== ROOM LIFE + NUMEROLOGY COMPATIBILITY ===================
+function _soulNumerology(name) {
+  if (!name || typeof computeNumerology !== 'function') return null;
+  return computeNumerology(name);
+}
+function _compatFor(other) {
+  if (typeof userProfile === 'undefined' || !userProfile.numerology) return null;
+  const a = userProfile.numerology;
+  const b = (other && other.numerology) || _soulNumerology(other && other.name);
+  if (!a || !b) return null;
+  // simple harmonic compatibility: same number = same path; sum-reduced = relationship type
+  const sum = (function r(n){ while (n > 9 && ![11,22,33].includes(n)) n = String(n).split('').reduce((x,y)=>x+ +y,0); return n; })(a + b);
+  return { a, b, sum };
+}
+// Wrap openWaveRoom to (a) tag every seeded soul with a numerology number, and (b) drift souls gently.
+(function () {
+  if (typeof openWaveRoom !== 'function') return;
+  const _orig = openWaveRoom;
+  openWaveRoom = function (w) {
+    _orig(w);
+    setTimeout(() => {
+      const orbs = document.querySelectorAll('#wroOrbs .wro-soul');
+      orbs.forEach((el, i) => {
+        if (el.classList.contains('you')) return;
+        const nameEl = el.querySelector('.wso-name');
+        const name = nameEl ? nameEl.textContent : '';
+        if (!name || name === '\u00A0' || name === '&nbsp;') return;
+        // attach a numerology number
+        const num = _soulNumerology(name);
+        if (num) {
+          if (!el.querySelector('.wso-num')) {
+            const n = document.createElement('div'); n.className = 'wso-num'; n.textContent = '№ ' + num;
+            el.appendChild(n);
+          }
+          const c = _compatFor({ name });
+          if (c && (c.sum === userProfile.numerology || [6,9,3].includes(c.sum))) el.classList.add('compat');
+        }
+      });
+      // begin a slow drift cycle
+      if (window._wroDriftIv) clearInterval(window._wroDriftIv);
+      window._wroDriftIv = setInterval(() => {
+        document.querySelectorAll('#wroOrbs .wro-soul:not(.you)').forEach((el, i) => {
+          el.classList.toggle(i % 2 === 0 ? 'drift-a' : 'drift-b', Math.random() < 0.5);
+        });
+      }, 6500);
+    }, 60);
+  };
+})();
+// when the room closes, kill the drift interval
+(function () {
+  if (typeof closeWaveRoom !== 'function') return;
+  const _orig = closeWaveRoom;
+  closeWaveRoom = function () { try { if (window._wroDriftIv) { clearInterval(window._wroDriftIv); window._wroDriftIv = null; } } catch(e){} return _orig(); };
+})();
+
+
 renderLadder();
 </script>
 <meta id="brighterMark" data-applied="1">
 <meta id="polishMark" data-applied="POLISH_SWEEP_v1">
 <meta id="chimeMark" data-applied="NOTIFY_CHIME_v1">
 <meta id="hourMark" data-applied="HOUR_AMBIENT_v1">
+<meta id="rlMark" data-applied="ROOM_LIFE_v1">
 </body>
 </html>
