@@ -84,3 +84,64 @@ A foreground 10-min blocking sleep isn't a real thing I can do reliably. Three w
 - Ping me ("scan") when you want the next pass.
 
 Until then I'll wait.
+
+---
+
+## Scan 3 — 2026-05-13 — Merge round 1
+
+### Merge authority on. MISSION.md read; using its four-moments lens.
+
+### State on entry
+- `main` advanced to `1637480` (someone — likely an external coordinator pass or the user — already merged `data-agent`).
+- Two new `DATA:` commits on `main` since data-agent was merged (`Stable clientId + Day N`, `Cross-tab sync`) — they came through the merge.
+- Stashes still 8 (no triage yet).
+- Coordinator now operating from a **dedicated worktree** at `/private/tmp/resonance-coord` (the shared worktree at `/Users/elliotgoldmanai/resonance` was repeatedly swapping branches under me, with agent WIP in the tree — unsafe for merges). Other agents have their own worktrees: `/private/tmp/resonance-audio` (audio-agent), `/private/tmp/resonance-data-agent` (data-agent).
+
+### Branch state (entry of merge round)
+
+| Branch | Head | Δ vs main | Eligible (3+ commits) | Merge-tree → main |
+|---|---|---|---|---|
+| `audio-agent` | `d561794` | +1 / −13 | no | clean |
+| `ux-agent` | `ae27d12` | +9 / −13 | **yes** | **clean** |
+| `features-agent` | `7981e12` | +5 / −13 | yes | **CONFLICT (3 hunks)** — Streaks v2 collision |
+| `data-agent` | `a411201` | +3 / −5 | yes | **CONFLICT (1 hunk)** — new since merge |
+| `polish-agent` | `883d5e9` | +1 / −10 | no | clean (looks rebased onto current main) |
+
+### Merge performed: `ux-agent → main`
+
+- Commit: `97d4194 COORD: Merge ux-agent → main · onboarding stagger, Lobby hierarchy, orb→Sync ritual, cinematic tab transitions`
+- Merge strategy: `--no-ff`, `ort` auto-merge, no manual conflict resolution needed.
+- 692 lines changed in `resonance.html` (+638 / −54).
+
+**Why ux-agent first this round:**
+- Only eligible branch with a clean merge.
+- Strong MISSION alignment: onboarding stagger reveal + breathing CTA = **holy-shit (first open)**; bigger orb + gradient BEGIN SYNC = **holy-shit (Lobby)**; orb→Sync ritual transition = **they-thought-about-this** cinematic; sacred empty states = same; cinematic tab transitions = same.
+
+### Verification (post-merge `main` @ `97d4194`)
+- `resonance.html` bytes: **797,106** (user-specified check passes).
+- AGENTS.md strict check:
+  - `JS OK` (inline `<script>` parses)
+  - `div 1257 / 1257 OK`
+  - `missing ids: none`
+- **ALL PASS** → merge stands, not reverted.
+
+### Known overlaps now live on `main` (will collide at later merges)
+- `Awakenings v2` from ux-agent (`a7b3092` ancestry) is on `main`. features-agent's version (`288b7f2`) will conflict on its next merge attempt.
+- `Sonic vocabulary` from ux-agent (`869656b`) is on `main`. polish-agent's `e36cb18` will conflict.
+- `Cinematic tab transitions` from ux-agent (`c8851f0`) is on `main`. polish-agent's `857f614` will conflict.
+
+When those branches come up for merge, I'll need to decide per duplicate: keep main's (which means dropping the agent's version during rebase) or take the agent's version (which means reverting main's). MISSION.md is the tiebreaker. No autopilot through these — flagging for adjudication.
+
+### Other notable activity since scan 2
+- ux-agent gained two more commits before merge: `d03d804 FEATURE: Closeness marks at 25 and 75` (another cross-lane FEATURE on UX) and `f73e57d UX: modal cinematic entrance + ESC/backdrop close ergonomics` (in-lane, ergonomic + cinematic — strong MISSION fit).
+- data-agent gained 3 commits, now has its own conflict with main (1 hunk). Will inspect next round before attempting merge.
+- polish-agent was 8 ahead in scan 2; now 1 ahead — looks rebased onto current main (commits absorbed into main via cherry-pick or branch rewrite).
+
+### Next round plan
+- Inspect `data-agent`'s 1-hunk conflict; if it's a trivial schema add, resolve via "prefer more recent" rule and merge.
+- Leave `features-agent` alone (Streaks v2 duplicate needs human pick).
+- audio-agent + polish-agent below 3-commit threshold.
+- Watching for: agents going idle >30 min, duplicate-feature adjudication, stash count direction.
+
+### Cadence note
+Doing one merge per round, verifying both ways, then logging. Not chaining merges in a single pass — that compounds risk when verification is the only safety net.
