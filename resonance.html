@@ -1536,9 +1536,26 @@ input[type="date"].signup-input {
 .tier-distant .post-v2 { margin-bottom: 0; }
 
 /* Memory modal */
-.mem-modal { position: fixed; inset: 0; z-index: 200; background: rgba(5,5,7,0.92); backdrop-filter: blur(30px); display: none; align-items: center; justify-content: center; padding: 24px; }
-.mem-modal.show { display: flex; animation: gateIn 0.4s var(--ease); }
-.mem-modal-card { background: var(--card); border: 1px solid var(--border-hi); border-radius: 28px; padding: 32px 24px; max-width: 340px; width: 100%; text-align: center; backdrop-filter: blur(30px); position: relative; }
+/* ============ UX_AGENT · MODAL CINEMATIC ENTRANCE ============ */
+.mem-modal { position: fixed; inset: 0; z-index: 200; background: rgba(5,5,7,0); backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); display: none; align-items: center; justify-content: center; padding: 24px; transition: background 0.32s ease-out, backdrop-filter 0.32s ease-out, -webkit-backdrop-filter 0.32s ease-out; }
+.mem-modal.show { display: flex; background: rgba(5,5,7,0.92); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); animation: modalBackdropIn 0.32s ease-out; }
+.mem-modal-card { background: var(--card); border: 1px solid var(--border-hi); border-radius: 28px; padding: 32px 24px; max-width: 340px; width: 100%; text-align: center; backdrop-filter: blur(30px); position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 80px rgba(167,139,250,0.10); }
+.mem-modal.show .mem-modal-card { animation: modalCardIn 0.55s cubic-bezier(.16,.84,.32,1); transform-origin: 50% 50%; }
+@keyframes modalBackdropIn { from { background: rgba(5,5,7,0); backdrop-filter: blur(0px); } to { background: rgba(5,5,7,0.92); backdrop-filter: blur(30px); } }
+@keyframes modalCardIn {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.94); filter: blur(8px); }
+  55%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mem-modal.show .mem-modal-card { animation: none; }
+  .mem-modal.show { animation: none; }
+}
+/* close button gets a hover/press response */
+.mem-modal-close { transition: background 0.2s var(--ease), transform 0.2s var(--pop); cursor: pointer; }
+.mem-modal-close:hover { background: rgba(255,255,255,0.14); }
+.mem-modal-close:active { transform: scale(0.92); }
+/* ============ /UX_AGENT ============ */
 .mem-modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--text-dim); }
 .mem-modal-orb { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 20px; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--mm-c, var(--violet)) 50%, rgba(0,0,0,0.5)); box-shadow: 0 0 60px var(--mm-c, var(--violet)); animation: pulse 4s ease-in-out infinite; }
 .mem-modal-freq { font-size: 48px; font-weight: 200; letter-spacing: -0.03em; line-height: 1; }
@@ -1891,7 +1908,10 @@ input[type="date"].signup-input {
   justify-content: center;
   padding: 20px;
 }
-.tier-modal.show { display: flex; animation: gateIn 0.4s var(--ease); }
+.tier-modal.show { display: flex; animation: modalBackdropIn 0.32s ease-out; }
+.tier-modal.show .tier-modal-content { animation: modalCardIn 0.55s cubic-bezier(.16,.84,.32,1); }
+.tier-modal.show .tier-modal-bg { animation: tierBgIn 0.45s ease-out; }
+@keyframes tierBgIn { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; backdrop-filter: blur(40px); } }
 .tier-modal-bg {
   position: absolute; inset: 0;
   background: rgba(5,5,7,0.92);
@@ -10206,6 +10226,32 @@ function gotoTab(name) {
   if (name === 'depth' && typeof renderDepth === 'function') renderDepth();
   if (name === 'council' && typeof renderCouncil === 'function') renderCouncil();
 }
+
+// =================== UX_AGENT · MODAL CLOSE ERGONOMICS ===================
+// ESC closes any open .mem-modal / .tier-modal. Clicking the backdrop (the
+// modal element itself, not its card) also closes. Tap-to-dismiss only —
+// the close button is still always present, accessible, and the canonical control.
+(function(){
+  function _closeOpenModals(filter) {
+    const sels = ['.mem-modal.show', '.tier-modal.show'];
+    sels.forEach(sel => {
+      document.querySelectorAll(sel).forEach(m => {
+        if (filter && !filter(m)) return;
+        m.classList.remove('show');
+      });
+    });
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') _closeOpenModals();
+  });
+  // Backdrop-click: only fires when the user taps the modal element itself, not its card.
+  document.querySelectorAll('.mem-modal, .tier-modal').forEach(m => {
+    m.addEventListener('click', e => {
+      if (e.target === m) m.classList.remove('show');
+    });
+  });
+})();
+// =================== /UX_AGENT ===================
 
 // =================== SHARE THIS MOMENT ===================
 function activeModeNames() {
