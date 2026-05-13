@@ -260,6 +260,31 @@ html, body {
 .beat-pattern-host .beat-preset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
 
 
+
+/* ============ POLISH · header lotus + brighter ambient on every page ============ */
+.header-lotus { width: 30px; height: 30px; color: var(--gold); display: block; margin: 0 auto 6px; filter: drop-shadow(0 0 10px var(--gold)); animation: lobbyPulse 6s ease-in-out infinite; }
+.ascend-header, .depth-header, .create-header, .connect-header, .council-header { text-align: center; }
+.ascend-header h1, .depth-header h1, .create-header h1, .connect-header h1, .council-header h1 { text-align: center; }
+.ascend-header p, .depth-header p, .create-header p, .connect-header p, .council-header p { margin-left: auto; margin-right: auto; }
+
+/* Each page gets a soft luminous ambient — sells "this is a light app" */
+.page.active::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(251,191,36,0.05), transparent 45%),
+    radial-gradient(circle at 82% 88%, rgba(167,139,250,0.05), transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(110,231,183,0.025), transparent 60%);
+}
+
+/* Settings: add a lotus to the top + tighten layout */
+.settings-overlay .settings-top { position: relative; }
+.settings-overlay .settings-top::before {
+  content: ''; display: block; width: 28px; height: 28px; margin: 0 auto 8px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), var(--gold) 50%, rgba(20,10,40,0.85)); border-radius: 50%;
+  box-shadow: 0 0 16px var(--gold); animation: lobbyPulse 5s ease-in-out infinite;
+}
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4868,6 +4893,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="page" id="page-ascend">
     <div class="ascend-page">
       <div class="ascend-header">
+        <svg class="lotus header-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg>
         <div class="ascend-eyebrow">The Path Inward</div>
         <h1>Ascend</h1>
         <p>The only way out is up. The only way up is in.</p>
@@ -4967,6 +4993,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="page" id="page-create">
     <div class="create-page">
       <div class="create-header">
+        <svg class="lotus header-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg>
         <div class="create-eyebrow">The workshop</div>
         <h1>Create</h1>
         <p>Build the sound. Build the beat. Build the song — at the frequency you're holding right now.</p>
@@ -5020,6 +5047,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="page" id="page-depth">
     <div class="depth-page">
       <div class="depth-header">
+        <svg class="lotus header-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg>
         <div class="depth-eyebrow">The Locker</div>
         <h1>Your depth</h1>
         <p>Everything you've gathered. Everything you've made. Everything that's yours.</p>
@@ -5178,6 +5206,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="page" id="page-council">
     <div class="council-page">
       <div class="council-header">
+        <svg class="lotus header-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg>
         <div class="council-eyebrow">Resonance · membership</div>
         <h1>The Council</h1>
         <p>The practice is free, forever. Membership opens the tools, the deeper rooms, and a real circle.</p>
@@ -5317,6 +5346,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="page" id="page-connect">
     <div class="connect-page">
       <div class="connect-header">
+        <svg class="lotus header-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg>
         <div class="connect-eyebrow">Aligned</div>
         <h1>Connect</h1>
         <p>The souls already on your wavelength are already gathered. Step in. The room is open.</p>
@@ -15129,8 +15159,64 @@ if (typeof handleUserInput === 'function') {
 }
 
 
+
+// =================== POLISH · userProfile persistence + returning-user fast-path ===================
+(function () {
+  // Load from storage if present
+  try {
+    const saved = JSON.parse(localStorage.getItem('resonance_profile') || 'null');
+    if (saved && typeof userProfile !== 'undefined') {
+      Object.keys(saved).forEach(k => { try { userProfile[k] = saved[k]; } catch(e){} });
+    }
+  } catch(e){}
+  function _persistProfile() {
+    try {
+      if (typeof userProfile === 'undefined') return;
+      const out = {};
+      ['name','birth','tradition','zodiac','numerology'].forEach(k => { if (userProfile[k]) out[k] = userProfile[k]; });
+      localStorage.setItem('resonance_profile', JSON.stringify(out));
+    } catch(e){}
+  }
+  // Save after the user advances each signup step (each Next button)
+  ['nameNextBtn','birthNextBtn','traditionNextBtn','voiceNextBtn','voiceSkipBtn','completeSignupBtn','enterInnerBtn'].forEach(id => {
+    const b = document.getElementById(id); if (b) b.addEventListener('click', () => setTimeout(_persistProfile, 50));
+  });
+  // Also save after the gate verdict lands
+  setInterval(_persistProfile, 30000);
+  // Returning-user fast-path: if we have a name + tradition + zodiac saved, click devSkipSignup to fly to the app.
+  // (Wait for the boot overlay to finish.)
+  setTimeout(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('resonance_profile') || 'null');
+      if (saved && saved.name && saved.tradition && saved.zodiac) {
+        const signup = document.getElementById('signup');
+        if (signup && signup.style.display !== 'none') {
+          const skip = document.getElementById('devSkipSignupBtn'); if (skip) skip.click();
+          if (typeof notify === 'function') notify("Welcome back, " + saved.name.split(' ')[0], "Your aura is here. The room remembered you.", '✦', '#fbbf24');
+        }
+      }
+    } catch(e){}
+  }, 2800);
+})();
+
+// =================== POLISH · Sign-out (clears profile + reloads to onboarding) ===================
+(function ensureSignOut() {
+  const sec = document.querySelector('#settingsOverlay .set-section:last-child') || document.querySelector('#settingsOverlay');
+  if (!sec || document.getElementById('signOutBtn')) return;
+  const row = document.createElement('div'); row.style.cssText = 'margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.06); text-align:center;';
+  row.innerHTML = '<button id="signOutBtn" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:var(--text-faint);background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10);padding:8px 18px;border-radius:100px;cursor:pointer;">Step out · start a new aura</button>';
+  sec.appendChild(row);
+  document.getElementById('signOutBtn').addEventListener('click', () => {
+    if (!confirm('Step out of this aura and start a new one? Your locker, memories, and chat history stay — but the gate opens fresh.')) return;
+    try { localStorage.removeItem('resonance_profile'); } catch(e){}
+    location.reload();
+  });
+})();
+
+
 renderLadder();
 </script>
 <meta id="brighterMark" data-applied="1">
+<meta id="polishMark" data-applied="POLISH_SWEEP_v1">
 </body>
 </html>
