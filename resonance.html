@@ -5474,8 +5474,8 @@ window.dayNOfWalk = function () {
 // =================== SETTINGS (state) ===================
 const DEFAULT_SETTINGS = { volume: 80, notify: false, theme: 'violet', quietMetrics: false, tier: 'free' };
 let appSettings = Object.assign({}, DEFAULT_SETTINGS);
-function loadSettings() { try { const v = JSON.parse(localStorage.getItem('resonance_settings') || 'null'); if (v && typeof v === 'object') appSettings = Object.assign({}, DEFAULT_SETTINGS, v); } catch (e) {} }
-function saveSettings() { try { localStorage.setItem('resonance_settings', JSON.stringify(appSettings)); } catch (e) {} }
+function loadSettings() { try { const v = (window.RState ? RState.get('settings') : JSON.parse(localStorage.getItem('resonance_settings') || 'null')); if (v && typeof v === 'object') appSettings = Object.assign({}, DEFAULT_SETTINGS, v); } catch (e) {} }
+function saveSettings() { try { if (window.RState) RState.set('settings', appSettings); else localStorage.setItem('resonance_settings', JSON.stringify(appSettings)); } catch (e) {} }
 function volumeMul() { return (appSettings.volume == null ? 80 : appSettings.volume) / 80; }
 function applyTheme(name) {
   if (!name || name === 'violet') document.documentElement.removeAttribute('data-theme');
@@ -5495,9 +5495,9 @@ const STREAK_MILESTONES = {
 let streakData = { count: 0, lastDay: null };
 function _dayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 function loadStreak() {
-  try { const v = JSON.parse(localStorage.getItem('resonance_streak') || 'null'); if (v && typeof v.count === 'number') streakData = v; } catch (e) {}
+  try { const v = (window.RState ? RState.get('streak') : JSON.parse(localStorage.getItem('resonance_streak') || 'null')); if (v && typeof v.count === 'number') streakData = v; } catch (e) {}
 }
-function saveStreak() { try { localStorage.setItem('resonance_streak', JSON.stringify(streakData)); } catch (e) {} }
+function saveStreak() { try { if (window.RState) RState.set('streak', streakData); else localStorage.setItem('resonance_streak', JSON.stringify(streakData)); } catch (e) {} }
 function updateStreakUI() {
   const el = document.getElementById('streakPill');
   if (!el) return;
@@ -5536,8 +5536,8 @@ loadStreak();
 
 // =================== STATS (sessions / synced time) ===================
 let appStats = { sessions: 0, syncedMs: 0 };
-function loadStats() { try { const v = JSON.parse(localStorage.getItem('resonance_stats') || 'null'); if (v && typeof v.sessions === 'number') appStats = v; } catch (e) {} }
-function saveStats() { try { localStorage.setItem('resonance_stats', JSON.stringify(appStats)); } catch (e) {} }
+function loadStats() { try { const v = (window.RState ? RState.get('stats') : JSON.parse(localStorage.getItem('resonance_stats') || 'null')); if (v && typeof v.sessions === 'number') appStats = v; } catch (e) {} }
+function saveStats() { try { if (window.RState) RState.set('stats', appStats); else localStorage.setItem('resonance_stats', JSON.stringify(appStats)); } catch (e) {} }
 function fmtDuration(ms) {
   const mins = Math.floor(ms / 60000);
   if (mins < 60) return mins + 'm';
@@ -5987,10 +5987,10 @@ function pickInnerVoice() {
 // =================== TRUST / SOUL RELATIONSHIP ===================
 let soulTrust = 0;
 function loadTrust() {
-  try { const v = localStorage.getItem('resonance_trust'); if (v) soulTrust = parseFloat(v); } catch(e){}
+  try { const v = (window.RState ? RState.getString('trust') : localStorage.getItem('resonance_trust')); if (v) soulTrust = parseFloat(v); } catch(e){}
 }
 function saveTrust() {
-  try { localStorage.setItem('resonance_trust', String(soulTrust)); } catch(e){}
+  try { if (window.RState) RState.set('trust', String(soulTrust)); else localStorage.setItem('resonance_trust', String(soulTrust)); } catch(e){}
 }
 function addTrust(amount) {
   const prev = Math.floor(soulTrust / 25);
@@ -7206,17 +7206,14 @@ document.getElementById('breathToggle').addEventListener('click', e => { e.targe
 // Persist mode toggles (binaural / mirror / harmonics / breath) across sessions
 function saveModeToggles() {
   try {
-    localStorage.setItem('resonance_modes', JSON.stringify({
-      binaural: binauralMode,
-      harmonics: harmonicMode,
-      mirror: mirrorMode,
-      breath: document.getElementById('breathToggle').classList.contains('active')
-    }));
+    const v = { binaural: binauralMode, harmonics: harmonicMode, mirror: mirrorMode, breath: document.getElementById('breathToggle').classList.contains('active') };
+    if (window.RState) RState.set('modes', v);
+    else localStorage.setItem('resonance_modes', JSON.stringify(v));
   } catch (e) {}
 }
 (function restoreModeToggles() {
   let m = null;
-  try { m = JSON.parse(localStorage.getItem('resonance_modes') || 'null'); } catch (e) {}
+  try { m = window.RState ? RState.get('modes') : JSON.parse(localStorage.getItem('resonance_modes') || 'null'); } catch (e) {}
   if (!m) return;
   if (m.binaural) { binauralMode = true; document.getElementById('binauralToggle').classList.add('active'); }
   if (m.harmonics) { harmonicMode = true; document.getElementById('harmonicToggle').classList.add('active'); }
@@ -10113,8 +10110,8 @@ const CLOSENESS_MARKS = {
   80: { eyebrow: 'Almost home', sub: 'One more honest day, then another. You’re nearly there. Don’t rush the last stretch.', color: '#fbbf24', glyph: '●' },
   100:{ eyebrow: 'Home', sub: 'Your now-self and your true self are the same frequency. Stay. And leave the porch light on for the ones still walking.', color: '#a78bfa', glyph: '◎' }
 };
-function loadCloseness() { try { const v = parseFloat(localStorage.getItem('resonance_closeness')); if (!isNaN(v)) closeness = Math.max(0, Math.min(100, v)); } catch (e) {} }
-function saveCloseness() { try { localStorage.setItem('resonance_closeness', String(closeness)); } catch (e) {} }
+function loadCloseness() { try { let raw = window.RState ? RState.getString('closeness') : localStorage.getItem('resonance_closeness'); const v = parseFloat(raw); if (!isNaN(v)) closeness = Math.max(0, Math.min(100, v)); } catch (e) {} }
+function saveCloseness() { try { if (window.RState) RState.set('closeness', String(closeness)); else localStorage.setItem('resonance_closeness', String(closeness)); } catch (e) {} }
 function closenessLevelText() {
   if (closeness >= 100) return 'You arrived. The work now is to stay — and to leave the light on.';
   if (closeness >= 95) return 'Home is in reach. One more honest day.';
@@ -10368,8 +10365,8 @@ renderKindred();
 (function () {
   const slot = document.getElementById('awayCardSlot'); if (!slot) return;
   let last = 0;
-  try { last = parseInt(localStorage.getItem('resonance_lastopen') || '0') || 0; } catch (e) {}
-  try { localStorage.setItem('resonance_lastopen', String(Date.now())); } catch (e) {}
+  try { const v = window.RState ? RState.getString('lastopen') : localStorage.getItem('resonance_lastopen'); last = parseInt(v || '0') || 0; } catch (e) {}
+  try { if (window.RState) RState.set('lastopen', String(Date.now())); else localStorage.setItem('resonance_lastopen', String(Date.now())); } catch (e) {}
   const gapH = last ? (Date.now() - last) / 3600000 : -1;
   let kicker, body;
   if (gapH < 0) {
@@ -11635,8 +11632,8 @@ function _seasonInit() {
   renderSeasonCard();
   checkChallenges();
   // "new season" moment on entry
-  let last = null; try { last = localStorage.getItem('resonance_lastseason'); } catch (e) {}
-  try { localStorage.setItem('resonance_lastseason', String(_seasonIdx())); } catch (e) {}
+  let last = null; try { last = window.RState ? RState.getString('lastseason') : localStorage.getItem('resonance_lastseason'); } catch (e) {}
+  try { if (window.RState) RState.set('lastseason', String(_seasonIdx())); else localStorage.setItem('resonance_lastseason', String(_seasonIdx())); } catch (e) {}
   if (last !== null && last !== String(_seasonIdx())) {
     const s = currentSeason();
     document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(() => { if (typeof moment==='function') moment('A new season', s.open + ' The path resets — what you earned stays.', s.color, s.glyph); }, 2600));
