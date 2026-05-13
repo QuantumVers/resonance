@@ -13717,6 +13717,37 @@ function renderStorageDetail() {
   try { renderStorageDetail(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · OPEN-COUNT MILESTONES ===================
+// install_meta.openCount ticks up each boot. Surface specific thresholds with
+// a quiet liquid-glass moment — recognition without grind framing.
+(function () {
+  if (!window.RState) return;
+  const meta = window.__installMeta || RState.get('install_meta') || {};
+  const opens = meta.openCount || 0;
+  if (opens < 2) return;
+
+  const MILESTONES = {
+    7:    { line: 'You\'ve opened this app seven times now.',                  sub: 'a small loyalty · noticed',      color: '#a78bfa', glyph: '◔' },
+    30:   { line: 'Thirty opens. This is part of your rhythm.',                sub: 'the door knows you',             color: '#6ee7b7', glyph: '◑' },
+    100:  { line: 'One hundred returns. You keep coming back.',                sub: 'and we keep being here',         color: '#fbbf24', glyph: '◕' },
+    365:  { line: 'Three hundred and sixty-five. A full year of returning.',   sub: 'this is your inner instrument',  color: '#fbbf24', glyph: '●' },
+    1000: { line: 'A thousand times.',                                         sub: 'a quiet record · the rare ones', color: '#fafafa', glyph: '✦' }
+  };
+  const m = MILESTONES[opens];
+  if (!m) return;
+
+  // Make sure we only fire once per milestone (defensive — boots are idempotent
+  // since openCount only matches a milestone once per install).
+  const seenKey = 'open_milestone_' + opens;
+  if (RState.get(seenKey)) return;
+  RState.set(seenKey, 1);
+
+  setTimeout(() => {
+    if (typeof cinematicMoment === 'function') cinematicMoment(m.line, m.sub, m.color, m.glyph);
+    else if (typeof notify === 'function') notify(m.line, m.sub, m.glyph, m.color);
+  }, 2200);
+})();
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
