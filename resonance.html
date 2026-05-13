@@ -199,8 +199,14 @@ html, body {
 /* ============ /UX_AGENT ============ */
 
 /* ============ BOOT SEQUENCE ============ */
-.boot-overlay { position: fixed; inset: 0; z-index: 9999; background: #010103; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.6s ease; }
-.boot-overlay.hide { opacity: 0; pointer-events: none; }
+.boot-overlay { position: fixed; inset: 0; z-index: 9999; background: #010103; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+/* UX_AGENT — .hide is no longer a plain opacity fade. The orb dives into the screen
+   (scales past 8×, light-blooms to white, then the whole layer dissolves) while the title
+   and stars fade out fast. The gate underneath gets to fade-in over the bloom. */
+.boot-overlay.hide { animation: bootDive 0.95s cubic-bezier(.2,.78,.22,1) forwards; pointer-events: none; }
+.boot-overlay.hide .boot-orb { animation: bootOrbDive 0.95s cubic-bezier(.2,.78,.22,1) forwards !important; }
+.boot-overlay.hide .boot-orb-wrap { animation: none; opacity: 1; }
+.boot-overlay.hide .boot-title, .boot-overlay.hide .boot-sub, .boot-overlay.hide .boot-stars { animation: bootDissolve 0.45s ease-out forwards; }
 .boot-stars { position: absolute; inset: 0; background-image: radial-gradient(circle at 12% 18%, rgba(255,255,255,0.5) 0, transparent 1px), radial-gradient(circle at 78% 32%, rgba(255,255,255,0.4) 0, transparent 1px), radial-gradient(circle at 30% 70%, rgba(255,255,255,0.5) 0, transparent 1px), radial-gradient(circle at 85% 80%, rgba(255,255,255,0.3) 0, transparent 1px), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.3) 0, transparent 1px); animation: bootStars 2.5s ease-out forwards; opacity: 0; }
 .boot-orb-wrap { animation: bootOrbIn 1.4s cubic-bezier(.2,.7,.2,1) forwards; opacity: 0; }
 .boot-orb { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.6), #a78bfa 40%, rgba(15,5,40,0.95) 100%); box-shadow: 0 0 80px #a78bfa, 0 0 24px rgba(255,255,255,0.4), inset 0 0 40px rgba(255,255,255,0.15); animation: bootOrbPulse 2s ease-in-out infinite; }
@@ -213,6 +219,24 @@ html, body {
 @keyframes bootTitleIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes bootLetter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes bootSubIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 0.6; transform: translateY(0); } }
+/* UX_AGENT — dive keyframes */
+@keyframes bootDive {
+  0%   { opacity: 1; background: #010103; }
+  60%  { opacity: 1; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.92), #010103 60%); }
+  100% { opacity: 0; background: rgba(0,0,0,0); }
+}
+@keyframes bootOrbDive {
+  0%   { transform: scale(1); filter: blur(0); box-shadow: 0 0 80px #a78bfa, 0 0 24px rgba(255,255,255,0.4), inset 0 0 40px rgba(255,255,255,0.15); }
+  45%  { transform: scale(3.2); filter: blur(2px) brightness(1.4); box-shadow: 0 0 200px #ffffff, 0 0 80px rgba(167,139,250,0.9), inset 0 0 80px rgba(255,255,255,0.6); }
+  100% { transform: scale(9); filter: blur(36px) brightness(2.4); opacity: 0; }
+}
+@keyframes bootDissolve {
+  to { opacity: 0; transform: translateY(-6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot-overlay.hide { animation: bootDissolve 0.4s ease-out forwards; }
+  .boot-overlay.hide .boot-orb, .boot-overlay.hide .boot-title, .boot-overlay.hide .boot-sub, .boot-overlay.hide .boot-stars { animation: none; opacity: 0; }
+}
 
 body {
   min-height: 100vh;
@@ -5917,7 +5941,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   for (let i = 0; i < word.length; i++) html += '<span class="bt-letter" style="animation-delay:' + (1.05 + i * 0.07) + 's">' + word[i] + '</span>';
   title.innerHTML = html;
   setTimeout(() => {
-    const ov = document.getElementById('bootOverlay'); if (ov) { ov.classList.add('hide'); setTimeout(() => { try { ov.remove(); } catch(e){} }, 700); }
+    const ov = document.getElementById('bootOverlay'); if (ov) { ov.classList.add('hide'); setTimeout(() => { try { ov.remove(); } catch(e){} }, 1000); }
   }, 2500);
 })();
 
