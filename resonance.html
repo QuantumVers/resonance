@@ -3061,6 +3061,58 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 .cvo-grat-stream-head { font-family: Georgia, serif; font-style: italic; font-size: 18px; margin-bottom: 4px; }
 .cvo-grat-stream-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; margin-bottom: 16px; }
 
+/* ============ THE RISING (battle royale, inverted) ============ */
+.rising-card {
+  margin: 12px 20px 0; padding: 16px 18px; border-radius: 22px;
+  background: radial-gradient(circle at 50% 120%, var(--ri-c, rgba(110,231,183,0.2)), transparent 60%), var(--card);
+  border: 1px solid var(--ri-bd, rgba(110,231,183,0.32)); backdrop-filter: blur(20px);
+  position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s var(--pop);
+}
+.rising-card:active { transform: scale(0.99); }
+.rising-card .rc-rays { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, var(--ri-orb, var(--mint))0a, transparent 60%); }
+.rising-card .rc-kicker { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--ri-orb, var(--mint)); font-weight: 700; margin-bottom: 4px; position: relative; }
+.rising-card .rc-name { font-size: 19px; font-weight: 300; letter-spacing: -0.01em; position: relative; }
+.rising-card .rc-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; position: relative; }
+.rising-card .rc-cta { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ri-orb, var(--mint)); font-weight: 700; position: relative; }
+.rising-card .rc-live { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; animation: dotPulse 1.4s ease-in-out infinite; }
+.btn.rising-btn { border-color: rgba(110,231,183,0.5); color: var(--mint); }
+
+.rising-overlay {
+  position: fixed; inset: 0; height: 100vh; height: 100dvh;
+  z-index: 540;
+  display: none; flex-direction: column;
+  background: linear-gradient(0deg, #010103 0%, #06060b 45%, #0a0a14 100%);
+  touch-action: none; overflow: hidden;
+}
+.rising-overlay.show { display: flex; animation: gateIn 0.5s var(--ease); }
+.rising-top { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 6px; position: relative; z-index: 3; }
+.rising-top .ro-title { font-family: Georgia, serif; font-style: italic; font-size: 16px; }
+.rising-top .ro-timer { font-family: ui-monospace, 'SF Mono', monospace; font-size: 13px; letter-spacing: 1px; color: var(--text-dim); }
+.rising-hud { padding: 0 20px 8px; position: relative; z-index: 3; }
+.rising-hud .rh-row { display: flex; align-items: center; gap: 10px; }
+.rising-hud .rh-label { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; white-space: nowrap; }
+.rising-hud .rh-bar { flex: 1; height: 7px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+.rising-hud .rh-fill { height: 100%; border-radius: 100px; transition: width 0.25s linear; }
+.rising-hud .rh-fill.field { background: linear-gradient(90deg, var(--ri-orb, var(--mint)), #fff); box-shadow: 0 0 10px var(--ri-orb, var(--mint)); }
+.rising-hud .rh-fill.light { background: linear-gradient(90deg, #fde68a, #fff); }
+.rising-hud .rh-meta { display: flex; justify-content: space-between; font-size: 9px; letter-spacing: 1px; color: var(--text-faint); margin-top: 6px; font-family: ui-monospace, monospace; }
+.rising-stage { flex: 1; position: relative; min-height: 0; }
+.rising-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rising-hint { text-align: center; font-family: Georgia, serif; font-style: italic; font-size: 12px; color: var(--text-faint); padding: 6px 20px calc(14px + env(safe-area-inset-bottom, 0px)); position: relative; z-index: 3; min-height: 18px; }
+.rising-end {
+  position: absolute; inset: 0; z-index: 5; display: none; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 32px 24px; background: radial-gradient(circle at 50% 38%, var(--ri-c, rgba(110,231,183,0.18)), transparent 58%), rgba(2,2,3,0.9);
+}
+.rising-end.show { display: flex; animation: gateIn 0.6s var(--ease); }
+.rising-end .re-glyph { font-size: 80px; font-weight: 100; line-height: 1; margin-bottom: 14px; background: linear-gradient(135deg, var(--ri-orb, var(--mint)), #fff, var(--ri-orb, var(--mint))); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 32px var(--ri-orb, var(--mint))); animation: glyphBreathe 3s ease-in-out infinite, verdictIn 1s var(--pop); }
+.rising-end .re-eyebrow { font-size: 11px; letter-spacing: 7px; text-transform: uppercase; color: var(--ri-orb, var(--mint)); font-weight: 700; margin-bottom: 12px; }
+.rising-end .re-title { font-size: 36px; font-weight: 200; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 10px; }
+.rising-end .re-line { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.82); max-width: 340px; margin: 0 auto 22px; }
+.rising-end .re-stat { font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; letter-spacing: 1.5px; color: var(--text-faint); margin-bottom: 26px; }
+.rising-pings { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.rising-ping { position: absolute; border-radius: 50%; border: 2px solid var(--rp-c, #fde68a); transform: translate(-50%, -50%); animation: risingPing 0.7s var(--ease) forwards; }
+@keyframes risingPing { 0% { width: 8px; height: 8px; opacity: 0.9; } 100% { width: 90px; height: 90px; opacity: 0; } }
+
 /* ============ SEASONS / THE PASS ============ */
 .season-card {
   margin: 12px 20px 0; padding: 16px 18px; border-radius: 22px;
@@ -3518,6 +3570,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 
       <!-- The Season + the Pass (the field's current movement; a tiered path through it) -->
       <div id="seasonSlot"></div>
+      <!-- The Rising — battle royale, inverted: the whole field tries to ascend together -->
+      <div id="risingSlot"></div>
       <!-- The Reading — a daily oracle, keyed to who you are -->
       <div id="readingSlot"></div>
       <!-- The Convergence — once a day the whole field holds one tone together -->
@@ -3689,6 +3743,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <div class="ac-tier">—</div>
           <div class="ac-freq">— Hz</div>
         </div>
+        <div style="margin-top:18px;"><button class="btn rising-btn" id="ascendRisingBtn">Join a Rising — the whole field, together →</button></div>
       </div>
       <div class="ladder" id="ladder"></div>
     </div>
@@ -4304,6 +4359,33 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
 
     <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
+  </div>
+</div>
+
+<!-- ================= THE RISING ================= -->
+<div class="rising-overlay" id="risingOverlay">
+  <div class="rising-top">
+    <div class="ro-title" id="risingTitle">The Rising</div>
+    <div class="ro-timer" id="risingTimer">3:20</div>
+    <button class="inner-self-close" id="risingCloseBtn">✕</button>
+  </div>
+  <div class="rising-hud">
+    <div class="rh-row"><div class="rh-label">THE FIELD</div><div class="rh-bar"><div class="rh-fill field" id="risingFieldFill" style="width:0%;"></div></div></div>
+    <div class="rh-row" style="margin-top:7px;"><div class="rh-label">YOUR LIGHT</div><div class="rh-bar"><div class="rh-fill light" id="risingLightFill" style="width:100%;"></div></div></div>
+    <div class="rh-meta"><span id="risingSouls">— souls rising</span><span id="risingLifted">0 carried</span></div>
+  </div>
+  <div class="rising-stage" id="risingStage">
+    <canvas id="risingCanvas"></canvas>
+    <div class="rising-pings" id="risingPings"></div>
+  </div>
+  <div class="rising-hint" id="risingHint">tap the light to pour into it · tap a soul drifting low to carry it</div>
+  <div class="rising-end" id="risingEnd">
+    <div class="re-glyph" id="risingEndGlyph">◎</div>
+    <div class="re-eyebrow" id="risingEndEyebrow">The field rose</div>
+    <div class="re-title" id="risingEndTitle">Everyone arrived.</div>
+    <div class="re-line" id="risingEndLine">—</div>
+    <div class="re-stat" id="risingEndStat">—</div>
+    <button class="btn primary" id="risingEndBtn">Carry it out with you</button>
   </div>
 </div>
 
@@ -10178,6 +10260,197 @@ document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout
 (function () { const _af = applyFrequency; applyFrequency = function (hz, fromSlider) { _af(hz, fromSlider); if (typeof applyOrbSkin === 'function') applyOrbSkin(); }; })();
 // also tie a tiny depth to opening a reading (reuse the existing reading hook by wrapping openReading if present)
 (function () { if (typeof openReading === 'function') { const _f = openReading; openReading = function () { _f(); if (typeof addPassDepth==='function') addPassDepth(5, 'reading'); }; } })();
+
+// =================== THE RISING (battle royale, inverted) ===================
+// Everyone drops into the Rising together. There's no storm that kills — there's a light you pour
+// into. There's no last-one-standing — there's a collective bar that fills as the whole field
+// rises. Carry the souls drifting low (helping them lifts you too). When the field arrives, EVERYONE
+// in it wins. And if the timer runs out short: the field rose part of the way, no one was eliminated,
+// it goes again. A battle royale where the storm lifts you.
+var _ri = null;
+var RISING_DURATION = 200000; // 3:20
+var RISING_SOUL_COUNT = 72;
+function risingCount() { try { const v = JSON.parse(localStorage.getItem('resonance_risings')||'[]'); return Array.isArray(v) ? v.length : 0; } catch(e){ return 0; } }
+function recordRising(pct, lifted) {
+  let arr=[]; try { arr = JSON.parse(localStorage.getItem('resonance_risings')||'[]'); if (!Array.isArray(arr)) arr=[]; } catch(e){}
+  arr.push({ t: Date.now(), pct: Math.round(pct*100), lifted: lifted }); if (arr.length > 300) arr.shift();
+  try { localStorage.setItem('resonance_risings', JSON.stringify(arr)); } catch(e){}
+  const n = arr.length;
+  if (typeof addPassDepth === 'function') addPassDepth(Math.max(12, Math.round(80 * Math.min(1, pct))), 'rising');
+  if (pct >= 0.5 && typeof addCloseness === 'function') addCloseness(2, 'rising');
+  const s = (typeof currentSeason === 'function') ? currentSeason() : null;
+  if (n === 5 && typeof moment === 'function') { if (typeof addCosmetic === 'function') addCosmetic('orb-ascendant'); setTimeout(() => moment('5 Risings', 'You’ve lifted the field five times. The Ascendant orb skin is yours — equip it from the Pass.', s?s.color:'#6ee7b7', '◎'), 500); }
+  else if (n === 20 && typeof moment === 'function') { if (typeof addCosmetic === 'function') addCosmetic('rising-title-lifter'); setTimeout(() => moment('20 Risings', 'Twenty times you stayed in the light long enough for the whole field to come up with you. You’re a Field-Lifter now.', s?s.color:'#6ee7b7', '◎'), 500); }
+  else if (n === 50 && typeof moment === 'function') { setTimeout(() => moment('50 Risings', 'Fifty. There are souls who came home because you were in the room when the field went up. The field knows your weight in it.', s?s.color:'#a78bfa', '◎'), 500); }
+}
+function _risingSeasonColor() { const s = (typeof currentSeason === 'function') ? currentSeason() : null; return s ? s.color : '#6ee7b7'; }
+function _risingTone() { const s = (typeof currentSeason === 'function') ? currentSeason() : null; return (s && s.tones && s.tones[0]) ? s.tones[0].hz : 528; }
+function _risingInitCanvas() {
+  const cv = document.getElementById('risingCanvas'); const stg = document.getElementById('risingStage');
+  const rect = stg.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.max(1, Math.round(rect.width * dpr)); cv.height = Math.max(1, Math.round(rect.height * dpr));
+  cv.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0); cv._dpr = dpr;
+  return { width: rect.width, height: rect.height };
+}
+function _risingY(alt, h) { return h * (1 - 0.07 - Math.max(0, Math.min(1, alt)) * 0.82); }
+function startRising() {
+  const cv = document.getElementById('risingCanvas'); if (!cv) return;
+  const ov = document.getElementById('risingOverlay'); const color = _risingSeasonColor();
+  ov.style.setProperty('--ri-c', color + '22'); ov.style.setProperty('--ri-orb', color);
+  document.getElementById('risingEnd').classList.remove('show');
+  document.getElementById('risingTitle').textContent = (typeof currentSeason === 'function' && currentSeason()) ? (currentSeason().name + ' · Rising') : 'The Rising';
+  document.getElementById('risingHint').textContent = 'tap the light to pour into it · tap a soul drifting low to carry it';
+  ov.classList.add('show');
+  setTimeout(() => {
+    const rect = _risingInitCanvas();
+    _ri = { start: Date.now(), color: color, tone: _risingTone(), progress: 0, light: 1, lifted: 0, souls: [], zone: null, nextZone: 0, rect: rect, ended: false, startedTone: false, raf: null };
+    for (let i = 0; i < RISING_SOUL_COUNT; i++) _ri.souls.push({ x: rect.width*(0.06 + Math.random()*0.88), y: 0, alt: 0.02 + Math.random()*0.12, vx: (Math.random()-0.5)*0.18, drift: false, dcd: 0, sz: 1.6 + Math.random()*1.8, ph: Math.random()*6 });
+    try { if (typeof ensureAudio === 'function') ensureAudio().then(() => { if (_ri && !_ri.ended && typeof startTone === 'function' && typeof getManualHz === 'function' && getManualHz() === null) { startTone(_ri.tone, 'manual'); const mp = document.getElementById('manualPlay'); if (mp){ mp.textContent='Stop Sync'; mp.classList.add('active'); } _ri.startedTone = true; } }); } catch(e){}
+    _risingLoop();
+  }, 60);
+}
+function _risingSpawnZone() {
+  if (!_ri) return; const r = _ri.rect; const zr = Math.min(r.width, r.height) * (0.16 + Math.random()*0.05);
+  _ri.zone = { x: r.width*(0.16 + Math.random()*0.68), y: r.height*(0.20 + Math.random()*0.58), r: zr, born: Date.now(), life: 14000 + Math.random()*7000, vx: (Math.random()-0.5)*0.05, vy: (Math.random()-0.5)*0.04 };
+  _ri.nextZone = Date.now() + _ri.zone.life + 700 + Math.random()*1100;
+}
+function _risingPing(x, y, col) {
+  const host = document.getElementById('risingPings'); if (!host) return;
+  const d = document.createElement('div'); d.className = 'rising-ping'; d.style.left = x+'px'; d.style.top = y+'px'; d.style.setProperty('--rp-c', col || '#fde68a');
+  host.appendChild(d); setTimeout(() => { try { d.remove(); } catch(e){} }, 760);
+}
+function _risingLoop() {
+  if (!_ri || _ri.ended) return;
+  const cv = document.getElementById('risingCanvas'); if (!cv) { _ri = null; return; }
+  const dpr = cv._dpr || 1, w = cv.width/dpr, h = cv.height/dpr; const ctx = cv.getContext('2d');
+  const now = Date.now(); const r = _ri.rect = { width: w, height: h };
+  const elapsed = now - _ri.start; const remain = Math.max(0, RISING_DURATION - elapsed);
+  _ri.light = Math.min(1, _ri.light + 0.0017);
+  if (!_ri.zone || (now - _ri.zone.born > _ri.zone.life)) { if (now >= _ri.nextZone) _risingSpawnZone(); else if (_ri.zone && now - _ri.zone.born > _ri.zone.life) _ri.zone = null; }
+  if (_ri.zone) {
+    _ri.zone.x += _ri.zone.vx * 16; _ri.zone.y += _ri.zone.vy * 16;
+    _ri.zone.x = Math.max(_ri.zone.r, Math.min(w - _ri.zone.r, _ri.zone.x));
+    _ri.zone.y = Math.max(_ri.zone.r, Math.min(h - _ri.zone.r*1.2, _ri.zone.y));
+  }
+  let altSum = 0, driftingN = 0;
+  _ri.souls.forEach(sl => {
+    sl.x += sl.vx; if (sl.x < w*0.04 || sl.x > w*0.96) sl.vx *= -1; sl.x = Math.max(w*0.03, Math.min(w*0.97, sl.x));
+    sl.alt += 0.0001;
+    if (_ri.zone) { const sy = _risingY(sl.alt, h); const dx = sl.x - _ri.zone.x, dy = sy - _ri.zone.y; if (dx*dx + dy*dy < _ri.zone.r*_ri.zone.r) sl.alt += 0.0011; }
+    if (!sl.drift && Math.random() < 0.001) { sl.drift = true; sl.dcd = 0; }
+    if (sl.drift) { sl.alt -= 0.0017; sl.dcd++; if (sl.alt <= 0.01) { sl.alt = 0.01; sl.drift = false; } if (sl.dcd > 700) sl.drift = false; }
+    sl.alt = Math.max(0, Math.min(1, sl.alt));
+    if (sl.drift && sl.alt < 0.36) driftingN++;
+    altSum += sl.alt;
+  });
+  const avgAlt = altSum / _ri.souls.length;
+  _ri.progress = Math.max(0, Math.min(1, _ri.progress + 0.00005 + avgAlt*0.0001));
+  // render
+  ctx.clearRect(0, 0, w, h);
+  const hy = _risingY(1, h);
+  const hg = ctx.createLinearGradient(0, hy-34, 0, hy+34);
+  hg.addColorStop(0, _ri.color + '00'); hg.addColorStop(0.5, _ri.color + (avgAlt > 0.55 ? '38' : '14')); hg.addColorStop(1, _ri.color + '00');
+  ctx.fillStyle = hg; ctx.fillRect(0, hy-34, w, 68);
+  if (_ri.zone) {
+    const age = (now - _ri.zone.born) / _ri.zone.life; const a = age < 0.12 ? age/0.12 : age > 0.85 ? Math.max(0,(1-age)/0.15) : 1;
+    const pulse = 0.6 + 0.4*Math.sin(now/300);
+    const zg = ctx.createRadialGradient(_ri.zone.x, _ri.zone.y, 0, _ri.zone.x, _ri.zone.y, _ri.zone.r*1.45);
+    zg.addColorStop(0, 'rgba(255,250,225,' + (0.24*a*pulse).toFixed(3) + ')'); zg.addColorStop(0.6, 'rgba(253,230,138,' + (0.12*a).toFixed(3) + ')'); zg.addColorStop(1, 'rgba(253,230,138,0)');
+    ctx.fillStyle = zg; ctx.beginPath(); ctx.arc(_ri.zone.x, _ri.zone.y, _ri.zone.r*1.45, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(253,230,138,' + (0.5*a).toFixed(3) + ')'; ctx.lineWidth = 1.5 + pulse; ctx.beginPath(); ctx.arc(_ri.zone.x, _ri.zone.y, _ri.zone.r * (0.92 + pulse*0.08), 0, Math.PI*2); ctx.stroke();
+  }
+  _ri.souls.forEach(sl => {
+    const y = _risingY(sl.alt, h); sl.y = y;
+    const bri = 0.3 + sl.alt*0.7; const tw = 0.7 + 0.3*Math.sin(now/700 + sl.ph);
+    const rr = sl.sz * (0.85 + tw*0.4) * (sl.drift ? 0.85 : 1);
+    const g = ctx.createRadialGradient(sl.x, y, 0, sl.x, y, rr*3.2);
+    if (sl.drift) { g.addColorStop(0, 'rgba(255,255,255,' + (0.5*bri*tw).toFixed(3) + ')'); g.addColorStop(0.4, 'rgba(205,205,215,' + (0.18*bri).toFixed(3) + ')'); g.addColorStop(1, 'rgba(205,205,215,0)'); }
+    else { g.addColorStop(0, 'rgba(255,255,255,' + (0.8*bri*tw).toFixed(3) + ')'); g.addColorStop(0.35, _ri.color + _hex2(0.4*bri*tw + 0.15)); g.addColorStop(1, _ri.color + '00'); }
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sl.x, y, rr*3.2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,' + ((sl.drift?0.6:0.85)*bri).toFixed(3) + ')'; ctx.beginPath(); ctx.arc(sl.x, y, Math.max(0.6, rr*0.5), 0, Math.PI*2); ctx.fill();
+  });
+  document.getElementById('risingFieldFill').style.width = (_ri.progress*100) + '%';
+  document.getElementById('risingLightFill').style.width = (_ri.light*100) + '%';
+  document.getElementById('risingSouls').textContent = (_ri.souls.length + 1) + ' souls rising';
+  document.getElementById('risingLifted').textContent = _ri.lifted + ' carried';
+  const mm = Math.floor(remain/60000), ss = Math.floor((remain%60000)/1000);
+  document.getElementById('risingTimer').textContent = mm + ':' + String(ss).padStart(2,'0');
+  if (_ri.progress >= 1) { _risingEnd(true); return; }
+  if (remain <= 0) { _risingEnd(false); return; }
+  const hintEl = document.getElementById('risingHint');
+  if (hintEl) { if (_ri.zone && (now - _ri.zone.born < 2200)) hintEl.textContent = 'a light opened — tap inside it, fast'; else if (driftingN > 6) hintEl.textContent = driftingN + ' souls are drifting low — tap the dim ones near you to carry them'; else if (_ri.progress > 0.82) hintEl.textContent = 'almost — the whole field is nearly up, keep pouring'; else hintEl.textContent = 'tap the light to pour into it · tap a soul drifting low to carry it'; }
+  _ri.raf = requestAnimationFrame(_risingLoop);
+}
+function _risingTap(cx, cy) {
+  if (!_ri || _ri.ended) return;
+  const cv = document.getElementById('risingCanvas'); const rect = cv.getBoundingClientRect();
+  const x = cx - rect.left, y = cy - rect.top;
+  if (_ri.zone) { const dx = x - _ri.zone.x, dy = y - _ri.zone.y; if (dx*dx + dy*dy < _ri.zone.r*_ri.zone.r) {
+    if (_ri.light < 0.08) { _risingPing(x, y, 'rgba(205,205,215,0.55)'); return; }
+    _ri.light -= 0.08; _ri.progress = Math.min(1, _ri.progress + 0.030);
+    const rad2 = (_ri.zone.r*1.7)*(_ri.zone.r*1.7);
+    _ri.souls.forEach(sl => { const sdx = sl.x - x, sdy = sl.y - y; if (sdx*sdx + sdy*sdy < rad2) { sl.alt = Math.min(1, sl.alt + 0.018); sl.drift = false; } });
+    _risingPing(x, y, '#fde68a');
+    if (typeof floatGain === 'function' && Math.random() < 0.12) floatGain('light into the field', cx, cy);
+    return;
+  }}
+  let best = null, bestD = 40*40;
+  _ri.souls.forEach(sl => { if (!sl.drift && sl.alt > 0.42) return; const sdx = sl.x - x, sdy = sl.y - y; const d = sdx*sdx + sdy*sdy; if (d < bestD) { bestD = d; best = sl; } });
+  if (best) {
+    if (_ri.light < 0.06) { _risingPing(x, y, 'rgba(205,205,215,0.55)'); return; }
+    _ri.light -= 0.06; best.drift = false; best.alt = Math.min(1, best.alt + 0.16);
+    _ri.progress = Math.min(1, _ri.progress + 0.008); _ri.lifted++;
+    _risingPing(best.x, best.y, _ri.color);
+    return;
+  }
+  _risingPing(x, y, 'rgba(255,255,255,0.22)');
+}
+function _risingEnd(won) {
+  if (!_ri || _ri.ended) return; _ri.ended = true;
+  if (_ri.raf) cancelAnimationFrame(_ri.raf);
+  const pct = won ? 1 : _ri.progress; const lifted = _ri.lifted; const color = _ri.color;
+  if (_ri.startedTone) { if (typeof stopAllTones === 'function') stopAllTones(); const mp = document.getElementById('manualPlay'); if (mp){ mp.textContent='Begin Sync'; mp.classList.remove('active'); } }
+  const end = document.getElementById('risingEnd');
+  document.getElementById('risingEndGlyph').textContent = won ? '◎' : '◔';
+  document.getElementById('risingEndEyebrow').textContent = won ? 'The field rose' : 'The field rose · part of the way';
+  document.getElementById('risingEndTitle').textContent = won ? 'Everyone arrived.' : 'No one was left behind.';
+  document.getElementById('risingEndLine').textContent = won
+    ? 'The whole field came up together — every soul that dropped in is home. That’s the only kind of victory there is here. You carried ' + lifted + ' of them part of the way.'
+    : 'The field rose ' + Math.round(pct*100) + '% of the way. Not all home — but no one was eliminated, no one was lost, and the field doesn’t hold it against itself. You carried ' + lifted + ' souls. It will go again — and you’ll be lighter for it.';
+  const nth = risingCount()+1; const suf = (nth%10===1&&nth!==11)?'st':(nth%10===2&&nth!==12)?'nd':(nth%10===3&&nth!==13)?'rd':'th';
+  document.getElementById('risingEndStat').textContent = 'FIELD ' + Math.round(pct*100) + '% · ' + lifted + ' CARRIED · YOUR ' + nth + suf.toUpperCase() + ' RISING';
+  end.style.setProperty('--ri-c', color + '22'); end.style.setProperty('--ri-orb', color);
+  end.classList.add('show');
+  if (typeof floatGain === 'function') floatGain(won ? 'The field rose ✦' : 'You carried ' + lifted + ' ✦');
+  recordRising(pct, lifted);
+  if (typeof renderRisingCard === 'function') renderRisingCard();
+}
+function closeRising() {
+  const ov = document.getElementById('risingOverlay'); ov.classList.remove('show');
+  if (_ri) { if (_ri.raf) cancelAnimationFrame(_ri.raf); if (!_ri.ended && _ri.startedTone) { if (typeof stopAllTones === 'function') stopAllTones(); const mp=document.getElementById('manualPlay'); if(mp){mp.textContent='Begin Sync';mp.classList.remove('active');} } _ri = null; }
+  document.getElementById('risingEnd').classList.remove('show');
+}
+{ const cv = document.getElementById('risingCanvas'); if (cv) cv.addEventListener('pointerdown', e => { e.preventDefault(); _risingTap(e.clientX, e.clientY); }); }
+document.getElementById('risingCloseBtn').addEventListener('click', closeRising);
+document.getElementById('risingEndBtn').addEventListener('click', closeRising);
+{ const b = document.getElementById('ascendRisingBtn'); if (b) b.addEventListener('click', startRising); }
+window.addEventListener('resize', () => { const ov = document.getElementById('risingOverlay'); if (ov && ov.classList.contains('show') && _ri && !_ri.ended) { _ri.rect = _risingInitCanvas(); } });
+function renderRisingCard() {
+  const slot = document.getElementById('risingSlot'); if (!slot) return;
+  const s = (typeof currentSeason === 'function') ? currentSeason() : null; const c = s ? s.color : '#6ee7b7';
+  const n = risingCount();
+  const recLine = n > 0 ? '<div style="font-family:Georgia,serif; font-style:italic; font-size:11px; color:var(--text-faint); margin-top:8px;">You’ve been in ' + n + ' Rising' + (n===1?'':'s') + '. The field is lighter for it.</div>' : '';
+  slot.innerHTML = '<div class="rising-card" id="risingCardBtn" style="--ri-c:' + c + '22; --ri-bd:' + c + '4d; --ri-orb:' + c + ';">'
+    + '<div class="rc-rays"></div>'
+    + '<div class="rc-kicker"><span class="rc-live"></span>The Rising · open now</div>'
+    + '<div class="rc-name">The whole field, trying to ascend at once.</div>'
+    + '<div class="rc-sub">Battle royale, turned around: no storm that kills — a light you pour into. No last one standing — a bar that fills as everyone comes up together. Carry the ones drifting low. When the field arrives, everyone in it wins.</div>'
+    + '<div class="rc-cta">Drop in →</div>' + recLine + '</div>';
+  const b = document.getElementById('risingCardBtn'); if (b) b.addEventListener('click', startRising);
+}
+renderRisingCard();
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderRisingCard, 2500));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderRisingCard, 2500));
 
 renderLadder();
 </script>
