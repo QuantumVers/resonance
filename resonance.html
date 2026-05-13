@@ -395,6 +395,29 @@ body::before {
 }
 
 
+
+/* ============ DAILY RITUAL (3 doors) ============ */
+.daily-ritual {
+  max-width: 440px; margin: 14px auto 0; padding: 14px 16px; border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.55);
+  border: 1px solid rgba(110,231,183,0.30); backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+.daily-ritual .dr-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.daily-ritual .dr-eyebrow { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--mint); font-weight: 700; }
+.daily-ritual .dr-meta { font-family: ui-monospace, monospace; font-size: 11px; color: var(--text-faint); letter-spacing: 0.5px; }
+.daily-ritual .dr-step { display: flex; align-items: center; gap: 12px; padding: 8px 4px; border-radius: 12px; transition: background .25s var(--ease); }
+.daily-ritual .dr-step.done { background: rgba(110,231,183,0.06); }
+.daily-ritual .dr-step .dr-glyph { width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--text-dim); flex-shrink: 0; }
+.daily-ritual .dr-step.done .dr-glyph { background: var(--mint); color: #050507; border-color: var(--mint); box-shadow: 0 0 12px var(--mint); }
+.daily-ritual .dr-step .dr-body { flex: 1; min-width: 0; }
+.daily-ritual .dr-step .dr-name { font-size: 13px; color: var(--text); font-weight: 500; }
+.daily-ritual .dr-step .dr-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; line-height: 1.45; }
+.daily-ritual .dr-step .dr-check { font-size: 18px; font-weight: 100; color: var(--text-faint); flex-shrink: 0; transition: color .25s; }
+.daily-ritual .dr-step.done .dr-check { color: var(--mint); }
+.daily-ritual .dr-foot { margin-top: 10px; font-size: 10.5px; line-height: 1.55; color: var(--text-faint); font-family: Georgia, "Times New Roman", serif; font-style: italic; text-align: center; }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4822,6 +4845,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="lh-cell"><div class="lh-k" id="lhStreak">0</div><div class="lh-l">Day-Streak</div></div>
       </div>
       <div class="light-index" id="lightIndex"><div class="li-row"><div class="li-orb"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="li-track" cx="50" cy="50" r="44"></circle><circle class="li-fill" id="liArc" cx="50" cy="50" r="44"></circle></svg><div class="li-pct" id="liPct">—</div></div>
+      <div class="daily-ritual" id="dailyRitual"><div class="dr-head"><div class="dr-eyebrow">Today's Light · 3 doors</div><div class="dr-meta" id="drMeta">— / 3</div></div><div class="dr-step" data-step="1" id="drStep1"><div class="dr-glyph">✦</div><div class="dr-body"><div class="dr-name">Receive your morning line</div><div class="dr-sub">One word from yourself, in the present tense.</div></div><div class="dr-check" id="drCheck1">○</div></div><div class="dr-step" data-step="2" id="drStep2"><div class="dr-glyph">◯</div><div class="dr-body"><div class="dr-name">Hold a wavelength for one minute</div><div class="dr-sub">Open Sync. Press Begin. Stay one minute.</div></div><div class="dr-check" id="drCheck2">○</div></div><div class="dr-step" data-step="3" id="drStep3"><div class="dr-glyph">◎</div><div class="dr-body"><div class="dr-name">Step into the Assumption</div><div class="dr-sub">Long-press the orb. Sixty seconds inside the wish fulfilled.</div></div><div class="dr-check" id="drCheck3">○</div></div><div class="dr-foot" id="drFoot">Three doors. Walk through them in any order.</div></div>
       <div class="i-see-you" id="iSeeYouCard"><div class="isy-row"><svg class="lotus isy-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg><div class="isy-body"><div class="isy-eyebrow" id="isyEyebrow">I see you</div><div class="isy-text" id="isyText">—</div></div></div></div><div class="li-body"><div class="li-eyebrow">Your light today</div><div class="li-name" id="liName">tuning in</div><div class="li-meta" id="liMeta">—</div></div></div></div>
       <div class="lobby-quest" id="lobbyQuest">528 Hz is already in you today — hold it for 60 seconds and notice.</div>
       <div class="lobby-arrival" id="arrivalCard"></div>
@@ -15630,6 +15654,82 @@ function _applyHourAmbient() {
 }
 _applyHourAmbient();
 setInterval(_applyHourAmbient, 5 * 60 * 1000);
+
+
+
+// =================== DAILY LIGHT RITUAL · 3-door tracker ===================
+function _ritualKey() { return (typeof _dayKey === 'function') ? _dayKey() : new Date().toISOString().slice(0,10); }
+function _ritualState() {
+  let st = null; try { st = JSON.parse(localStorage.getItem('resonance_ritual') || 'null'); } catch(e){}
+  if (!st || st.day !== _ritualKey()) st = { day: _ritualKey(), s1: false, s2: false, s3: false, completed: false };
+  return st;
+}
+function _ritualSave(st) { try { localStorage.setItem('resonance_ritual', JSON.stringify(st)); } catch(e){} }
+function _ritualMark(step) {
+  const st = _ritualState();
+  if (step === 1) st.s1 = true; if (step === 2) st.s2 = true; if (step === 3) st.s3 = true;
+  const done = st.s1 && st.s2 && st.s3;
+  const justCompleted = done && !st.completed;
+  st.completed = done;
+  _ritualSave(st);
+  renderRitual();
+  if (justCompleted && typeof notify === 'function') notify('Three doors today', 'The day is consecrated. You walked through them.', '✦', '#fbbf24');
+}
+function renderRitual() {
+  const card = document.getElementById('dailyRitual'); if (!card) return;
+  const st = _ritualState();
+  const done = (st.s1?1:0) + (st.s2?1:0) + (st.s3?1:0);
+  const meta = document.getElementById('drMeta'); if (meta) meta.textContent = done + ' / 3';
+  ['1','2','3'].forEach(n => {
+    const el = document.getElementById('drStep' + n);
+    const check = document.getElementById('drCheck' + n);
+    const isDone = st['s' + n];
+    if (el) el.classList.toggle('done', !!isDone);
+    if (check) check.textContent = isDone ? '✓' : '○';
+  });
+  const foot = document.getElementById('drFoot');
+  if (foot) foot.textContent = done === 3 ? 'The day is consecrated. Three doors walked.' : done === 2 ? 'One more door. The path is clear.' : done === 1 ? 'Two more doors. Take them at your own pace.' : 'Three doors. Walk through them in any order.';
+}
+
+// Wire detection hooks — each step marks itself when its underlying action happens
+(function () {
+  // Step 1: viewing today's affirmation (rendered on lobby)
+  if (typeof renderAffirmation === 'function') {
+    const _orig = renderAffirmation;
+    renderAffirmation = function () { _orig(); setTimeout(() => _ritualMark(1), 500); };
+  }
+  // Step 2: a sync session of ≥60s
+  // Hook into stopAllTones — if user has held a manual tone for 60+ seconds, mark
+  let _toneStartedAt = 0;
+  if (typeof startTone === 'function') {
+    const _orig = startTone;
+    startTone = function (hz, mode) { const r = _orig(hz, mode); if (mode === 'manual' && !_toneStartedAt) _toneStartedAt = Date.now(); return r; };
+  }
+  if (typeof stopAllTones === 'function') {
+    const _orig = stopAllTones;
+    stopAllTones = function () { if (_toneStartedAt && (Date.now() - _toneStartedAt) >= 60000) _ritualMark(2); _toneStartedAt = 0; return _orig(); };
+  }
+  // Also: a 60s tick that detects ongoing session
+  setInterval(() => { if (_toneStartedAt && (Date.now() - _toneStartedAt) >= 60000) _ritualMark(2); }, 8000);
+  // Step 3: any time the Assumption overlay opens
+  if (typeof openAssumption === 'function') {
+    const _orig = openAssumption;
+    openAssumption = function () { _orig(); _ritualMark(3); };
+  }
+  // Tapping a step opens its surface (helpful affordance)
+  setTimeout(() => {
+    const s1 = document.getElementById('drStep1'); if (s1) s1.addEventListener('click', () => { _ritualMark(1); if (typeof notify === 'function') { const stored = JSON.parse(localStorage.getItem('resonance_affirmation') || 'null'); if (stored) notify('A word from yourself', stored.line, '✦', '#6ee7b7'); } });
+    const s2 = document.getElementById('drStep2'); if (s2) s2.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('sync'); });
+    const s3 = document.getElementById('drStep3'); if (s3) s3.addEventListener('click', () => { if (typeof openAssumption === 'function') openAssumption(); });
+  }, 0);
+})();
+
+// Re-render on lobby render
+if (typeof renderLobby === 'function') {
+  const _orig = renderLobby;
+  renderLobby = function () { _orig(); try { renderRitual(); } catch(e){} };
+}
+setTimeout(() => { try { renderRitual(); } catch(e){} }, 2000);
 
 
 renderLadder();
