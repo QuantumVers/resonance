@@ -76,6 +76,41 @@ html, body {
 @media (min-width: 720px) {
   .notify-stack { left: auto; right: 24px; transform: none; width: 340px; top: 24px; }
 }
+/* ============ UX_AGENT · AWAKENING NOTIFY VARIANT ============ */
+.notify-card.awk {
+  --n-c: var(--gold);
+  --n-glow: rgba(255,184,0,0.30);
+  padding: 14px 16px 14px 18px;
+  border: 1px solid rgba(255,184,0,0.30);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.50), 0 0 1px rgba(255,255,255,0.10) inset, 0 0 48px rgba(255,184,0,0.22);
+}
+.notify-card.awk .nc-title { color: var(--text); font-weight: 700; }
+.notify-card.awk .nc-title::before {
+  content: '✦ AWAKENED'; display: block;
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-size: 8.5px; letter-spacing: 3px; font-weight: 700; color: var(--gold);
+  margin-bottom: 4px;
+  filter: drop-shadow(0 0 8px rgba(255,184,0,0.55));
+}
+/* sparkle around the awakening glyph */
+.notify-card.awk .nc-glyph {
+  width: 36px; height: 36px; font-size: 16px;
+  box-shadow: 0 0 22px var(--n-c, var(--gold));
+}
+.notify-card.awk .nc-glyph::after {
+  content: ''; position: absolute; inset: -6px; border-radius: 50%;
+  border: 1px solid var(--n-c, var(--gold));
+  opacity: 0; transform: scale(0.6);
+  animation: notifyAwkRing 1.6s ease-out 0.2s forwards;
+}
+@keyframes notifyAwkRing {
+  0%   { opacity: 0; transform: scale(0.6); }
+  40%  { opacity: 0.9; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+.notify-card.awk { cursor: pointer; }
+/* ============ /UX_AGENT ============ */
+
 /* ============ UX_AGENT · NOTIFY (type-aware glow, edge accent, entry burst) ============ */
 .notify-card {
   position: relative; overflow: hidden;
@@ -9966,21 +10001,28 @@ function cinematicMoment(title, subtitle, color, glyph) {
 const NOTIFY_TTL = 4200;
 const NOTIFY_MAX = 4;
 function _notifyTimeStr() { const d = new Date(); return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
-function notify(title, sub, glyph, color) {
+function notify(title, sub, glyph, color, opts) {
   if (typeof appSettings !== 'undefined' && appSettings.quietMetrics && /\bxp\b/i.test(String(title || ''))) title = 'growth';
   const stack = document.getElementById('notifyStack'); if (!stack) return;
   // cap visible: drop the oldest if at max
   const live = [...stack.querySelectorAll('.notify-card:not(.out)')];
   while (live.length >= NOTIFY_MAX) { const oldest = live.shift(); if (oldest) _dismissNotify(oldest); }
   const el = document.createElement('div'); el.className = 'notify-card';
+  // UX_AGENT — kind variants: 'awk' = awakening unlock
+  if (opts && opts.kind) el.classList.add(opts.kind);
   el.style.setProperty('--n-c', color || 'var(--violet)');
   el.style.setProperty('--n-glow', (color ? color + '33' : 'rgba(167,139,250,0.18)'));
   const t = String(title || '');
   const s = sub ? '<div class="nc-sub">' + escapeHtml(String(sub)) + '</div>' : '';
   el.innerHTML = '<div class="nc-glyph">' + (glyph || '◎') + '</div><div class="nc-body"><div class="nc-title">' + escapeHtml(t) + '</div>' + s + '<div class="nc-time">' + _notifyTimeStr() + '</div></div>';
   stack.appendChild(el);
-  el._timer = setTimeout(() => _dismissNotify(el), NOTIFY_TTL);
-  el.addEventListener('click', () => _dismissNotify(el));
+  const ttl = (opts && opts.ttl) || NOTIFY_TTL;
+  el._timer = setTimeout(() => _dismissNotify(el), ttl);
+  el.addEventListener('click', () => {
+    if (opts && typeof opts.onClick === 'function') { try { opts.onClick(); } catch(e){} }
+    _dismissNotify(el);
+  });
+  return el;
 }
 function _dismissNotify(el) {
   if (!el || el.classList.contains('out')) return;
@@ -11277,9 +11319,37 @@ function unlockAwakening(id, opts) {
   updateAwakeningsBadge();
   if (opts.silent) return;
   if (_AWK_SILENT[id]) { if (typeof floatGain === 'function') floatGain('Awakening · ' + a.name); return; }
-  if (typeof moment === 'function') {
-    setTimeout(() => { moment('Awakening · ' + a.name, a.desc, a.color, a.glyph); if (typeof floatGain === 'function') floatGain('+100 XP'); }, 350);
-  }
+  // UX_AGENT — awakenings get the richer notify variant: AWAKENED eyebrow, longer TTL,
+  // sparkle ring, and click opens the awakening modal for the detail.
+  setTimeout(() => {
+    try {
+      if (typeof notify === 'function') {
+        notify(a.name, a.desc, a.glyph, a.color, {
+          kind: 'awk',
+          ttl: 7000,
+          onClick: () => {
+            try {
+              const modal = document.getElementById('awkModal');
+              const glyph = document.getElementById('awkGlyph');
+              const name  = document.getElementById('awkName');
+              const desc  = document.getElementById('awkDesc');
+              const tag   = document.getElementById('awkUnlockedTag');
+              const wrap  = document.getElementById('awkProgressWrap');
+              if (glyph) { glyph.textContent = a.glyph || '◎'; glyph.style.color = a.color || 'var(--gold)'; }
+              if (name) name.textContent = a.name;
+              if (desc) desc.textContent = a.desc;
+              if (tag) tag.style.display = 'inline-block';
+              if (wrap) wrap.style.display = 'none';
+              if (modal) modal.classList.add('show');
+            } catch(e){}
+          }
+        });
+      } else if (typeof moment === 'function') {
+        moment('Awakening · ' + a.name, a.desc, a.color, a.glyph);
+      }
+      if (typeof floatGain === 'function') floatGain('+100 XP');
+    } catch(e){}
+  }, 350);
 }
 function checkAwakenings(silent) {
   AWAKENINGS.forEach(a => {
