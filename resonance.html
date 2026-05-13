@@ -1432,6 +1432,10 @@ input[type="date"].signup-input {
   margin: 0 auto 24px;
   line-height: 1.5;
 }
+.ascend-chambers { margin: 14px auto 6px; max-width: 380px; padding: 12px 16px; border-radius: 16px; background: radial-gradient(circle at 0% 0%, rgba(157,92,255,0.08), transparent 65%), var(--card); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(20px); text-align: left; }
+.ascend-chambers-h { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text); font-weight: 700; margin-bottom: 6px; }
+.ascend-chambers-sub { font-size: 11.5px; line-height: 1.55; color: var(--text-dim); }
+.ascend-chambers-sub b { color: var(--gold); font-weight: 700; }
 .ascend-current {
   display: inline-flex;
   align-items: center;
@@ -3196,6 +3200,49 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 .rising-card .rc-live { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; animation: dotPulse 1.4s ease-in-out infinite; }
 .btn.rising-btn { border-color: rgba(110,231,183,0.5); color: var(--mint); }
 
+/* ============ FREQUENCY CHAMBER (chat room per tier) ============ */
+.chamber-overlay {
+  position: fixed; inset: 0; height: 100vh; height: 100dvh; z-index: 545;
+  display: none; flex-direction: column;
+  background: linear-gradient(0deg, #010103 0%, #06060b 45%, #0a0a14 100%);
+  overflow: hidden;
+}
+.chamber-overlay.show { display: flex; animation: gateIn 0.45s var(--ease); }
+.chamber-top { padding: 16px 20px 6px; position: relative; }
+.chamber-top .ch-eyebrow { font-size: 9px; letter-spacing: 5px; text-transform: uppercase; color: var(--ch-c, var(--violet)); font-weight: 700; }
+.chamber-top .ch-title { font-size: 24px; font-weight: 200; letter-spacing: -0.01em; line-height: 1.1; margin-top: 4px; }
+.chamber-top .ch-sub { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+.ch-presence-row { display: flex; gap: 7px; padding: 10px 20px 6px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+.ch-presence-row::-webkit-scrollbar { display: none; }
+.ch-presence-row .ch-soul { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 50px; }
+.ch-presence-row .ch-soul .cs-orb { width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), var(--ch-c, var(--violet)) 50%, rgba(20,10,40,0.85)); box-shadow: 0 0 12px var(--ch-c, var(--violet)); }
+.ch-presence-row .ch-soul .cs-name { font-size: 9px; letter-spacing: 0.4px; color: var(--text-faint); max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ch-access { padding: 4px 20px 10px; }
+.ch-access .ca-row { display: flex; align-items: center; gap: 9px; font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+.ch-access .ca-row .ca-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.18); flex-shrink: 0; }
+.ch-access .ca-row .ca-dot.ok { background: var(--ch-c, var(--mint)); box-shadow: 0 0 8px var(--ch-c, var(--mint)); }
+.ch-feed { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 20px 0; display: flex; flex-direction: column; gap: 8px; }
+.ch-msg { display: flex; flex-direction: column; gap: 2px; max-width: 90%; }
+.ch-msg.from-you { align-self: flex-end; align-items: flex-end; }
+.ch-msg .cm-h { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.ch-msg .cm-h .cm-hz { color: var(--ch-c, var(--mint)); }
+.ch-msg .cm-bubble { background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 9px 13px; font-size: 13.5px; line-height: 1.5; color: var(--text); }
+.ch-msg.from-you .cm-bubble { background: rgba(157,92,255,0.16); border-color: rgba(157,92,255,0.32); }
+.ch-extra { padding: 6px 20px 0; }
+.ch-extra .ce-tone-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 100px; background: rgba(255,255,255,0.04); border: 1px solid var(--ch-c, rgba(110,231,183,0.4)); color: var(--ch-c, var(--mint)); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; }
+.ch-extra .ce-tone-btn.active { background: var(--ch-c, var(--mint)); color: #050507; }
+.ch-extra .ce-field-strip { display: flex; gap: 6px; margin-top: 8px; padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); align-items: center; }
+.ch-extra .ce-field-strip .cf-lbl { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.ch-extra .ce-field-strip .cf-bar { flex: 1; height: 5px; border-radius: 100px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.ch-extra .ce-field-strip .cf-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--ch-c, var(--mint)), #fff); animation: cfPulse 4s ease-in-out infinite; }
+@keyframes cfPulse { 0%, 100% { width: 60%; } 50% { width: 92%; } }
+.ch-honesty { font-size: 10px; letter-spacing: 0.4px; color: var(--text-faint); padding: 8px 20px 6px; text-align: center; line-height: 1.5; font-style: italic; }
+.ch-input-row { display: flex; gap: 8px; padding: 8px 16px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(255,255,255,0.06); background: rgba(5,5,7,0.85); backdrop-filter: blur(20px); }
+.ch-input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; padding: 10px 16px; color: var(--text); font-size: 13px; outline: none; }
+.ch-input:focus { border-color: var(--ch-c, var(--violet)); }
+.ch-send { padding: 10px 18px; border-radius: 100px; background: var(--ch-c, var(--violet)); color: #050507; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; border: 0; }
+.ch-send:disabled { opacity: 0.4; }
+
 .rising-overlay {
   position: fixed; inset: 0; height: 100vh; height: 100dvh;
   z-index: 540;
@@ -3890,7 +3937,11 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <div class="ac-tier">—</div>
           <div class="ac-freq">— Hz</div>
         </div>
-        <div style="margin-top:18px;"><button class="btn rising-btn" id="ascendRisingBtn">Join a Rising — the whole field, together →</button></div>
+        <div class="ascend-chambers" id="ascendChambers">
+          <div class="ascend-chambers-h">The 3 · 6 · 9 chambers</div>
+          <div class="ascend-chambers-sub">Tap a tier below to enter its chamber — everyone on that frequency, in one room. Tesla's three: <b>3</b> opens text + presence (tiers 1–3) · <b>6</b> opens holding the tone together (tiers 4–6) · <b>9</b> opens the live shared field (tiers 7–9).</div>
+        </div>
+        <div style="margin-top:14px;"><button class="btn rising-btn" id="ascendRisingBtn">Join a Rising — the whole field, together →</button></div>
       </div>
       <div class="ladder" id="ladder"></div>
     </div>
@@ -4552,6 +4603,31 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
 
     <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
+  </div>
+</div>
+
+<!-- ================= FREQUENCY CHAMBER (per-tier chat room, 369 access) ================= -->
+<div class="chamber-overlay" id="chamberOverlay">
+  <div class="chamber-top">
+    <button class="inner-self-close" id="chamberCloseBtn">✕</button>
+    <div class="ch-meta">
+      <div class="ch-eyebrow" id="chEyebrow">The 3 Chamber</div>
+      <div class="ch-title" id="chTitle">Heart · 528 Hz</div>
+      <div class="ch-sub" id="chSub">All souls holding this frequency, together.</div>
+    </div>
+  </div>
+  <div class="ch-presence-row" id="chPresenceRow"></div>
+  <div class="ch-access" id="chAccess">
+    <div class="ca-row"><div class="ca-dot ok"></div><div>Text — share what's alive in you here</div></div>
+    <div class="ca-row"><div class="ca-dot"></div><div>Audio together — open at Tier 4 (the 6 Chamber)</div></div>
+    <div class="ca-row"><div class="ca-dot"></div><div>Live field — open at Tier 7 (the 9 Chamber)</div></div>
+  </div>
+  <div class="ch-feed" id="chFeed"></div>
+  <div class="ch-extra" id="chExtra"></div>
+  <div class="ch-honesty">The field here is seeded for now. Live cross-device presence opens when the backend lands — your messages stay on your phone until then.</div>
+  <div class="ch-input-row">
+    <input type="text" class="ch-input" id="chInput" placeholder="Share what's alive in you on this frequency…" maxlength="240">
+    <button class="ch-send" id="chSend">Send</button>
   </div>
 </div>
 
@@ -7150,7 +7226,8 @@ function openTier(t, isUnlocked) {
 
   const enterBtn = document.getElementById('tierModalEnter');
   if (isUnlocked) {
-    enterBtn.textContent = 'Enter This Tier';
+    // signal the 369 access tier on the button (3 / 6 / 9 Chamber)
+    enterBtn.textContent = 'Enter the ' + (t.n <= 3 ? '3' : t.n <= 6 ? '6' : '9') + ' Chamber →';
     enterBtn.style.opacity = 1;
     enterBtn.disabled = false;
     enterBtn._target = t.anchor;
@@ -7167,18 +7244,16 @@ document.getElementById('tierModalSkip').addEventListener('click', () => documen
 document.getElementById('tierModalEnter').addEventListener('click', async () => {
   const target = document.getElementById('tierModalEnter')._target;
   if (!target) return;
-  await ensureAudio();
-  applyFrequency(target);
-  stopAllTones();
-  startTone(target, 'manual');
-  document.getElementById('manualPlay').textContent = 'Stop Sync';
-  document.getElementById('manualPlay').classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector('.tab-btn[data-tab="sync"]').classList.add('active');
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-sync').classList.add('active');
+  // route into the frequency Chamber (chat room) for this tier — 369 access
+  const tier = tiers.find(t => t.anchor === target);
   document.getElementById('tierModal').classList.remove('show');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (tier && typeof openChamber === 'function') openChamber(tier);
+  else {
+    // fallback: old behavior (play the tone, go to Sync)
+    await ensureAudio(); applyFrequency(target); stopAllTones(); startTone(target, 'manual');
+    document.getElementById('manualPlay').textContent = 'Stop Sync'; document.getElementById('manualPlay').classList.add('active');
+    if (typeof gotoTab === 'function') gotoTab('sync');
+  }
 });
 
 // Hook into applyFrequency so ladder updates with user's frequency
@@ -10937,6 +11012,167 @@ function renderLobby() {
   }
 }
 { const b = document.getElementById('lobbyOrb'); if (b) b.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('sync'); if (typeof ensureAudio === 'function') ensureAudio(); }); }
+
+// ===== FREQUENCY CHAMBER (per-tier chat rooms, 369 access tiers) =====
+// "Enter this frequency" opens a chamber where everyone holding that tone is connected.
+// 369 method (Tesla): tiers 1-3 = the 3 Chamber (text + presence) · tiers 4-6 = the 6 Chamber
+// (+ holding the tone together) · tiers 7-9 = the 9 Chamber (+ a live field strip).
+// Real cross-device presence requires the backend; the field is seeded for now.
+var _ch = null; // active chamber state
+function chamberLevel(n) { return n <= 3 ? 3 : n <= 6 ? 6 : 9; }
+function chamberName(n) { return n <= 3 ? 'The 3 Chamber' : n <= 6 ? 'The 6 Chamber' : 'The 9 Chamber'; }
+// seeded message pools by chamber — short, vibey, on-frequency
+const CHAMBER_LINES = {
+  3: [
+    "i was so wound up before this. it's draining out of me.",
+    "feet on the floor. taking my first deep breath of the day here.",
+    "third time in this room this week. it's starting to know me.",
+    "body finally letting me arrive.",
+    "i was angry. i'm putting it down here.",
+    "this is the only place i'm allowed to be tired.",
+    "rooting. rooting. rooting.",
+    "the day hasn't started until i sit in here for a minute."
+  ],
+  6: [
+    "i can feel the tone in my chest. it's softening something.",
+    "we're holding it together. that's why it's so much steadier than alone.",
+    "this is the frequency i forgot i needed.",
+    "the hum is happening in my jaw. i didn't even know it was tight.",
+    "everyone here is on the same note. it's wild.",
+    "love-frequency check-in. i'm okay. i'm grateful you're here.",
+    "i opened my mouth to hum and got a whole sob first. it's fine. it's good.",
+    "speaking what's true into the field. the field doesn't blink."
+  ],
+  9: [
+    "third eye open. just receiving. not narrating.",
+    "i can feel the whole room. quiet but not empty.",
+    "we're at the top of the ladder. i don't even need words right now.",
+    "i'm not separate from any of you. that's the whole sentence.",
+    "the field is breathing in and out of me.",
+    "this used to be the part i was scared of. now i live here.",
+    "crown is open. the noise of being a person is gone for a second.",
+    "we're home. that's all. we're home."
+  ]
+};
+function seededSoulsForTier(tier) {
+  // pick a handful of seeded souls near this anchor frequency
+  const pool = (typeof storyUsers !== 'undefined' && Array.isArray(storyUsers)) ? storyUsers.slice() : [];
+  pool.sort((a, b) => Math.abs((a.freq||440) - tier.anchor) - Math.abs((b.freq||440) - tier.anchor));
+  const k = Math.min(pool.length, tier.unity ? 14 : Math.min(12, Math.max(4, Math.floor(Math.log2((tier.presence||4)+1) * 2.5))));
+  return pool.slice(0, k);
+}
+function chamberStorageKey(tier) { return 'resonance_chamber_' + tier.n; }
+function loadChamberHistory(tier) {
+  try { const v = JSON.parse(localStorage.getItem(chamberStorageKey(tier)) || '[]'); return Array.isArray(v) ? v : []; } catch(e){ return []; }
+}
+function saveChamberHistory(tier) {
+  if (!_ch) return;
+  try { localStorage.setItem(chamberStorageKey(tier), JSON.stringify(_ch.messages.slice(-200))); } catch(e){}
+}
+function _chAppendMsg(m) {
+  if (!_ch) return;
+  _ch.messages.push(m);
+  const feed = document.getElementById('chFeed'); if (!feed) return;
+  const el = document.createElement('div'); el.className = 'ch-msg' + (m.from === 'you' ? ' from-you' : '');
+  const nameSpan = m.from === 'you' ? 'You' : escapeHtml(m.name || 'Soul');
+  const hzSpan = m.hz ? '<span class="cm-hz">' + m.hz + ' Hz</span> · ' : '';
+  el.innerHTML = '<div class="cm-h">' + hzSpan + nameSpan + '</div><div class="cm-bubble">' + escapeHtml(m.text) + '</div>';
+  feed.appendChild(el); feed.scrollTop = feed.scrollHeight;
+}
+function _chSeedFromPool(tier, count) {
+  const lines = CHAMBER_LINES[chamberLevel(tier.n)] || CHAMBER_LINES[3];
+  const souls = _ch.souls;
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const s = souls[(i * 7 + 3) % souls.length];
+    const l = lines[(i * 5 + 2) % lines.length];
+    out.push({ from: 'soul', name: s.name || 'Soul', hz: s.freq || tier.anchor, text: l, t: Date.now() - (count - i) * (60000 + (i*3000)) });
+  }
+  return out;
+}
+function openChamber(tier) {
+  const ov = document.getElementById('chamberOverlay'); if (!ov || !tier) return;
+  const lvl = chamberLevel(tier.n);
+  ov.style.setProperty('--ch-c', tier.color);
+  document.getElementById('chEyebrow').textContent = chamberName(tier.n) + ' · Tier ' + tier.n;
+  document.getElementById('chTitle').textContent = tier.name + ' · ' + tier.anchor + ' Hz';
+  document.getElementById('chSub').textContent = tier.unity ? "All who've ever ascended are here." : 'All souls holding this frequency, together.';
+  // access rows
+  const access = document.getElementById('chAccess');
+  access.innerHTML =
+    '<div class="ca-row"><div class="ca-dot ok"></div><div>Text · share what\'s alive in you here</div></div>' +
+    '<div class="ca-row"><div class="ca-dot' + (lvl >= 6 ? ' ok' : '') + '"></div><div>Audio together · hold the ' + tier.anchor + ' Hz tone with the field' + (lvl >= 6 ? '' : ' (opens at Tier 4)') + '</div></div>' +
+    '<div class="ca-row"><div class="ca-dot' + (lvl >= 9 ? ' ok' : '') + '"></div><div>Live field · the room\'s shared vital sign' + (lvl >= 9 ? '' : ' (opens at Tier 7)') + '</div></div>';
+  // presence
+  const souls = seededSoulsForTier(tier);
+  const row = document.getElementById('chPresenceRow'); row.innerHTML = '';
+  souls.slice(0, 14).forEach(s => {
+    const d = document.createElement('div'); d.className = 'ch-soul';
+    d.innerHTML = '<div class="cs-orb"></div><div class="cs-name">' + escapeHtml((s.name || 'Soul').split(' ')[0]) + '</div>';
+    row.appendChild(d);
+  });
+  // extra (6 Chamber tone + 9 Chamber field strip)
+  const extra = document.getElementById('chExtra'); extra.innerHTML = '';
+  if (lvl >= 6) {
+    const tb = document.createElement('button'); tb.className = 'ce-tone-btn'; tb.id = 'chToneBtn'; tb.textContent = 'Hold the ' + tier.anchor + ' Hz tone';
+    tb.addEventListener('click', async () => {
+      try { await ensureAudio(); } catch(e){}
+      if (tb.classList.contains('active')) { stopAllTones(); tb.classList.remove('active'); tb.textContent = 'Hold the ' + tier.anchor + ' Hz tone'; const mp=document.getElementById('manualPlay'); if(mp){mp.textContent='Begin Sync';mp.classList.remove('active');} return; }
+      applyFrequency(tier.anchor); stopAllTones(); startTone(tier.anchor, 'manual');
+      tb.classList.add('active'); tb.textContent = 'Holding · tap to release';
+      const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Stop Sync'; mp.classList.add('active'); }
+    });
+    extra.appendChild(tb);
+  }
+  if (lvl >= 9) {
+    const fs = document.createElement('div'); fs.className = 'ce-field-strip';
+    fs.innerHTML = '<div class="cf-lbl">FIELD</div><div class="cf-bar"><div class="cf-fill"></div></div><div class="cf-lbl" style="color:var(--ch-c);">LIVE</div>';
+    extra.appendChild(fs);
+  }
+  // feed: load history + if empty, seed a few "earlier" messages
+  document.getElementById('chFeed').innerHTML = '';
+  _ch = { tier: tier, level: lvl, souls: souls, messages: [], replyTimer: null };
+  const history = loadChamberHistory(tier);
+  if (history.length === 0) {
+    const seed = _chSeedFromPool(tier, 4);
+    seed.forEach(m => _chAppendMsg(m));
+  } else {
+    history.forEach(m => _chAppendMsg(m));
+  }
+  // input
+  const input = document.getElementById('chInput'); input.value = ''; input.placeholder = 'Share what\'s alive in you on ' + tier.anchor + ' Hz…';
+  ov.classList.add('show');
+  setTimeout(() => { input.focus(); }, 250);
+  saveChamberHistory(tier);
+}
+function _chScheduleReply() {
+  if (!_ch) return; if (_ch.replyTimer) { clearTimeout(_ch.replyTimer); }
+  const delay = 4000 + Math.random() * 11000;
+  _ch.replyTimer = setTimeout(() => {
+    if (!_ch) return;
+    const lines = CHAMBER_LINES[_ch.level] || CHAMBER_LINES[3];
+    const soul = _ch.souls[Math.floor(Math.random() * _ch.souls.length)];
+    const line = lines[Math.floor(Math.random() * lines.length)];
+    _chAppendMsg({ from: 'soul', name: soul.name || 'Soul', hz: soul.freq || _ch.tier.anchor, text: line, t: Date.now() });
+    saveChamberHistory(_ch.tier);
+  }, delay);
+}
+function _chSend() {
+  const input = document.getElementById('chInput'); if (!input || !_ch) return;
+  const txt = (input.value || '').trim(); if (!txt) return;
+  _chAppendMsg({ from: 'you', text: txt, hz: _ch.tier.anchor, t: Date.now() });
+  input.value = ''; saveChamberHistory(_ch.tier);
+  // a seeded soul replies after a beat
+  _chScheduleReply();
+}
+function closeChamber() {
+  const ov = document.getElementById('chamberOverlay'); ov.classList.remove('show');
+  if (_ch && _ch.replyTimer) clearTimeout(_ch.replyTimer);
+  _ch = null;
+}
+document.getElementById('chamberCloseBtn').addEventListener('click', closeChamber);
+document.getElementById('chSend').addEventListener('click', _chSend);
+document.getElementById('chInput').addEventListener('keypress', e => { if (e.key === 'Enter') _chSend(); });
 
 // ===== DEPTH (the locker) =====
 function renderDepth() {
