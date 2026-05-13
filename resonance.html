@@ -13047,6 +13047,88 @@ function renderActivityHeatmap() {
   try { renderActivityHeatmap(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · LONGEST STREAK + CAPACITY ===================
+// Two derived "depth" signals:
+//   1. longestStreak — a number that, once earned, never goes down. Even if the
+//      current streak resets, the all-time peak is preserved. This is a kindness:
+//      "you once held a 47-day streak" stays true forever.
+//   2. capacity — how full localStorage is (in KB / quota). Quietly visible on
+//      the stats footer; auto-prune triggers when usage looks tight.
+(function () {
+  if (!window.RState) return;
+
+  // longestStreak — recomputed every time the streak count changes upward.
+  RState.refreshLongestStreak = function () {
+    if (typeof streakData !== 'object' || !streakData) return;
+    const cur = streakData.count || 0;
+    const longest = RState.get('longest_streak', 0) || 0;
+    if (cur > longest) RState.set('longest_streak', cur);
+  };
+  // Hook saveStreak so every write updates the all-time peak.
+  if (typeof saveStreak === 'function') {
+    const _ss = saveStreak;
+    saveStreak = function () { _ss.apply(this, arguments); try { RState.refreshLongestStreak(); } catch (e) {} };
+  }
+  try { RState.refreshLongestStreak(); } catch (e) {}
+
+  // Capacity — best-effort. Most browsers cap localStorage at ~5MB.
+  RState.capacityReport = function () {
+    let used = 0;
+    RState.listKeys().forEach(k => { try { const v = RState._raw.getRaw(k); if (v) used += k.length + v.length; } catch (e) {} });
+    const ESTIMATED_MAX = 5 * 1024 * 1024; // 5MB convention
+    return { usedBytes: used, estimatedMax: ESTIMATED_MAX, pct: used / ESTIMATED_MAX };
+  };
+
+  // Auto-prune at 80% — drop dated keys older than 30 days. Less aggressive than the
+  // 90-day daily sweep so we only kick in when actually tight.
+  function _autoPruneIfTight() {
+    try {
+      const r = RState.capacityReport();
+      if (r.pct >= 0.8) RState.cleanupDatedKeys(30);
+    } catch (e) {}
+  }
+  _autoPruneIfTight();
+})();
+
+// Surface longestStreak + capacity into the existing Stats render.
+(function () {
+  if (typeof renderStatsPage !== 'function') return;
+  const _r = renderStatsPage;
+  renderStatsPage = function () {
+    _r.apply(this, arguments);
+    if (!window.RState) return;
+    // longest streak — render a single extra card if not already present
+    const grid = document.querySelector('#depthStatsSection .stats-grid'); if (!grid) return;
+    let longestCard = grid.querySelector('.stats-card.longest-streak-card');
+    if (!longestCard) {
+      longestCard = document.createElement('div');
+      longestCard.className = 'stats-card longest-streak-card';
+      longestCard.innerHTML = '<div class="sc-label">Longest streak</div><div class="sc-value" data-bind="longest">—</div><div class="sc-sub">all-time</div>';
+      grid.appendChild(longestCard);
+    }
+    const ls = RState.get('longest_streak', 0) || 0;
+    const lv = longestCard.querySelector('[data-bind="longest"]'); if (lv) lv.textContent = ls;
+
+    // Capacity in the health footer (already rendered) — append %.
+    const footer = document.querySelector('#depthStatsSection .stats-health-footer');
+    if (footer) {
+      const cap = RState.capacityReport();
+      const pct = Math.round(cap.pct * 100);
+      // Avoid duplicating if it's already there.
+      if (!footer.querySelector('.shf-cap')) {
+        const span = document.createElement('span');
+        span.className = 'shf-cap';
+        footer.appendChild(document.createTextNode(' '));
+        const dot = document.createElement('span'); dot.className = 'shf-dot'; dot.textContent = '·'; footer.appendChild(dot);
+        footer.appendChild(span);
+      }
+      const span = footer.querySelector('.shf-cap');
+      if (span) span.textContent = pct + '% capacity';
+    }
+  };
+  try { renderStatsPage(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
