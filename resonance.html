@@ -39,6 +39,34 @@ html, body {
   -webkit-font-smoothing: antialiased;
   letter-spacing: -0.01em;
 }
+/* ============ FLOATING SOUL LAUNCHER (any screen → inner self) ============ */
+.soul-fab {
+  position: fixed; z-index: 130;
+  right: 16px; bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 10px 8px; border-radius: 100px; border: 0;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%),
+    rgba(20,20,28,0.55);
+  border: 1px solid rgba(157,92,255,0.32);
+  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 0 24px rgba(157,92,255,0.18), 0 12px 32px rgba(0,0,0,0.4);
+  color: var(--text); cursor: pointer;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+.soul-fab:active { transform: scale(0.95); }
+.soul-fab .sf-orb {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), var(--violet) 40%, rgba(15,5,40,0.95) 100%);
+  box-shadow: 0 0 12px var(--violet), inset 0 0 6px rgba(255,255,255,0.15);
+  animation: lobbyPulse 2.6s ease-in-out infinite;
+}
+.soul-fab .sf-label { font-size: 8px; letter-spacing: 1.8px; text-transform: uppercase; font-weight: 700; color: rgba(255,255,255,0.85); }
+@media (min-width: 720px) {
+  .soul-fab { right: 24px; bottom: 24px; }
+}
+.soul-fab.hidden { opacity: 0; pointer-events: none; transform: scale(0.7); }
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -1950,6 +1978,51 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .mic-indicator.active .mic-dot { background: var(--mint); animation: dotPulse 1.5s ease-in-out infinite; }
 @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
 
+/* ============ CREATE (the workshop tab) ============ */
+.create-page { padding: 16px 20px 28px; }
+.create-header { padding: 4px 0 18px; }
+.create-eyebrow { font-size: 9px; letter-spacing: 5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 6px; }
+.create-header h1 { font-size: 36px; font-weight: 200; letter-spacing: -0.02em; line-height: 1.05; margin: 0 0 8px; }
+.create-header p { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13.5px; color: var(--text-dim); line-height: 1.55; max-width: 360px; margin: 0; }
+.create-section { margin: 22px 0 0; }
+.cs-section-h { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text); font-weight: 700; margin-bottom: 4px; }
+.cs-section-sub { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 12px; color: var(--text-faint); margin-bottom: 12px; line-height: 1.5; }
+
+.song-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.song-card {
+  position: relative; padding: 16px 16px 16px 18px; border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.65);
+  border: 1px solid var(--sg-c, rgba(255,255,255,0.10));
+  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 0 22px var(--sg-c, rgba(255,255,255,0.04)), 0 12px 32px rgba(0,0,0,0.4);
+  cursor: pointer; transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+.song-card:active { transform: scale(0.985); }
+.song-card.playing { box-shadow: 0 0 36px var(--sg-c, var(--mint)), 0 12px 32px rgba(0,0,0,0.4); border-color: var(--sg-c, var(--mint)); }
+.song-card .sg-row { display: flex; align-items: center; gap: 14px; }
+.song-card .sg-orb { width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0; background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.5), var(--sg-c, var(--violet)) 40%, rgba(15,5,40,0.95) 100%); box-shadow: 0 0 22px var(--sg-c, var(--violet)); transition: transform .35s var(--ease); }
+.song-card.playing .sg-orb { animation: lobbyPulse 1.6s ease-in-out infinite; }
+.song-card .sg-body { flex: 1; min-width: 0; }
+.song-card .sg-eyebrow { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--sg-c, var(--mint)); font-weight: 700; }
+.song-card .sg-name { font-size: 16px; font-weight: 300; letter-spacing: -0.01em; color: var(--text); margin-top: 2px; }
+.song-card .sg-sub { font-size: 11.5px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; }
+.song-card .sg-meta { font-family: ui-monospace, 'SF Mono', monospace; font-size: 10px; letter-spacing: 0.5px; color: var(--text-faint); margin-top: 6px; }
+.song-card .sg-play { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 13px; backdrop-filter: blur(20px); }
+.song-card.playing .sg-play { background: var(--sg-c, var(--mint)); color: #050507; border-color: var(--sg-c, var(--mint)); }
+.song-card .sg-progress { margin-top: 12px; height: 3px; border-radius: 100px; background: rgba(255,255,255,0.06); overflow: hidden; display: none; }
+.song-card.playing .sg-progress { display: block; }
+.song-card .sg-progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--sg-c, var(--mint)), #fff); transition: width 0.4s linear; }
+.create-create-btn {
+  width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 18px;
+  background: rgba(110,231,183,0.06); border: 1px dashed rgba(110,231,183,0.32); color: var(--text);
+  text-align: left; transition: transform .25s var(--ease), background .25s var(--ease);
+}
+.create-create-btn:hover { background: rgba(110,231,183,0.10); }
+.create-create-btn:active { transform: scale(0.985); }
+.create-create-btn .ccb-glyph { font-size: 22px; flex-shrink: 0; filter: drop-shadow(0 0 8px currentColor); }
+.create-create-btn .ccb-title { font-size: 14px; font-weight: 500; }
+.create-create-btn .ccb-sub { font-size: 11.5px; color: var(--text-dim); margin-top: 2px; }
+
 /* ============ LOCKER (per-frequency, "collector's gift") ============ */
 .locker-section { margin-top: 24px; }
 .locker-top-row { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; margin-bottom: 14px; padding: 2px 0; }
@@ -2244,7 +2317,7 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 
 .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; padding: 12px 20px calc(20px + env(safe-area-inset-bottom, 8px)); background: linear-gradient(0deg, rgba(5,5,7,0.95) 60%, transparent); backdrop-filter: blur(30px); z-index: 100; }
 .tab-bar-inner { display: flex; align-items: center; justify-content: space-around; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; padding: 6px; backdrop-filter: blur(40px); }
-.tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border-radius: 100px; color: var(--text-faint); transition: color 0.2s var(--ease); }
+.tab-btn { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 3px; border-radius: 100px; color: var(--text-faint); transition: color 0.2s var(--ease); }
 .tab-btn.active { color: var(--text); }
 .tab-btn svg { width: 22px; height: 22px; }
 .tab-btn span { font-size: 9px; letter-spacing: 0.8px; font-weight: 600; text-transform: uppercase; }
@@ -3657,6 +3730,12 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 <!-- ================= NOTIFICATION STACK (iOS-style top drops, no more middle-of-screen pop-ups) ================= -->
 <div class="notify-stack" id="notifyStack" aria-live="polite"></div>
 
+<!-- ================= FLOATING "talk to your soul" LAUNCHER (every screen) ================= -->
+<button class="soul-fab" id="soulFab" aria-label="Talk to your soul">
+  <div class="sf-orb"></div>
+  <span class="sf-label">Soul</span>
+</button>
+
 <!-- ================= BOOT SEQUENCE (2.5s cinematic open) ================= -->
 <div class="boot-overlay" id="bootOverlay">
   <div class="boot-stars"></div>
@@ -4225,6 +4304,60 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
   </div>
 
+  <!-- ============ CREATE (the workshop) ============ -->
+  <div class="page" id="page-create">
+    <div class="create-page">
+      <div class="create-header">
+        <div class="create-eyebrow">The workshop</div>
+        <h1>Create</h1>
+        <p>Build the sound. Build the beat. Build the song — at the frequency you're holding right now.</p>
+      </div>
+
+      <!-- Songs -->
+      <div class="create-section">
+        <div class="cs-section-h">Songs</div>
+        <div class="cs-section-sub">Vibrational frequency house music — built on the Solfeggio set. Tap one and let it run.</div>
+        <div class="song-list" id="songList"></div>
+        <button class="create-create-btn" id="songMakeBtn">
+          <div class="ccb-glyph" style="color:var(--mint);">＋</div>
+          <div>
+            <div class="ccb-title">Make a song from your frequency</div>
+            <div class="ccb-sub">A house arrangement on the tone you're holding — yours, sharable.</div>
+          </div>
+        </button>
+        <div id="userSongList"></div>
+      </div>
+
+      <!-- Instruments -->
+      <div class="create-section">
+        <div class="cs-section-h">Instruments</div>
+        <div class="cs-section-sub">Sounds you've designed</div>
+        <div class="create-instrument-card" id="instCreateBtn">
+          <div class="create-instrument-icon">+</div>
+          <div>
+            <div class="create-instrument-title">Create an instrument</div>
+            <div class="create-instrument-sub">Design a sound, save it, play it</div>
+          </div>
+        </div>
+        <div id="instrumentList"></div>
+      </div>
+
+      <!-- Beats -->
+      <div class="create-section">
+        <div class="cs-section-h">Beats</div>
+        <div class="cs-section-sub">Patterns you've made</div>
+        <div class="create-instrument-card" id="beatCreateBtn">
+          <div class="create-instrument-icon" style="background:linear-gradient(135deg, var(--pink), var(--gold));">+</div>
+          <div>
+            <div class="create-instrument-title">Make a beat</div>
+            <div class="create-instrument-sub">Step sequencer · 5 pads · 16 steps · Assistant patterns</div>
+          </div>
+        </div>
+        <div id="beatList"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="page" id="page-depth">
     <div class="depth-page">
       <div class="depth-header">
@@ -4273,32 +4406,19 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="memories-strip" id="memoriesStrip"></div>
       </div>
 
-      <!-- Your instruments -->
+      <!-- Instruments + Beats moved to the Create tab (the workshop). Depth = the locker. -->
       <div class="depth-section">
-        <div class="depth-section-h">Your instruments</div>
-        <div class="depth-section-sub">Sounds you've designed</div>
-        <div class="create-instrument-card" id="instCreateBtn">
-          <div class="create-instrument-icon">+</div>
-          <div>
-            <div class="create-instrument-title">Create an instrument</div>
-            <div class="create-instrument-sub">Design a sound, save it, play it</div>
+        <div class="depth-section-h">Make something</div>
+        <div class="depth-section-sub">Your instruments, beats, and songs live in the Create tab.</div>
+        <button class="depth-inner-card" id="depthGoCreateBtn" style="border-color:rgba(110,231,183,0.32); background:radial-gradient(circle at 0% 0%, rgba(110,231,183,0.10), transparent 55%), var(--card);">
+          <div class="dic-glyph" style="color:var(--mint); filter:drop-shadow(0 0 12px var(--mint));">＋</div>
+          <div class="dic-body">
+            <div class="dic-eyebrow" style="color:var(--mint);">Create · the workshop</div>
+            <div class="dic-title">Open the Create tab</div>
+            <div class="dic-sub">Instruments · Beats · Songs you built from your frequencies</div>
           </div>
-        </div>
-        <div id="instrumentList"></div>
-      </div>
-
-      <!-- Your beats -->
-      <div class="depth-section">
-        <div class="depth-section-h">Your beats</div>
-        <div class="depth-section-sub">Patterns you've made</div>
-        <div class="create-instrument-card" id="beatCreateBtn">
-          <div class="create-instrument-icon" style="background:linear-gradient(135deg, var(--pink), var(--gold));">+</div>
-          <div>
-            <div class="create-instrument-title">Make a beat</div>
-            <div class="create-instrument-sub">Step sequencer · 5 pads · 16 steps · Assistant patterns</div>
-          </div>
-        </div>
-        <div id="beatList"></div>
+          <div class="dic-cta" style="color:var(--mint);">Open →</div>
+        </button>
       </div>
 
       <!-- The Library — Solfeggio + chakras + sacred + planetary + elemental — demoted into a collapsible footer -->
@@ -4474,6 +4594,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="tab-bar-inner">
       <button class="tab-btn active" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h14V10"/></svg><span>Home</span></button>
       <button class="tab-btn sync-tab" data-tab="sync"><div class="sync-icon"><div>◎</div></div><span>Sync</span></button>
+      <button class="tab-btn" data-tab="create"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/></svg><span>Create</span></button>
       <button class="tab-btn" data-tab="depth"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6v15M4 6a2 2 0 012-2h12a2 2 0 012 2v15M9 21V9h6v12"/></svg><span>Depth</span></button>
       <button class="tab-btn" data-tab="ascend"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L4 9h4v11h8V9h4z"/></svg><span>Ascend</span></button>
       <button class="tab-btn" data-tab="council"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Council</span></button>
@@ -8610,6 +8731,7 @@ function gotoTab(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (name === 'home' && typeof renderLobby === 'function') renderLobby();
+  if (name === 'create' && typeof renderCreate === 'function') renderCreate();
   if (name === 'depth' && typeof renderDepth === 'function') renderDepth();
   if (name === 'council' && typeof renderCouncil === 'function') renderCouncil();
 }
@@ -11385,6 +11507,16 @@ function renderLobby() {
 }
 { const b = document.getElementById('lobbyOrb'); if (b) b.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('sync'); if (typeof ensureAudio === 'function') ensureAudio(); }); }
 { const b = document.getElementById('lobbySoulBtn'); if (b) b.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
+{ const f = document.getElementById('soulFab'); if (f) f.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
+// hide the FAB while the inner-self overlay is open (the chat surface is already up)
+{
+  const fab = document.getElementById('soulFab'); const overlay = document.getElementById('innerSelfOverlay');
+  if (fab && overlay) {
+    const sync = () => fab.classList.toggle('hidden', overlay.classList.contains('show'));
+    const mo = new MutationObserver(sync); mo.observe(overlay, { attributes: true, attributeFilter: ['class'] });
+    sync();
+  }
+}
 
 // ===== FREQUENCY CHAMBER (per-tier chat rooms, 369 access tiers) =====
 // "Enter this frequency" opens a chamber where everyone holding that tone is connected.
@@ -11564,6 +11696,142 @@ function renderDepth() {
   if (typeof renderBeatList === 'function') renderBeatList();
 }
 { const b = document.getElementById('depthInnerSelfBtn'); if (b) b.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
+
+// ===== SONGS (vibrational frequency house · built from the Solfeggio) =====
+// Real Tone.js arrangements: kick + clap + closed hat + sub bass + pad (the Solfeggio tone) +
+// an arp on the harmonic series. Each preset is a different mood, BPM and primary frequency.
+const SONG_PRESETS = [
+  { id: 'heart-opening',    name: 'Heart Opening',      freq: 528, bpm: 120, mood: 'gentle house · open chest',         color: '#6ee7b7', desc: 'A slow-build on 528 — the miracle frequency. Pad opens, then the kick, then the arpeggio on the perfect fifth. Stay in it.' },
+  { id: 'liberation',       name: 'Liberation',         freq: 396, bpm: 124, mood: 'deep house · release',               color: '#fbbf24', desc: 'Built on 396 — the "let go of fear and guilt" tone. Sub-bass low, hi-hats steady, the arp lifts up.' },
+  { id: 'cosmic-tune',      name: 'Cosmic Tune',        freq: 432, bpm: 122, mood: 'ambient house · alignment',          color: '#a78bfa', desc: 'The natural tuning. 432 in the pad, harmonics drifting on top, a slow kick that you can sit on for hours.' },
+  { id: 'voice-in-the-wind',name: 'Voice in the Wind',  freq: 639, bpm: 118, mood: 'breath-tempo · throat-open',         color: '#34d399', desc: '639 — the relationships tone. Drops to half-time at the bridge. Made for a long walk.' },
+  { id: 'crown',            name: 'Crown',              freq: 963, bpm: 128, mood: 'ascending pads · the ceiling lifts', color: '#e0e7ff', desc: '963. The top of the ladder. Pad dominant, kick gentle. A song to be still inside of.' }
+];
+let _songPlaying = null; // { id, parts: [Tone.Part/Loop, ...], cleanup }
+function _stopSong() {
+  if (!_songPlaying) return;
+  try { Tone.Transport.stop(); } catch(e){}
+  try { Tone.Transport.cancel(); } catch(e){}
+  try { if (_songPlaying.cleanup) _songPlaying.cleanup(); } catch(e){}
+  _songPlaying = null;
+  document.querySelectorAll('.song-card.playing').forEach(c => c.classList.remove('playing'));
+}
+async function playSong(id) {
+  const s = SONG_PRESETS.find(x => x.id === id) || (window._userSongs || []).find(x => x.id === id);
+  if (!s) return;
+  // toggle off if already playing this one
+  if (_songPlaying && _songPlaying.id === id) { _stopSong(); return; }
+  _stopSong();
+  try { await Tone.start(); } catch(e){}
+  try { await ensureAudio(); } catch(e){}
+  if (typeof stopAllTones === 'function') stopAllTones();
+  Tone.Transport.bpm.value = s.bpm || 122;
+  // === build the kit ===
+  const masterVol = new Tone.Volume(-9).toDestination();
+  const reverb = new Tone.Reverb({ decay: 6, wet: 0.35 }).connect(masterVol);
+  const delay = new Tone.FeedbackDelay({ delayTime: '8n.', feedback: 0.18, wet: 0.18 }).connect(reverb);
+  // Kick
+  const kick = new Tone.MembraneSynth({ pitchDecay: 0.05, octaves: 6, oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.42, sustain: 0.01, release: 1.2 } }).connect(masterVol);
+  // Clap (noise)
+  const clap = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.001, decay: 0.18, sustain: 0 } }).connect(new Tone.Filter(2500, 'highpass').connect(reverb));
+  // Hi-hat
+  const hat = new Tone.MetalSynth({ frequency: 220, envelope: { attack: 0.001, decay: 0.08, release: 0.05 }, harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 });
+  const hatVol = new Tone.Volume(-22).connect(reverb);
+  hat.connect(hatVol);
+  // Sub bass
+  const subFreq = (s.freq < 200) ? s.freq : s.freq / 2;
+  const sub = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.02, decay: 0.2, sustain: 0.9, release: 0.35 } });
+  const subVol = new Tone.Volume(-8).connect(masterVol); sub.connect(subVol);
+  // Pad
+  const pad = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine8' }, envelope: { attack: 1.8, decay: 0.5, sustain: 0.8, release: 3.5 } });
+  const padVol = new Tone.Volume(-14).connect(delay); pad.connect(padVol);
+  // Arp (harmonic series)
+  const arp = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.25, sustain: 0.3, release: 0.6 } });
+  const arpVol = new Tone.Volume(-18).connect(delay); arp.connect(arpVol);
+  // === parts ===
+  const kickLoop = new Tone.Loop(time => kick.triggerAttackRelease('C2', '8n', time), '4n').start(0);
+  const clapLoop = new Tone.Loop(time => clap.triggerAttackRelease('16n', time), '2n').start('4n');
+  const hatLoop = new Tone.Loop(time => hat.triggerAttackRelease('32n', time), '8n').start('8n');
+  const subPattern = new Tone.Pattern((time, note) => { sub.triggerAttackRelease(note, '4n', time); }, [subFreq, subFreq, subFreq, subFreq * 1.125], 'up').start(0);
+  subPattern.interval = '2n';
+  // Pad — primary chord (root + fifth + octave) sustained, swelling each 2 bars
+  const padLoop = new Tone.Loop(time => { pad.triggerAttackRelease([s.freq, s.freq * 1.5, s.freq * 2], '1m', time, 0.55); }, '1m').start(0);
+  // Arp — harmonics 1..5 of the freq, rolling 8th notes
+  const harm = [1, 1.5, 2, 2.5, 3, 4].map(h => s.freq * h);
+  const arpPattern = new Tone.Pattern((time, note) => { arp.triggerAttackRelease(note, '16n', time, 0.6); }, harm, 'upDown').start('2n');
+  arpPattern.interval = '8n';
+  // === start ===
+  Tone.Transport.start('+0.05');
+  _songPlaying = {
+    id, started: Date.now(),
+    cleanup: () => {
+      [kickLoop, clapLoop, hatLoop, subPattern, padLoop, arpPattern].forEach(p => { try { p.dispose(); } catch(e){} });
+      [kick, clap, hat, sub, pad, arp, hatVol, subVol, padVol, arpVol, reverb, delay, masterVol].forEach(n => { try { n.dispose(); } catch(e){} });
+    }
+  };
+  document.querySelectorAll('.song-card[data-song-id="' + id + '"]').forEach(c => c.classList.add('playing'));
+  notify('▶ ' + s.name, s.freq + ' Hz · ' + s.bpm + ' BPM · ' + s.mood, '♪', s.color);
+}
+function renderSongList() {
+  const list = document.getElementById('songList'); if (!list) return;
+  list.innerHTML = '';
+  SONG_PRESETS.forEach(s => {
+    const card = document.createElement('div'); card.className = 'song-card'; card.dataset.songId = s.id; card.style.setProperty('--sg-c', s.color);
+    card.innerHTML = '<div class="sg-row">'
+      + '<div class="sg-orb"></div>'
+      + '<div class="sg-body">'
+      +   '<div class="sg-eyebrow">' + s.bpm + ' BPM · ' + s.freq + ' Hz</div>'
+      +   '<div class="sg-name">' + escapeHtml(s.name) + '</div>'
+      +   '<div class="sg-sub">' + escapeHtml(s.desc) + '</div>'
+      +   '<div class="sg-meta">' + escapeHtml(s.mood) + '</div>'
+      + '</div>'
+      + '<button class="sg-play" aria-label="Play">▶</button>'
+      + '</div>'
+      + '<div class="sg-progress"><div class="sg-progress-fill"></div></div>';
+    card.addEventListener('click', () => playSong(s.id));
+    if (_songPlaying && _songPlaying.id === s.id) card.classList.add('playing');
+    list.appendChild(card);
+  });
+}
+function _makeSongFromCurrentFreq() {
+  const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432;
+  const color = (typeof hzToColor === 'function') ? hzToColor(hz)[2] : '#a78bfa';
+  const state = (typeof frequencyState === 'function') ? frequencyState(hz) : { short: hz + ' Hz' };
+  const id = 'user-' + Date.now();
+  const song = { id, name: 'A song on ' + hz + ' Hz', freq: hz, bpm: 120 + (hz % 9), mood: state.short || ('built on ' + hz + ' Hz'), color: color, desc: 'You made this — a house arrangement built on ' + hz + ' Hz.', t: Date.now() };
+  window._userSongs = window._userSongs || [];
+  try { window._userSongs = JSON.parse(localStorage.getItem('resonance_songs') || '[]') || []; } catch(e){ window._userSongs = []; }
+  window._userSongs.unshift(song);
+  if (window._userSongs.length > 20) window._userSongs = window._userSongs.slice(0, 20);
+  try { localStorage.setItem('resonance_songs', JSON.stringify(window._userSongs)); } catch(e){}
+  renderUserSongs();
+  notify('Song saved · ' + hz + ' Hz', 'In your Create · tap to play any time.', '♪', color);
+}
+function renderUserSongs() {
+  const host = document.getElementById('userSongList'); if (!host) return;
+  try { window._userSongs = JSON.parse(localStorage.getItem('resonance_songs') || '[]') || []; } catch(e){ window._userSongs = []; }
+  if (!window._userSongs.length) { host.innerHTML = ''; return; }
+  host.innerHTML = '<div class="cs-section-sub" style="margin-top:14px;">Your songs</div>';
+  const wrap = document.createElement('div'); wrap.className = 'song-list';
+  window._userSongs.forEach(s => {
+    const card = document.createElement('div'); card.className = 'song-card'; card.dataset.songId = s.id; card.style.setProperty('--sg-c', s.color || '#a78bfa');
+    card.innerHTML = '<div class="sg-row">'
+      + '<div class="sg-orb"></div>'
+      + '<div class="sg-body">'
+      +   '<div class="sg-eyebrow">' + s.bpm + ' BPM · ' + s.freq + ' Hz · yours</div>'
+      +   '<div class="sg-name">' + escapeHtml(s.name) + '</div>'
+      +   '<div class="sg-sub">' + escapeHtml(s.desc) + '</div>'
+      + '</div>'
+      + '<button class="sg-play">▶</button>'
+      + '</div>';
+    card.addEventListener('click', () => playSong(s.id));
+    wrap.appendChild(card);
+  });
+  host.appendChild(wrap);
+}
+function renderCreate() { renderSongList(); renderUserSongs(); if (typeof renderInstrumentList === 'function') renderInstrumentList(); if (typeof renderBeatList === 'function') renderBeatList(); }
+{ const b = document.getElementById('songMakeBtn'); if (b) b.addEventListener('click', _makeSongFromCurrentFreq); }
+{ const b = document.getElementById('depthGoCreateBtn'); if (b) b.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('create'); }); }
 
 // ===== THE LOCKER (per-frequency "skin" collection · notes · visit history) =====
 // Every time the user holds a tone, a slot lands in their Locker. The slot tracks how many

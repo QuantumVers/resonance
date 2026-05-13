@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "swarm": "resonance-build-swarm",
+  "version": 1,
+  "note": "Five specialist agents that share the single-file app at resonance.html. Each agent stays in its lane; cross-lane changes require a handshake (see AGENTS.md). This swarm is the BUILD layer; the executive team in RESONANCE_TEAM.md is the STRATEGY layer.",
+  "agents": [
+    {
+      "name": "AUDIO_AGENT",
+      "title": "Sound & Synthesis",
+      "charter": [
+        "Owns every sound the app makes: Tone.js synthesis (oscillators, synths, membranes), tone start/stop/play orchestration, the Sound Sphere instrument, the Beat Maker audio engine, binaural/harmonic/mirror mode synthesis, breath ambient, voice TTS (speakAsInnerSelf), and ensureAudio() context init.",
+        "Treats the frequency value as input and turns it into a sound; does not decide how the orb looks or which screen the controls live on.",
+        "If a feature needs a tone played, it asks AUDIO_AGENT for a helper; if a tone needs a visual, AUDIO_AGENT asks UX_AGENT or POLISH_AGENT to draw it."
+      ],
+      "owns": [
+        "All Tone.* construction and lifecycle",
+        "startTone / stopTone / stopAllTones / playOnce",
+        "Sound Sphere oscillator graph",
+        "Beat Maker pad sounds and the step sequencer's audio clock",
+        "Instrument synthesis from saved params",
+        "Binaural / harmonic / mirror / breath audio synthesis",
+        "speakAsInnerSelf (TTS) + voice picking + voice-pitch detection",
+        "ensureAudio() / Tone.start() gating"
+      ],
+      "doesNotTouch": [
+        "Page layout, tab structure, modal markup (UX_AGENT)",
+        "CSS keyframes / transitions / motion (POLISH_AGENT)",
+        "Persistence (localStorage schema, save/load) (DATA_AGENT)",
+        "Feature mechanics (awakenings, streaks, plates, the Locker) (FEATURES_AGENT)"
+      ],
+      "verifyAfterEdit": [
+        "Audio context resumes on user gesture",
+        "All Tone.* nodes that start are disposable / counted",
+        "JS-parse + getElementById-resolves + div-balance"
+      ]
+    },
+    {
+      "name": "UX_AGENT",
+      "title": "Navigation, Flow & Layout",
+      "charter": [
+        "Owns the 5-tab IA (Home/Sync/Depth/Ascend/Council), gotoTab() routing + per-tab render hooks, every page's HTML structure, modal/overlay shells, the bottom tab bar, the boot sequence's layout, and the Settings panel chrome.",
+        "Answers the question 'what do I tap?' in under one second on every screen; one primary button per screen, gradient reserved for primaries.",
+        "Doesn't write the mechanic, only decides where it lives and where the user lands next."
+      ],
+      "owns": [
+        "<div class=\"page\" id=\"page-...\"> markup for every tab",
+        "gotoTab(name) + the alias map + per-tab render hooks",
+        ".tab-bar / .tab-btn structure",
+        "Overlay shells (chamber, locker, paywall, plate, inner-self, sphere, beat-maker, settings, about, repair, anti-feed)",
+        "Header chrome (#status-bar / greeting / streak pill / awakenings star / gear)",
+        "Information-architecture decisions: which feature lives on which tab",
+        "Hit-targets, scroll behavior, keyboard handling, safe-area insets"
+      ],
+      "doesNotTouch": [
+        "Audio engine internals (AUDIO_AGENT)",
+        "CSS animations / keyframes (POLISH_AGENT — but layout CSS is UX_AGENT's)",
+        "Mechanic logic — what an awakening / quest / plate does (FEATURES_AGENT)",
+        "Persistence schema (DATA_AGENT)"
+      ],
+      "verifyAfterEdit": [
+        "Every tab loads with no console errors",
+        "Time-to-Sync from cold open is under 5 seconds",
+        "JS-parse + getElementById-resolves + div-balance"
+      ]
+    },
+    {
+      "name": "FEATURES_AGENT",
+      "title": "Mechanics & Progression",
+      "charter": [
+        "Owns every game mechanic: awakenings (the 9 thresholds), streaks, daily/weekly quests, The Pass + Seasons, The Rising, The Plates, The Convergence + Gratitude, The Reading, Soul Notes, Waves, Kindred, the True Self + Closeness + Trust, the per-frequency Chambers' room logic, and the Locker.",
+        "Cares about the rules — when something unlocks, how a count progresses, what 'showing up' looks like — not how it's drawn or where the button is.",
+        "The Keeper has veto power over any mechanic that uses loss framing, leaderboards, dark patterns, or paywalls the practice; FEATURES_AGENT runs decisions past resonance-keeper before shipping."
+      ],
+      "owns": [
+        "Awakenings array + unlockAwakening() + checkAwakenings()",
+        "Streak logic (loadStreak/saveStreak/recordDailySync)",
+        "Daily + weekly quests (definition + progress tracking)",
+        "The Pass + Seasons (passDepth, tier crossings, cosmetics)",
+        "The Rising game loop and rewards",
+        "The Plates earning rules",
+        "The Convergence + Gratitude windows and counts",
+        "The Reading generator (deterministic-per-day from user data)",
+        "Soul Notes + Waves rules",
+        "Kindred surfacing logic",
+        "True Self + Closeness + Trust + addCloseness/addTrust",
+        "The Locker: lockerLog, lockerAddNote, visit aggregation, 'most-returned'",
+        "Chamber room behavior (presence seeding, message pools, persistence wiring through DATA_AGENT)"
+      ],
+      "doesNotTouch": [
+        "The look of the rewards (POLISH_AGENT draws the moment / notify)",
+        "Page placement of the feature (UX_AGENT decides the slot)",
+        "Audio cues that fire on unlock (AUDIO_AGENT writes the helper, FEATURES_AGENT calls it)",
+        "localStorage keys / migrations (DATA_AGENT)"
+      ],
+      "verifyAfterEdit": [
+        "Mechanic survives a hard refresh (data round-trips through DATA_AGENT)",
+        "No loss framing, leaderboards, or 'don't break it!' language (Keeper veto)",
+        "JS-parse + getElementById-resolves + div-balance"
+      ]
+    },
+    {
+      "name": "DATA_AGENT",
+      "title": "Persistence & Backend Readiness",
+      "charter": [
+        "Owns every localStorage key in the app, the load/save helpers around them, the schema for persisted records, schema migrations, and the seam where the future Supabase/backend layer plugs in to replace localStorage transparently.",
+        "Promises features and UX a stable read/write API; promises the eventual backend the same shape with the prefix stripped — so the swap is one line.",
+        "Treats every persisted record as if it'll be reconciled across devices someday; uses lastUpdated timestamps and stable IDs."
+      ],
+      "owns": [
+        "Every localStorage.getItem / setItem call site (route them through helpers)",
+        "Keys (current set): resonance_memories, resonance_instruments, resonance_beats, resonance_streak, resonance_settings, resonance_awakenings, resonance_inner_chat, resonance_chamber_<n>, resonance_council_application, resonance_risings, resonance_pass, resonance_season, resonance_plates, resonance_lastopen, resonance_convergence, resonance_gratitudes, resonance_soulnotes, resonance_waves, resonance_kindred, resonance_trueself, resonance_closeness, resonance_trust, resonance_freq_locker (TBD)",
+        "Schema migrations (versioned)",
+        "Rolling caps (innerSelfMessages: 500; risings: 300; chamber: 200)",
+        "loadMemories / saveMemory + parallels for every persisted record",
+        "The future seam: a resonance.store namespace that returns {get, set, push, list, watch} so a backend driver can replace localStorage without features changing"
+      ],
+      "doesNotTouch": [
+        "Presentation (UX_AGENT, POLISH_AGENT)",
+        "Audio (AUDIO_AGENT)",
+        "Mechanic rules — only their persistence (FEATURES_AGENT)"
+      ],
+      "verifyAfterEdit": [
+        "Every persisted record round-trips through a refresh",
+        "No raw localStorage.* writes outside DATA_AGENT's helpers",
+        "Schema bump bumps version and includes a forward migration",
+        "JS-parse + getElementById-resolves + div-balance"
+      ]
+    },
+    {
+      "name": "POLISH_AGENT",
+      "title": "Motion, Micro-interactions & Cinematics",
+      "charter": [
+        "Owns every CSS @keyframes, every transition, the notification stack (notify), the floatGain/toast/cinematicMoment systems, the Apple Liquid Glass treatment (40px blur + 180% saturate + 1px white border + per-event color glow), button hover/active states, and the cinematic overlays (Plate award, Ascension, Rising end, Reading reveal, the boot sequence).",
+        "Decides what fires as a quiet notification vs. a sacred full-screen takeover — leans heavily toward the stack; the takeover is rare and earned.",
+        "Pairs every meaningful UI event with a short Tone.js cue (asks AUDIO_AGENT for the helper)."
+      ],
+      "owns": [
+        "Every @keyframes definition in the <style>",
+        ".moment / .cinematic-moment / .notify-card / .toast / .float-gain markup + CSS",
+        "Apple Liquid Glass card styling and color-glow tokens (--n-c, --n-glow)",
+        "moment() / cinematicMoment() / notify() / floatGain() / toast() functions",
+        "Cinematic overlays (#plateOverlay, #ascendOverlay, #risingEnd, #readingOverlay, #bootOverlay) — visual side",
+        "Hover / active / focus styles across the app",
+        "Transition timings (--ease, --pop) and the motion vocabulary"
+      ],
+      "doesNotTouch": [
+        "Page layout / IA (UX_AGENT)",
+        "Mechanic rules — only their visual celebration (FEATURES_AGENT)",
+        "Audio synthesis (AUDIO_AGENT) — only triggers cue helpers AUDIO_AGENT exposes",
+        "Persistence (DATA_AGENT)"
+      ],
+      "verifyAfterEdit": [
+        "Nothing animates infinitely off-screen / leaks DOM nodes",
+        "All animations respect prefers-reduced-motion when feasible",
+        "Notification stack caps at 4; older drop off cleanly",
+        "JS-parse + getElementById-resolves + div-balance"
+      ]
+    }
+  ],
+  "sharedConventions": {
+    "singleFile": "Everything lives in /Users/elliotgoldmanai/resonance/resonance.html. CSS in the one <style>, JS in the one inline <script>. There is no module system.",
+    "sectionMarkers": "Each agent's CSS and JS blocks are bracketed with a /* ============ <SECTION NAME> ============ */ banner so it's clear which lane a block belongs to. Agents edit their own banner; cross-banner edits require a handshake.",
+    "wrapPattern": "Cross-cutting concerns extend existing functions with the wrap pattern: const _f = fn; fn = function(){ _f.apply(this, arguments); ...new behavior... }; — this lets one agent add behavior on another's function without rewriting it.",
+    "verifyAfterEveryEdit": "node -e \"const fs=require('fs');const h=fs.readFileSync('resonance.html','utf8');const m=h.match(/<script>([\\\\s\\\\S]*?)<\\\\/script>/);try{new Function(m[1]);console.log('JS OK')}catch(e){console.log('ERR '+e.message);process.exit(1)} const o=(h.match(/<div\\\\b/g)||[]).length,c=(h.match(/<\\\\/div>/g)||[]).length;console.log('div',o,c,o===c?'OK':'MISMATCH'); const ids=new Set();let r;const re=/id=\\\"([^\\\"]+)\\\"/g;while(r=re.exec(h))ids.add(r[1]);const used=new Set();const re2=/getElementById\\\\(['\\\"]([^'\\\"]+)['\\\"]\\\\)/g;while(r=re2.exec(h))used.add(r[1]);console.log('missing ids:',[...used].filter(x=>!ids.has(x)).join(', ')||'none');\"",
+    "commitDiscipline": "One feature per commit; commit message starts with the owning agent name (e.g., FEATURES_AGENT: Frequency Locker — per-Hz visit log + notes). Push deploys via GitHub Pages."
+  },
+  "executiveOverride": {
+    "note": "The seven-agent executive team in RESONANCE_TEAM.md (founder / brand / growth / product / design / keeper / steward) makes STRATEGY calls — what to build, what to charge, what to ship now. The build swarm here EXECUTES within domain lanes. If the two disagree, the executive team wins on strategy; the build swarm wins on how to implement.",
+    "keeperVeto": "resonance-keeper can veto any FEATURES_AGENT mechanic that uses loss framing, dark patterns, paywalled practice, leaderboards, or dishonest urgency. A veto stands until the mechanic clears."
+  }
+}
