@@ -39,6 +39,22 @@ html, body {
   -webkit-font-smoothing: antialiased;
   letter-spacing: -0.01em;
 }
+/* ============ BOOT SEQUENCE ============ */
+.boot-overlay { position: fixed; inset: 0; z-index: 9999; background: #010103; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.6s ease; }
+.boot-overlay.hide { opacity: 0; pointer-events: none; }
+.boot-stars { position: absolute; inset: 0; background-image: radial-gradient(circle at 12% 18%, rgba(255,255,255,0.5) 0, transparent 1px), radial-gradient(circle at 78% 32%, rgba(255,255,255,0.4) 0, transparent 1px), radial-gradient(circle at 30% 70%, rgba(255,255,255,0.5) 0, transparent 1px), radial-gradient(circle at 85% 80%, rgba(255,255,255,0.3) 0, transparent 1px), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.3) 0, transparent 1px); animation: bootStars 2.5s ease-out forwards; opacity: 0; }
+.boot-orb-wrap { animation: bootOrbIn 1.4s cubic-bezier(.2,.7,.2,1) forwards; opacity: 0; }
+.boot-orb { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.6), #a78bfa 40%, rgba(15,5,40,0.95) 100%); box-shadow: 0 0 80px #a78bfa, 0 0 24px rgba(255,255,255,0.4), inset 0 0 40px rgba(255,255,255,0.15); animation: bootOrbPulse 2s ease-in-out infinite; }
+.boot-title { font-size: 22px; font-weight: 200; letter-spacing: 10px; color: rgba(255,255,255,0.95); text-transform: uppercase; opacity: 0; animation: bootTitleIn 0.55s ease-out 1.05s forwards; min-height: 30px; text-shadow: 0 0 20px rgba(167,139,250,0.4); }
+.boot-title .bt-letter { display: inline-block; opacity: 0; transform: translateY(6px); animation: bootLetter 0.4s cubic-bezier(.2,.7,.2,1) forwards; }
+.boot-sub { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 12px; color: rgba(255,255,255,0.5); opacity: 0; animation: bootSubIn 0.6s ease-out 1.8s forwards; letter-spacing: 1px; }
+@keyframes bootStars { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 0.6; transform: scale(1); } }
+@keyframes bootOrbIn { 0% { opacity: 0; transform: scale(0.4) translateY(20px); filter: blur(20px); } 60% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } }
+@keyframes bootOrbPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes bootTitleIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bootLetter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bootSubIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 0.6; transform: translateY(0); } }
+
 body {
   min-height: 100vh;
   background:
@@ -3510,6 +3526,14 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 </head>
 <body>
 
+<!-- ================= BOOT SEQUENCE (2.5s cinematic open) ================= -->
+<div class="boot-overlay" id="bootOverlay">
+  <div class="boot-stars"></div>
+  <div class="boot-orb-wrap"><div class="boot-orb"></div></div>
+  <div class="boot-title" id="bootTitle"></div>
+  <div class="boot-sub">The inner world</div>
+</div>
+
 <canvas id="bgCanvas"></canvas>
 <div class="toast-host" id="toastHost"></div>
 
@@ -4903,6 +4927,17 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 </div>
 
 <script>
+// =================== BOOT SEQUENCE (2.5s cinematic open) ===================
+(function () {
+  const title = document.getElementById('bootTitle'); if (!title) return;
+  const word = 'RESONANCE'; let html = '';
+  for (let i = 0; i < word.length; i++) html += '<span class="bt-letter" style="animation-delay:' + (1.05 + i * 0.07) + 's">' + word[i] + '</span>';
+  title.innerHTML = html;
+  setTimeout(() => {
+    const ov = document.getElementById('bootOverlay'); if (ov) { ov.classList.add('hide'); setTimeout(() => { try { ov.remove(); } catch(e){} }, 700); }
+  }, 2500);
+})();
+
 // =================== TOAST ===================
 // Floating bottom toast — replaces alert(). type: '' | 'ok' | 'warn'
 function toast(message, type) {
