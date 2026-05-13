@@ -5955,8 +5955,8 @@ document.getElementById('devSkipSignupBtn').addEventListener('click', () => {
 // =================== INNER SELF CHAT ===================
 let innerSelfMessages = [];
 // load any persisted chat history — one continuous chat, across sessions
-try { const _ic = JSON.parse(localStorage.getItem('resonance_inner_chat') || '[]'); if (Array.isArray(_ic)) innerSelfMessages = _ic; } catch(e){}
-function saveInnerChat() { try { localStorage.setItem('resonance_inner_chat', JSON.stringify(innerSelfMessages.slice(-500))); } catch(e){} }
+try { const _ic = window.RState ? RState.get('inner_chat', []) : JSON.parse(localStorage.getItem('resonance_inner_chat') || '[]'); if (Array.isArray(_ic)) innerSelfMessages = _ic; } catch(e){}
+function saveInnerChat() { try { const v = innerSelfMessages.slice(-500); if (window.RState) RState.set('inner_chat', v); else localStorage.setItem('resonance_inner_chat', JSON.stringify(v)); } catch(e){} }
 let speechRecognition = null;
 let isListening = false;
 let voicesLoaded = [];
@@ -7455,12 +7455,12 @@ document.getElementById('clearLayers').addEventListener('click', () => {
 let memories = [];
 function loadMemories() {
   try {
-    const saved = localStorage.getItem('resonance_memories');
+    const saved = (window.RState ? JSON.stringify(RState.get('memories') || []) : localStorage.getItem('resonance_memories'));
     if (saved) memories = JSON.parse(saved);
   } catch (e) {}
 }
 function persistMemories() {
-  try { localStorage.setItem('resonance_memories', JSON.stringify(memories)); } catch (e) {}
+  try { if (window.RState) RState.set('memories', memories); else localStorage.setItem('resonance_memories', JSON.stringify(memories)); } catch (e) {}
 }
 function saveMemory(freq, label) {
   freq = Math.round(freq);
@@ -8133,10 +8133,10 @@ let activeInstrumentHz = null;
 let auditionNodes = null; // for live audition
 
 function loadInstruments() {
-  try { const v = localStorage.getItem('resonance_instruments'); if (v) instruments = JSON.parse(v); } catch(e){}
+  try { const v = window.RState ? RState.get('instruments') : JSON.parse(localStorage.getItem('resonance_instruments') || 'null'); if (Array.isArray(v)) instruments = v; } catch(e){}
 }
 function persistInstruments() {
-  try { localStorage.setItem('resonance_instruments', JSON.stringify(instruments)); } catch(e){}
+  try { if (window.RState) RState.set('instruments', instruments); else localStorage.setItem('resonance_instruments', JSON.stringify(instruments)); } catch(e){}
 }
 loadInstruments();
 
@@ -8456,10 +8456,10 @@ let drumSynths = null;
 let drumGain = null;
 
 function loadBeats() {
-  try { const v = localStorage.getItem('resonance_beats'); if (v) beats = JSON.parse(v); } catch(e){}
+  try { const v = window.RState ? RState.get('beats') : JSON.parse(localStorage.getItem('resonance_beats') || 'null'); if (Array.isArray(v)) beats = v; } catch(e){}
 }
 function persistBeats() {
-  try { localStorage.setItem('resonance_beats', JSON.stringify(beats)); } catch(e){}
+  try { if (window.RState) RState.set('beats', beats); else localStorage.setItem('resonance_beats', JSON.stringify(beats)); } catch(e){}
 }
 loadBeats();
 
@@ -9192,7 +9192,7 @@ const AWAKENINGS = [
 const AWAKENINGS_BY_ID = {}; AWAKENINGS.forEach(a => AWAKENINGS_BY_ID[a.id] = a);
 function memCount() { return (typeof memories !== 'undefined' && Array.isArray(memories)) ? memories.length : 0; }
 let awakenings = [];
-function loadAwakenings() { try { const v = JSON.parse(localStorage.getItem('resonance_awakenings') || '[]'); if (Array.isArray(v)) awakenings = v; } catch (e) {} }
+function loadAwakenings() { try { const v = window.RState ? RState.get('awakenings', []) : JSON.parse(localStorage.getItem('resonance_awakenings') || '[]'); if (Array.isArray(v)) awakenings = v; } catch (e) {} }
 function isAwakened(id) { return awakenings.indexOf(id) !== -1; }
 function awakenedCount() { return AWAKENINGS.filter(a => isAwakened(a.id)).length; }
 const _AWK_SILENT = { initiated: 1, firstSync: 1, anchor: 1, streak7: 1 };
@@ -9201,7 +9201,7 @@ function unlockAwakening(id, opts) {
   if (isAwakened(id)) return;
   const a = AWAKENINGS_BY_ID[id]; if (!a) return;
   awakenings.push(id);
-  try { localStorage.setItem('resonance_awakenings', JSON.stringify(awakenings)); } catch (e) {}
+  try { if (window.RState) RState.set('awakenings', awakenings); else localStorage.setItem('resonance_awakenings', JSON.stringify(awakenings)); } catch (e) {}
   renderAwakenings();
   updateAwakeningsBadge();
   if (opts.silent) return;
@@ -10532,8 +10532,8 @@ const PLATES = [
 ];
 const PLATE_BY_ID = {}; PLATES.forEach(p => PLATE_BY_ID[p.id] = p);
 const PLATE_ORDER = PLATES.map(p => p.id);
-function loadPlateState() { try { const v = JSON.parse(localStorage.getItem('resonance_plates') || 'null'); if (v && Array.isArray(v.earned)) return v; } catch (e) {} return { firstDay: null, daysAtHome: 0, lastHomeDay: null, earned: [] }; }
-function savePlateState(s) { try { localStorage.setItem('resonance_plates', JSON.stringify(s)); } catch (e) {} }
+function loadPlateState() { try { const v = window.RState ? RState.get('plates') : JSON.parse(localStorage.getItem('resonance_plates') || 'null'); if (v && Array.isArray(v.earned)) return v; } catch (e) {} return { firstDay: null, daysAtHome: 0, lastHomeDay: null, earned: [] }; }
+function savePlateState(s) { try { if (window.RState) RState.set('plates', s); else localStorage.setItem('resonance_plates', JSON.stringify(s)); } catch (e) {} }
 function plateState() { return loadPlateState(); }
 function highestPlateId() { const s = plateState(); for (let i = PLATE_ORDER.length - 1; i >= 0; i--) if (s.earned.indexOf(PLATE_ORDER[i]) !== -1) return PLATE_ORDER[i]; return null; }
 function medallionHtml(plateId, size, opts) {
@@ -10673,12 +10673,12 @@ function convUntil(now) {
   const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
   return h > 0 ? (h + 'h ' + m + 'm') : (m + 'm');
 }
-function convList() { try { const v = JSON.parse(localStorage.getItem('resonance_convergences') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+function convList() { try { const v = window.RState ? RState.get('convergences', []) : JSON.parse(localStorage.getItem('resonance_convergences') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
 function convergedToday() { return convList().indexOf((typeof _dayKey === 'function') ? _dayKey() : 'd') !== -1; }
 function recordConvergence() {
   const list = convList(); const today = (typeof _dayKey === 'function') ? _dayKey() : 'd';
   const first = list.indexOf(today) === -1;
-  if (first) { list.push(today); try { localStorage.setItem('resonance_convergences', JSON.stringify(list)); } catch (e) {} }
+  if (first) { list.push(today); try { if (window.RState) RState.set('convergences', list); else localStorage.setItem('resonance_convergences', JSON.stringify(list)); } catch (e) {} }
   if (first && typeof addCloseness === 'function') addCloseness(3, 'converge');
   if (first) {
     const n = list.length;
@@ -10875,11 +10875,11 @@ var GRATITUDE_POOL = [
 function gratKey() { return 'resonance_gratitude_' + ((typeof _dayKey === 'function') ? _dayKey() : 'd'); }
 function getMyGratitude() { try { const v = JSON.parse(localStorage.getItem(gratKey()) || 'null'); return (v && v.line) ? v : null; } catch (e) { return null; } }
 function setMyGratitude(line) { try { localStorage.setItem(gratKey(), JSON.stringify({ line: line, t: Date.now() })); } catch (e) {} }
-function gratGivenList() { try { const v = JSON.parse(localStorage.getItem('resonance_gratitudes_given') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+function gratGivenList() { try { const v = window.RState ? RState.get('gratitudes_given', []) : JSON.parse(localStorage.getItem('resonance_gratitudes_given') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
 function recordGratitude() {
   const list = gratGivenList(); const today = (typeof _dayKey === 'function') ? _dayKey() : 'd';
   const first = list.indexOf(today) === -1;
-  if (first) { list.push(today); try { localStorage.setItem('resonance_gratitudes_given', JSON.stringify(list)); } catch (e) {} if (typeof addCloseness === 'function') addCloseness(1, 'gratitude'); }
+  if (first) { list.push(today); try { if (window.RState) RState.set('gratitudes_given', list); else localStorage.setItem('resonance_gratitudes_given', JSON.stringify(list)); } catch (e) {} if (typeof addCloseness === 'function') addCloseness(1, 'gratitude'); }
   if (first) {
     const n = list.length;
     if ((n === 3 || n === 7 || n === 21 || n === 50) && typeof moment === 'function') {
@@ -11356,12 +11356,12 @@ function seasonTonePick(salt) { const s = currentSeason(); if (!s || !s.tones ||
 // --- pass state (resets per season idx; unlocked cosmetics persist forever) ---
 var PASS_THRESHOLDS = [0,120,280,480,730,1040,1420,1880,2440,3120,3950,4960]; // depth needed for tiers 1..12
 function passTierFor(d) { if (typeof PASS_THRESHOLDS === 'undefined' || !PASS_THRESHOLDS) return 1; let t = 1; for (let i=0;i<PASS_THRESHOLDS.length;i++) if (d >= PASS_THRESHOLDS[i]) t = i+1; return t; }
-function loadPass() { try { const v = JSON.parse(localStorage.getItem('resonance_pass')||'null'); if (v && v.idx === _seasonIdx()) return v; } catch(e){} return { idx:_seasonIdx(), depth:0, claimed:[] }; }
-function savePass(p) { try { localStorage.setItem('resonance_pass', JSON.stringify(p)); } catch(e){} }
+function loadPass() { try { const v = window.RState ? RState.get('pass') : JSON.parse(localStorage.getItem('resonance_pass')||'null'); if (v && v.idx === _seasonIdx()) return v; } catch(e){} return { idx:_seasonIdx(), depth:0, claimed:[] }; }
+function savePass(p) { try { if (window.RState) RState.set('pass', p); else localStorage.setItem('resonance_pass', JSON.stringify(p)); } catch(e){} }
 function passDepth() { return loadPass().depth; }
 function passTier() { return passTierFor(passDepth()); }
-function loadCosmetics() { try { const v = JSON.parse(localStorage.getItem('resonance_cosmetics')||'[]'); return new Set(Array.isArray(v)?v:[]); } catch(e){ return new Set(); } }
-function saveCosmetics(set) { try { localStorage.setItem('resonance_cosmetics', JSON.stringify([...set])); } catch(e){} }
+function loadCosmetics() { try { const v = window.RState ? RState.get('cosmetics', []) : JSON.parse(localStorage.getItem('resonance_cosmetics')||'[]'); return new Set(Array.isArray(v)?v:[]); } catch(e){ return new Set(); } }
+function saveCosmetics(set) { try { const arr = [...set]; if (window.RState) RState.set('cosmetics', arr); else localStorage.setItem('resonance_cosmetics', JSON.stringify(arr)); } catch(e){} }
 function hasCosmetic(id) { return loadCosmetics().has(id); }
 function addCosmetic(id) { const s = loadCosmetics(); if (!s.has(id)) { s.add(id); saveCosmetics(s); } }
 
@@ -11657,7 +11657,7 @@ document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout
 var _ri = null;
 var RISING_DURATION = 200000; // 3:20
 var RISING_SOUL_COUNT = 72;
-function risingCount() { try { const v = JSON.parse(localStorage.getItem('resonance_risings')||'[]'); return Array.isArray(v) ? v.length : 0; } catch(e){ return 0; } }
+function risingCount() { try { const v = window.RState ? RState.get('risings', []) : JSON.parse(localStorage.getItem('resonance_risings')||'[]'); return Array.isArray(v) ? v.length : 0; } catch(e){ return 0; } }
 function recordRising(pct, lifted) {
   let arr=[]; try { arr = JSON.parse(localStorage.getItem('resonance_risings')||'[]'); if (!Array.isArray(arr)) arr=[]; } catch(e){}
   arr.push({ t: Date.now(), pct: Math.round(pct*100), lifted: lifted }); if (arr.length > 300) arr.shift();
@@ -12178,7 +12178,7 @@ function _makeSongFromCurrentFreq() {
   try { window._userSongs = JSON.parse(localStorage.getItem('resonance_songs') || '[]') || []; } catch(e){ window._userSongs = []; }
   window._userSongs.unshift(song);
   if (window._userSongs.length > 20) window._userSongs = window._userSongs.slice(0, 20);
-  try { localStorage.setItem('resonance_songs', JSON.stringify(window._userSongs)); } catch(e){}
+  try { if (window.RState) RState.set('songs', window._userSongs); else localStorage.setItem('resonance_songs', JSON.stringify(window._userSongs)); } catch(e){}
   renderUserSongs();
   notify('Song saved · ' + hz + ' Hz', 'In your Create · tap to play any time.', '♪', color);
 }
@@ -12213,8 +12213,8 @@ function renderCreate() { renderSongList(); renderUserSongs(); if (typeof render
 // times they've operated at that frequency, when, and any notes they've left. The goal is for
 // the founder's stated use: regulate and understand why they feel the way they feel.
 var _freqLocker = {};
-try { const v = JSON.parse(localStorage.getItem('resonance_freq_locker') || '{}'); if (v && typeof v === 'object') _freqLocker = v; } catch(e){}
-function _saveLocker() { try { localStorage.setItem('resonance_freq_locker', JSON.stringify(_freqLocker)); } catch(e){} }
+try { const v = window.RState ? RState.get('freq_locker', {}) : JSON.parse(localStorage.getItem('resonance_freq_locker') || '{}'); if (v && typeof v === 'object') _freqLocker = v; } catch(e){}
+function _saveLocker() { try { if (window.RState) RState.set('freq_locker', _freqLocker); else localStorage.setItem('resonance_freq_locker', JSON.stringify(_freqLocker)); } catch(e){} }
 function _lockerSlotFor(hz) { hz = Math.round(hz); if (!_freqLocker[hz]) _freqLocker[hz] = { hz: hz, count: 0, firstVisit: null, lastVisit: null, visits: [], notes: [] }; return _freqLocker[hz]; }
 let _lastLockerHz = null;
 function lockerLog(hz) {
