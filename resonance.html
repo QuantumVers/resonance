@@ -3008,6 +3008,71 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .lobby-soul-btn:hover { box-shadow: 0 0 32px rgba(157,92,255,0.28), 0 12px 32px rgba(0,0,0,0.4); }
 .lobby-soul-btn:active { transform: scale(0.97); }
 
+/* ============ UX_AGENT · LIST CARD ARRIVAL (real stagger, not fake shimmer) ============ */
+/* Cards in long lists arrive like a dealt hand. Pure CSS via :nth-child delays.
+   nth-of-type so the optional capture/skin/header cards don't desync the stagger. */
+.memories-strip .memory-card,
+.song-list .song-card,
+.locker-grid .locker-card,
+.locker-top-row .locker-top-card,
+#instrumentList .instrument-card,
+#beatList .beat-card {
+  opacity: 0; transform: translateY(10px);
+  animation: listCardIn 0.55s cubic-bezier(.16,.84,.32,1) forwards;
+}
+.memories-strip .memory-card:nth-of-type(1),
+.song-list .song-card:nth-of-type(1),
+.locker-grid .locker-card:nth-of-type(1),
+.locker-top-row .locker-top-card:nth-of-type(1),
+#instrumentList .instrument-card:nth-of-type(1),
+#beatList .beat-card:nth-of-type(1) { animation-delay: 0.02s; }
+.memories-strip .memory-card:nth-of-type(2),
+.song-list .song-card:nth-of-type(2),
+.locker-grid .locker-card:nth-of-type(2),
+.locker-top-row .locker-top-card:nth-of-type(2),
+#instrumentList .instrument-card:nth-of-type(2),
+#beatList .beat-card:nth-of-type(2) { animation-delay: 0.08s; }
+.memories-strip .memory-card:nth-of-type(3),
+.song-list .song-card:nth-of-type(3),
+.locker-grid .locker-card:nth-of-type(3),
+.locker-top-row .locker-top-card:nth-of-type(3),
+#instrumentList .instrument-card:nth-of-type(3),
+#beatList .beat-card:nth-of-type(3) { animation-delay: 0.14s; }
+.memories-strip .memory-card:nth-of-type(4),
+.song-list .song-card:nth-of-type(4),
+.locker-grid .locker-card:nth-of-type(4),
+#instrumentList .instrument-card:nth-of-type(4),
+#beatList .beat-card:nth-of-type(4) { animation-delay: 0.20s; }
+.memories-strip .memory-card:nth-of-type(5),
+.song-list .song-card:nth-of-type(5),
+.locker-grid .locker-card:nth-of-type(5),
+#instrumentList .instrument-card:nth-of-type(5),
+#beatList .beat-card:nth-of-type(5) { animation-delay: 0.26s; }
+.memories-strip .memory-card:nth-of-type(6),
+.song-list .song-card:nth-of-type(6),
+.locker-grid .locker-card:nth-of-type(6),
+#instrumentList .instrument-card:nth-of-type(6),
+#beatList .beat-card:nth-of-type(6) { animation-delay: 0.32s; }
+.memories-strip .memory-card:nth-of-type(n+7),
+.song-list .song-card:nth-of-type(n+7),
+.locker-grid .locker-card:nth-of-type(n+7),
+#instrumentList .instrument-card:nth-of-type(n+7),
+#beatList .beat-card:nth-of-type(n+7) { animation-delay: 0.36s; }
+@keyframes listCardIn {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(4px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .memories-strip .memory-card,
+  .song-list .song-card,
+  .locker-grid .locker-card,
+  .locker-top-row .locker-top-card,
+  #instrumentList .instrument-card,
+  #beatList .beat-card { animation: none; opacity: 1; transform: none; }
+}
+/* ============ /UX_AGENT ============ */
+
 /* ============ UX_AGENT · TAB BAR ============ */
 .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; padding: 12px 20px calc(20px + env(safe-area-inset-bottom, 8px)); background: linear-gradient(0deg, rgba(5,5,7,0.95) 60%, transparent); backdrop-filter: blur(30px); z-index: 100; }
 .tab-bar-inner { display: flex; align-items: center; justify-content: space-around; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; padding: 6px; backdrop-filter: blur(40px); position: relative; }
