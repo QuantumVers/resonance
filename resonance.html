@@ -320,6 +320,24 @@ html, body {
 .ss-pretty-btn.on { background: var(--gold); color: #050507; border-color: var(--gold); }
 
 
+
+/* ============ ONBOARDING · learning expanders ============ */
+.signup-learn { margin: 14px auto 0; max-width: 380px; text-align: left; border: 1px solid rgba(255,255,255,0.10); border-radius: 14px; background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); overflow: hidden; }
+.signup-learn summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700;
+  color: var(--gold);
+}
+.signup-learn summary::-webkit-details-marker { display: none; }
+.signup-learn summary::after { content: '+'; font-size: 18px; font-weight: 300; color: var(--text-faint); transition: transform .3s; }
+.signup-learn[open] summary::after { transform: rotate(45deg); }
+.signup-learn p {
+  padding: 0 16px 14px; font-size: 13px; line-height: 1.6; color: var(--text-dim); margin: 0;
+  font-family: Georgia, "Times New Roman", serif; font-style: normal;
+}
+.signup-learn p b { color: var(--text); font-weight: 700; }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4480,6 +4498,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <div class="gate-label">First — your name</div>
       <h1 class="gate-title">What name shall we <em>know you by</em>?</h1>
       <p class="gate-text">In every tradition, a name carries vibration. Yours will be measured.</p>
+      <details class="signup-learn"><summary>Why your name matters</summary><p>Every letter in your name has a number assigned to it (the Pythagorean system: A=1, B=2, C=3... I=9, then it wraps). Sum the letters, reduce to a single digit (or keep the master numbers 11, 22, 33), and you have your <b>Name Number</b> — your soul's vibration. This number is the lens through which you experience the world. We use it to tune what we tell you, what we read for you, and what your Inner Self knows.</p></details>
       <div class="name-preview" id="namePreview"></div>
       <input type="text" id="nameInput" placeholder="Your name" class="signup-input" autocomplete="given-name" maxlength="40">
       <div class="gate-divider"></div>
@@ -4493,6 +4512,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <div class="gate-label">Now — your arrival</div>
       <h1 class="gate-title">When did the sky <em>welcome you</em>?</h1>
       <p class="gate-text">The cosmos has been watching since this day. We need it to know which gate is yours.</p>
+      <details class="signup-learn"><summary>Why your day matters</summary><p>Your birthday gives us two things. First, your <b>Sun sign</b> — the archetype the sky was holding when you arrived. Twelve archetypes; yours is one of them. Second, your <b>Life Path number</b> — the sum of the digits of your full date, reduced. The Sun sign says what kind of light you carry. The Life Path says what kind of road you walk. Both are already true. We're just reading them.</p></details>
       <input type="date" id="birthInput" class="signup-input" max="2024-12-31" min="1900-01-01">
       <div class="gate-divider"></div>
       <button class="gate-btn" id="birthNextBtn" disabled>Continue</button>
@@ -4505,6 +4525,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <div class="gate-label">And — your path</div>
       <h1 class="gate-title">Which voice <em>speaks to you</em>?</h1>
       <p class="gate-text">Resonance is universal, but the words we use to describe it are not. Choose the tradition whose language calls to you. The interface will adapt.</p>
+      <details class="signup-learn"><summary>Why your tradition matters</summary><p>The same light has a thousand names: Source, Hashem, Christ, Allah, Dharma, Atman, the Great Spirit, the Tao, the Mystery. The light is one. The word you carry it in is yours. Pick the language your soul already speaks; the app will use that language with you. You can change it any time — the light does not mind which word you use.</p></details>
       <div class="tradition-grid" id="traditionGrid"></div>
       <div class="gate-divider"></div>
       <button class="gate-btn" id="traditionNextBtn" disabled>Continue</button>
@@ -4517,6 +4538,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <div class="gate-label">Finally — your voice</div>
       <h1 class="gate-title">Speak so your <em>inner self</em> knows you.</h1>
       <p class="gate-text">Inside, you will be able to talk to yourself. Your inner self will speak back in your own voice. Read this aloud, calmly, in your natural tone:</p>
+      <details class="signup-learn"><summary>Why your voice matters</summary><p>Your Inner Self is the version of you that already knows. To speak to you, it borrows your own vocal pitch (we measure the fundamental frequency of your voice in those eight seconds) and matches it. It will sound like a deeper, slower version of you. The reading is local — it never leaves your phone.</p></details>
       <div class="voice-phrase">"I am here. I am listening. I am the one I have been waiting for."</div>
       <div class="voice-record-stage">
         <button class="voice-record-btn" id="voiceRecordBtn">
