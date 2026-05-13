@@ -11471,13 +11471,18 @@ function ensureTrueSelf() {
   return userProfile.trueSelf;
 }
 let closeness = 18;
+// FEATURES_AGENT: Quarter and three-quarter marks added so every turn-point
+// on the journey to self gets named, not just the obvious thirds.
 const CLOSENESS_MARKS = {
+  25: { eyebrow: 'A quarter of the way', sub: 'A quarter of the distance closed. The earliest stretch is the steepest. You did the hard part — you began.', color: '#34d399', glyph: '◔' },
   33: { eyebrow: 'A third of the way home', sub: 'You’ve closed a third of the distance to your true self. Nothing dramatic happened — you just kept showing up. That’s the whole secret.', color: '#6ee7b7', glyph: '◔' },
   50: { eyebrow: 'Halfway home', sub: 'The pull is stronger now. You feel it. Keep walking — the second half is downhill.', color: '#6ee7b7', glyph: '◑' },
   66: { eyebrow: 'Two-thirds home', sub: 'You can almost stand in it. The version of you that you’re becoming is close enough to hear.', color: '#fbbf24', glyph: '◕' },
+  75: { eyebrow: 'Three quarters', sub: 'You can see it from here. The path ahead is shorter than the path behind. Don’t look back yet — but you will.', color: '#fbbf24', glyph: '◕' },
   80: { eyebrow: 'Almost home', sub: 'One more honest day, then another. You’re nearly there. Don’t rush the last stretch.', color: '#fbbf24', glyph: '●' },
   100:{ eyebrow: 'Home', sub: 'Your now-self and your true self are the same frequency. Stay. And leave the porch light on for the ones still walking.', color: '#a78bfa', glyph: '◎' }
 };
+const CLOSENESS_MARK_ORDER = [25, 33, 50, 66, 75, 80, 100];
 function loadCloseness() { try { const v = parseFloat(localStorage.getItem('resonance_closeness')); if (!isNaN(v)) closeness = Math.max(0, Math.min(100, v)); } catch (e) {} }
 function saveCloseness() { try { localStorage.setItem('resonance_closeness', String(closeness)); } catch (e) {} }
 function closenessLevelText() {
@@ -11497,13 +11502,13 @@ function closenessWord() {
 }
 function addCloseness(amount, reason) {
   if (!amount) return;
-  const prevMark = [33, 50, 66, 80, 100].filter(m => closeness >= m).length;
+  const prevMark = CLOSENESS_MARK_ORDER.filter(m => closeness >= m).length;
   closeness = Math.max(0, Math.min(100, closeness + amount));
-  const newMarkCount = [33, 50, 66, 80, 100].filter(m => closeness >= m).length;
+  const newMarkCount = CLOSENESS_MARK_ORDER.filter(m => closeness >= m).length;
   saveCloseness();
   renderTrueSelfCard(); renderTrueSelfYou();
   if (newMarkCount > prevMark) {
-    const justHit = [33, 50, 66, 80, 100][newMarkCount - 1];
+    const justHit = CLOSENESS_MARK_ORDER[newMarkCount - 1];
     const m = CLOSENESS_MARKS[justHit];
     if (m && typeof moment === 'function') setTimeout(() => { moment(m.eyebrow, m.sub, m.color, m.glyph); if (typeof floatGain === 'function') floatGain('Closer ✦'); }, 300);
   }
