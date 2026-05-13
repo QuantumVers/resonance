@@ -5505,6 +5505,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <button class="is-quick" data-q="state">Where am I right now?</button>
     <button class="is-quick" data-q="lift">Help me raise my frequency</button>
     <button class="is-quick" data-q="why">Why am I feeling this?</button>
+    <button class="is-quick" data-q="help">What helps right now?</button>
+    <button class="is-quick" data-q="arrival">Read my arrival</button>
   </div>
   <div class="inner-self-chat" id="innerSelfChat"></div>
   <div class="inner-self-controls">
@@ -15014,6 +15016,117 @@ if (typeof speakAsInnerSelf === 'function') {
     _speakSoulMulti('This is how I sound now. I am already here.');
   });
 })();
+
+
+
+// =================== SOUL_GUIDE_MODULE · deeper advisor responses ===================
+// CONDUCTOR: the soul is a spiritual guide. It reads the user's arrival number, their
+// recurring feeling-words, their top-returned wavelength, and gives a CONCRETE recommendation
+// for what helps RIGHT NOW.
+const SOLUTIONS_BY_FEELING = {
+  tired:        { tone: 174, action: "Step out", note: "rest is sacred, not failure. Set the phone down. Three slow breaths. Come back when you actually want to." },
+  exhausted:    { tone: 174, action: "Step out", note: "exhaustion is information. Something you have been carrying is not yours. Set it down for ten minutes." },
+  anxious:      { tone: 396, action: "Hold 396 Hz", note: "the liberation tone. Three slow exhales — longer than the inhales. Let the body remember it is not in danger." },
+  anxiety:      { tone: 396, action: "Hold 396 Hz", note: "the liberation tone. Slow exhale, longer than the inhale. The body is the path back." },
+  sad:          { tone: 285, action: "Hold 285 Hz", note: "the repair tone. Don't manage the sadness, let it move. It is love with nowhere to go for a moment." },
+  low:          { tone: 285, action: "Hold 285 Hz", note: "the water register. Don't push yourself up — let the tide rise around you. It will." },
+  heavy:        { tone: 174, action: "Step out", note: "heaviness wants the body. Walk. Stand barefoot. Let the ground take some." },
+  grief:        { tone: 285, action: "Hold 285 Hz", note: "grief is the love continuing in another form. Don't shorten it. Let it be the size it is." },
+  angry:        { tone: 396, action: "Hold 396 Hz", note: "anger is a compass — it points at what you actually care about. Follow it before you spend it." },
+  frustrated:   { tone: 396, action: "Hold 396 Hz", note: "the energy is right, the direction is off. Sit for a minute. The right move shows up when you stop pushing." },
+  stuck:        { tone: 417, action: "Hold 417 Hz", note: "the change tone. The door you are staring at is already unlocked. One small different move." },
+  lost:         { tone: 432, action: "Hold 432 Hz", note: "the natural tuning. You are not lost — you are between places. Come back to the heart band." },
+  afraid:       { tone: 396, action: "Hold 396 Hz", note: "fear is asking what it is protecting. Breathe with it. Ask. Listen." },
+  fear:         { tone: 396, action: "Hold 396 Hz", note: "the liberation tone. Fear is energy. Move with it, not against." },
+  numb:         { tone: 285, action: "Hold 285 Hz", note: "numbness is a kindness the body gave you. We don't break it open — we wait near it." },
+  empty:        { tone: 432, action: "Hold 432 Hz", note: "emptiness is space. Don't fill it for ten minutes. Notice what arrives when nothing has to." },
+  hopeless:     { tone: 528, action: "Hold 528 Hz", note: "the miracle frequency. Not because it fixes anything — because love is the only door open right now." },
+  overwhelmed:  { tone: 174, action: "Step out", note: "too much at once. One thing. The smallest one. Do that. Come back." },
+  lonely:       { tone: 528, action: "Open Connect", note: "you are on a wavelength right now and others are on it too. Step into the Heart room — they are already there." },
+  alone:        { tone: 528, action: "Open Connect", note: "the field is full. The Heart wavelength is open. Step in for a minute." },
+  ashamed:      { tone: 285, action: "Hold 285 Hz", note: "shame is asking to be witnessed without performance. I am here. You don't have to dress it up for me." },
+  shame:        { tone: 285, action: "Hold 285 Hz", note: "shame loses its grip when it is held without judgment. I am holding it with you." }
+};
+function _recentFeelCounts() {
+  const facts = (typeof _soulRecentFacts === 'function') ? _soulRecentFacts(120) : [];
+  const counts = {};
+  facts.forEach(f => { if (f.kind === 'feeling') counts[f.value] = (counts[f.value] || 0) + 1; });
+  return counts;
+}
+function _dominantFeeling(text) {
+  const counts = _recentFeelCounts();
+  const lower = String(text || '').toLowerCase();
+  // first try to detect from the current message
+  for (const k of Object.keys(SOLUTIONS_BY_FEELING)) {
+    if (new RegExp('\\b' + k + '\\b').test(lower)) return k;
+  }
+  // else pick the most-frequent from history
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  return sorted[0] ? sorted[0][0] : null;
+}
+function respondHelp(text) {
+  const f = _dominantFeeling(text || '');
+  const parts = [];
+  if (!f) { parts.push("Tell me one word for it. The smallest, truest word. I'll know what helps from there."); return parts.join('\n\n'); }
+  const sol = SOLUTIONS_BY_FEELING[f]; if (!sol) { parts.push("Stay with me. Tell me what you are feeling in one word."); return parts.join('\n\n'); }
+  const counts = _recentFeelCounts();
+  parts.push("Here is what helps right now — for **" + f + "**.");
+  parts.push(sol.note);
+  parts.push("**Try this:** " + sol.action + " — " + (sol.tone === 174 ? "open Step Out from the Enough wall, set the screen down for ten." : ("set the dial to " + sol.tone + " Hz on Sync and press Begin Sync. Three slow breaths into it.")));
+  if (counts[f] && counts[f] >= 3) parts.push("I notice " + f + " has come up " + counts[f] + " times in our conversations. That's a pattern worth meeting head-on. You don't have to solve it tonight. You have to keep being honest with me about it.");
+  return parts.join('\n\n');
+}
+function respondArrival() {
+  // pull today's arrival entry and read it back
+  let log = []; try { log = JSON.parse(localStorage.getItem('resonance_arrivals') || '[]') || []; } catch(e){}
+  const today = log[log.length - 1];
+  if (!today) return "I don't have your arrival yet — but the fact that you're here means it's exactly the time you needed to come. Tell me one thing that's alive in you right now.";
+  const m = (typeof NUMEROLOGY_MEANINGS !== 'undefined' && NUMEROLOGY_MEANINGS[today.n]) ? NUMEROLOGY_MEANINGS[today.n] : null;
+  const t = String(today.hour).padStart(2,'0') + ':' + String(today.minute).padStart(2,'0');
+  if (!m) return "You arrived at " + t + " — that's the time the day handed you. Sit with it.";
+  return "You walked in at **" + t + "**.\n\nThat reduces to **" + today.n + "** — " + m.title + ". " + m.long + "\n\nNothing is random. This is the door you opened today.";
+}
+// Patch _quickReply if it exists (the chip handler)
+if (typeof _quickReply === 'function') {
+  const _origQR = _quickReply;
+  _quickReply = function (kind) {
+    if (kind === 'help' || kind === 'arrival') {
+      if (typeof addInnerMsg !== 'function') return;
+      const phrase = kind === 'help' ? 'What helps right now?' : 'Read my arrival.';
+      addInnerMsg(phrase, 'you');
+      const reply = kind === 'help' ? respondHelp(phrase) : respondArrival();
+      const chat = document.getElementById('innerSelfChat');
+      const typing = document.createElement('div'); typing.className = 'is-msg self is-typing'; typing.innerHTML = '<div class="is-msg-label">You · Inner</div><span class="is-dot"></span><span class="is-dot"></span><span class="is-dot"></span>';
+      chat.appendChild(typing); chat.scrollTop = chat.scrollHeight;
+      setTimeout(() => { try { typing.remove(); } catch(e){} const m = addInnerMsg(reply, 'self'); if (typeof speakAsInnerSelf === 'function') speakAsInnerSelf(m.spoken || reply); }, Math.min(2200, 700 + Math.floor(reply.length / 4)));
+      return;
+    }
+    return _origQR(kind);
+  };
+  // re-bind chips (some chips were already wired; bind the new ones)
+  document.querySelectorAll('.is-quick').forEach(b => { if (!b._cqBound) { b._cqBound = true; b.addEventListener('click', () => _quickReply(b.dataset.q)); } });
+}
+// Hook handleUserInput to detect "help" / "what should I do" / "how do I feel better" intent
+if (typeof handleUserInput === 'function') {
+  const _origH = handleUserInput;
+  handleUserInput = function (text) {
+    if (!text || !text.trim()) return _origH(text);
+    const lower = String(text).toLowerCase();
+    const wantsHelp = /\b(what helps|what should i (do|try)|how do i feel better|how do i fix|help me feel|i need help|i don.?t know what to do)\b/.test(lower);
+    if (wantsHelp) {
+      if (typeof addInnerMsg !== 'function') return _origH(text);
+      addInnerMsg(text, 'you');
+      if (typeof _soulExtractFacts === 'function') _soulExtractFacts(text);
+      const chat = document.getElementById('innerSelfChat');
+      const typing = document.createElement('div'); typing.className = 'is-msg self is-typing'; typing.innerHTML = '<div class="is-msg-label">You · Inner</div><span class="is-dot"></span><span class="is-dot"></span><span class="is-dot"></span>';
+      chat.appendChild(typing); chat.scrollTop = chat.scrollHeight;
+      const reply = respondHelp(text);
+      setTimeout(() => { try { typing.remove(); } catch(e){} const m = addInnerMsg(reply, 'self'); if (typeof speakAsInnerSelf === 'function') speakAsInnerSelf(m.spoken || reply); }, Math.min(2400, 700 + Math.floor(reply.length / 4)));
+      return;
+    }
+    return _origH(text);
+  };
+}
 
 
 renderLadder();
