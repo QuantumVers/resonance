@@ -4096,6 +4096,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="lh-cell"><div class="lh-k" id="lhAwk">0/9</div><div class="lh-l">Awakenings</div></div>
         <div class="lh-sep"></div>
         <div class="lh-cell"><div class="lh-k" id="lhStreak">0</div><div class="lh-l">Day-Streak</div></div>
+        <div class="lh-sep" id="lhWalkSep" style="display:none;"></div>
+        <div class="lh-cell" id="lhWalkCell" style="display:none;"><div class="lh-k" id="lhWalk">Day —</div><div class="lh-l">Of Your Walk</div></div>
       </div>
       <div class="lobby-quest" id="lobbyQuest">Hold 528 Hz for 30 seconds today.</div>
       <button class="lobby-soul-btn" id="lobbySoulBtn"><span class="ls-glyph">◐</span><span class="ls-label">Talk to your soul</span><span class="ls-arrow">→</span></button>
@@ -13343,6 +13345,28 @@ function renderTimeMachine() {
   const setBtn = document.getElementById('settingsBtn');
   if (setBtn) setBtn.addEventListener('click', () => setTimeout(renderTimeMachine, 50));
   try { renderTimeMachine(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · LOBBY DAY-N HOOK ===================
+(function () {
+  function _updateWalkPill() {
+    const cell = document.getElementById('lhWalkCell');
+    const sep  = document.getElementById('lhWalkSep');
+    const k    = document.getElementById('lhWalk');
+    if (!cell || !k) return;
+    const meta = window.__installMeta || (window.RState && RState.get('install_meta')) || null;
+    if (!meta || !meta.firstOpenedAt) { cell.style.display = 'none'; if (sep) sep.style.display = 'none'; return; }
+    const n = (typeof dayNOfWalk === 'function') ? dayNOfWalk() : 1;
+    if (n < 1) { cell.style.display = 'none'; if (sep) sep.style.display = 'none'; return; }
+    cell.style.display = ''; if (sep) sep.style.display = '';
+    const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+    k.textContent = quiet ? (n >= 30 ? 'many' : 'a few') : ('Day ' + n);
+  }
+  if (typeof renderLobby === 'function') {
+    const _r = renderLobby;
+    renderLobby = function () { _r.apply(this, arguments); _updateWalkPill(); };
+  }
+  _updateWalkPill();
 })();
 // =================== /DATA_AGENT ===================
 
