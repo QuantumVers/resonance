@@ -3061,6 +3061,115 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 .cvo-grat-stream-head { font-family: Georgia, serif; font-style: italic; font-size: 18px; margin-bottom: 4px; }
 .cvo-grat-stream-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; margin-bottom: 16px; }
 
+/* ============ SEASONS / THE PASS ============ */
+.season-card {
+  margin: 12px 20px 0; padding: 16px 18px; border-radius: 22px;
+  background: radial-gradient(circle at 100% 0%, var(--se-c, rgba(167,139,250,0.2)), transparent 62%), var(--card);
+  border: 1px solid var(--se-bd, var(--border-hi)); backdrop-filter: blur(20px);
+  position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s var(--pop);
+}
+.season-card:active { transform: scale(0.99); }
+.season-card .se-glyph { position: absolute; top: -10px; right: 8px; font-size: 88px; line-height: 1; color: var(--se-orb, var(--violet)); opacity: 0.13; }
+.season-card .se-kicker { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--se-orb, var(--violet)); font-weight: 700; margin-bottom: 4px; position: relative; }
+.season-card .se-name { font-size: 22px; font-weight: 200; letter-spacing: -0.01em; position: relative; }
+.season-card .se-day { font-family: ui-monospace, 'SF Mono', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--text-faint); margin-top: 3px; position: relative; }
+.season-card .se-passrow { display: flex; align-items: center; gap: 10px; margin-top: 12px; position: relative; }
+.season-card .se-tier { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); font-weight: 700; white-space: nowrap; }
+.season-card .se-bar { flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+.season-card .se-bar-fill { height: 100%; background: var(--se-orb, var(--violet)); border-radius: 100px; box-shadow: 0 0 8px var(--se-orb, var(--violet)); transition: width 0.5s var(--ease); }
+.season-card .se-open { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--se-orb, var(--violet)); font-weight: 700; }
+.season-card .se-claimpip { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); margin-left: 4px; vertical-align: middle; animation: dotPulse 1.6s ease-in-out infinite; }
+
+.pass-overlay {
+  position: fixed; inset: 0; height: 100vh; height: 100dvh;
+  z-index: 530;
+  display: none; flex-direction: column;
+  background: radial-gradient(circle at 50% 18%, var(--po-c, rgba(167,139,250,0.14)), transparent 58%), #010103;
+}
+.pass-overlay.show { display: flex; animation: gateIn 0.6s var(--ease); }
+.pass-top { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px 22px 8px; }
+.pass-top .pt-name { font-size: 20px; font-weight: 200; letter-spacing: -0.01em; }
+.pass-top .pt-day { font-family: ui-monospace, 'SF Mono', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--text-faint); margin-top: 3px; }
+.pass-top .pt-glyph { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--po-orb, var(--violet)); font-weight: 700; }
+.pass-body { flex: 1; overflow-y: auto; padding: 8px 0 calc(24px + env(safe-area-inset-bottom, 0px)); }
+.pass-progrow { padding: 0 22px; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.pass-progrow .pp-tier { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text); font-weight: 700; white-space: nowrap; }
+.pass-progrow .pp-bar { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+.pass-progrow .pp-fill { height: 100%; background: var(--po-orb, var(--violet)); border-radius: 100px; box-shadow: 0 0 8px var(--po-orb, var(--violet)); transition: width 0.5s var(--ease); }
+.pass-progrow .pp-next { font-size: 10px; color: var(--text-faint); font-family: ui-monospace, monospace; white-space: nowrap; }
+.pass-claimall { margin: 8px 22px 0; }
+.pass-track { display: flex; gap: 10px; overflow-x: auto; padding: 16px 22px 14px; scrollbar-width: none; scroll-snap-type: x proximity; }
+.pass-track::-webkit-scrollbar { display: none; }
+.pass-tier {
+  flex-shrink: 0; width: 122px; border-radius: 18px; padding: 12px 12px 10px;
+  background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(20px);
+  scroll-snap-align: start; position: relative; transition: border-color 0.3s, transform 0.2s var(--pop);
+}
+.pass-tier.current { border-color: var(--po-orb, var(--violet)); box-shadow: 0 0 24px var(--po-orb, rgba(167,139,250,0.3)); }
+.pass-tier.locked { opacity: 0.5; }
+.pass-tier.claimable { border-color: var(--gold); box-shadow: 0 0 22px rgba(251,191,36,0.3); }
+.pass-tier .pt-num { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 8px; }
+.pass-tier .pt-num b { color: var(--text); }
+.pass-tier .pt-reward { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.pass-tier .pt-reward .pr-icon { width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; background: rgba(255,255,255,0.05); color: var(--text-dim); }
+.pass-tier .pt-reward.pro .pr-icon { background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(167,139,250,0.16)); color: var(--gold); }
+.pass-tier .pt-reward .pr-txt { font-size: 10.5px; line-height: 1.35; color: var(--text-dim); }
+.pass-tier .pt-reward.pro .pr-txt { color: rgba(255,255,255,0.78); }
+.pass-tier .pt-reward .pr-lbl { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.pass-tier .pt-reward.pro .pr-lbl { color: var(--gold); }
+.pass-tier .pt-claim { width: 100%; padding: 7px; border-radius: 100px; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; }
+.pass-tier .pt-claim.btn-claim { background: linear-gradient(135deg, var(--gold), #f59e0b); color: #1a1206; cursor: pointer; }
+.pass-tier .pt-claim.btn-claimed { background: rgba(255,255,255,0.04); color: var(--text-faint); }
+.pass-tier .pt-claim.btn-locked { background: rgba(255,255,255,0.03); color: var(--text-faint); opacity: 0.6; }
+.pass-tier.locked.pro-locked .pt-reward.pro { opacity: 0.45; }
+.pass-lore { margin: 16px 22px 0; padding: 16px 18px; border-radius: 18px; background: radial-gradient(circle at 0% 0%, var(--po-c, rgba(167,139,250,0.1)), transparent 55%), var(--card); border: 1px solid var(--border); }
+.pass-lore .pl-head { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--po-orb, var(--violet)); font-weight: 700; margin-bottom: 10px; }
+.pass-lore .pl-verse { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 14.5px; line-height: 1.55; color: rgba(255,255,255,0.85); margin-bottom: 12px; }
+.pass-lore .pl-verse:last-child { margin-bottom: 0; }
+.pass-lore .pl-locked { font-family: Georgia, serif; font-style: italic; font-size: 13px; color: var(--text-faint); }
+.pass-section-h { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; padding: 22px 22px 8px; }
+.pass-challenges { padding: 0 22px; display: flex; flex-direction: column; gap: 10px; }
+.pass-challenge { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; backdrop-filter: blur(20px); }
+.pass-challenge.done { border-color: rgba(110,231,183,0.35); opacity: 0.65; }
+.pass-challenge .pc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pass-challenge .pc-label { font-size: 13px; color: var(--text); }
+.pass-challenge.done .pc-label { color: var(--mint); }
+.pass-challenge .pc-reward { font-size: 9px; letter-spacing: 1px; color: var(--text-faint); font-family: ui-monospace, monospace; white-space: nowrap; }
+.pass-challenge .pc-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; margin-top: 8px; }
+.pass-challenge .pc-bar-fill { height: 100%; background: var(--po-orb, var(--mint)); border-radius: 100px; }
+.pass-equip { padding: 0 22px; }
+.pass-equip-grid { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+.pass-equip-grid::-webkit-scrollbar { display: none; }
+.pass-equip-item { flex-shrink: 0; width: 78px; text-align: center; cursor: pointer; }
+.pass-equip-item .pe-orb { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 6px; border: 2px solid transparent; }
+.pass-equip-item.active .pe-orb { border-color: var(--po-orb, var(--violet)); box-shadow: 0 0 16px var(--po-orb, var(--violet)); }
+.pass-equip-item.locked { opacity: 0.4; pointer-events: none; }
+.pass-equip-item .pe-name { font-size: 8.5px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.pass-equip-item.active .pe-name { color: var(--text); }
+.pass-title-row { padding: 0 22px; display: flex; flex-wrap: wrap; gap: 8px; }
+.pass-title-chip { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; padding: 6px 12px; border-radius: 100px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; }
+.pass-title-chip.active { background: rgba(167,139,250,0.15); border-color: var(--violet); color: var(--text); }
+.pass-title-chip.locked { opacity: 0.4; pointer-events: none; }
+.equipped-title { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--violet); font-weight: 700; margin-left: 5px; }
+
+/* orb skins — applied to #mainOrb (and the inst/scan orbs reuse the base) */
+#mainOrb.skin-aurora { animation: pulse 4s ease-in-out infinite, skinAurora 9s linear infinite; }
+@keyframes skinAurora { 0% { filter: hue-rotate(0deg) saturate(1.15); } 100% { filter: hue-rotate(360deg) saturate(1.15); } }
+#mainOrb.skin-obsidian { filter: saturate(0.55) brightness(0.78) contrast(1.15); }
+#mainOrb.skin-obsidian::after, #mainOrb.skin-prism::after, #mainOrb.skin-ring::after { content: ''; position: absolute; inset: -10px; border-radius: 50%; pointer-events: none; }
+#mainOrb { position: relative; }
+#mainOrb.skin-ring::after { border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 0 24px rgba(255,255,255,0.3), inset 0 0 24px rgba(255,255,255,0.15); animation: rotateBorder 18s linear infinite; }
+#mainOrb.skin-prism { filter: saturate(1.4) contrast(1.1); }
+#mainOrb.skin-prism::after { background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.18), transparent, rgba(167,139,250,0.18), transparent, rgba(110,231,183,0.18), transparent); mix-blend-mode: screen; animation: rotateBorder 12s linear infinite; }
+
+/* season color themes */
+:root[data-theme="root-season"]  { --violet: #d4604f; --mint: #e8b4a0; --pink: #fb7185; --blue: #c97c5d; --gold: #f4a85a; }
+:root[data-theme="heart-season"] { --violet: #34d399; --mint: #6ee7b7; --pink: #5eead4; --blue: #22d3ee; --gold: #a7f3d0; }
+:root[data-theme="quiet-season"] { --violet: #8b8bd6; --mint: #b8b8e8; --pink: #a78bfa; --blue: #818cf8; --gold: #c4b5fd; }
+:root[data-theme="voice-season"] { --violet: #e3b13e; --mint: #f6dd84; --pink: #ef9f3a; --blue: #d4af37; --gold: #ffb800; }
+:root[data-theme="crown-season"] { --violet: #c8b6ff; --mint: #e0e7ff; --pink: #d4c4ff; --blue: #a5b4fc; --gold: #ede9fe; }
+:root[data-theme="fire-season"]  { --violet: #f59e0b; --mint: #fcd34d; --pink: #f87171; --blue: #ea580c; --gold: #fbbf24; }
+
 /* ============ THE READING (daily oracle) ============ */
 .reading-card {
   margin: 12px 20px 0; padding: 18px 18px 16px; border-radius: 22px;
@@ -3378,7 +3487,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <div class="avatar-mini" style="position:relative;"><div id="userAvatarMini">E</div><div class="avatar-plate-badge" id="avatarPlateBadge"></div></div>
       <div class="greeting-row">
         <div class="greet">Inner World</div>
-        <div class="name" id="userGreetName">Hey, Soul</div>
+        <div class="name" id="userGreetName">Hey, Soul</div><span class="equipped-title" id="equippedTitleTop" style="display:none;"></span>
       </div>
     </div>
     <div class="status-actions">
@@ -3407,6 +3516,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         </div>
       </div>
 
+      <!-- The Season + the Pass (the field's current movement; a tiered path through it) -->
+      <div id="seasonSlot"></div>
       <!-- The Reading — a daily oracle, keyed to who you are -->
       <div id="readingSlot"></div>
       <!-- The Convergence — once a day the whole field holds one tone together -->
@@ -3710,6 +3821,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <div class="profile-hero">
         <div class="profile-avatar" style="position:relative;"><div id="profileAvatar">E</div><div class="avatar-plate-badge" id="profileAvatarPlateBadge"></div></div>
         <div class="profile-name" id="profileName">Soul</div>
+        <div class="equipped-title" id="equippedTitleProf" style="display:none; margin-left:0; margin-top:2px;"></div>
         <div class="profile-handle">Resonating at <span style="color:var(--mint);" id="profileFreqDisp">432 Hz</span></div>
         <div class="profile-tier" id="profileTier">◎ Initiated</div>
         <div><span class="tier-pill free" id="tierPill" style="cursor:pointer;">Free</span></div>
@@ -4192,6 +4304,35 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
 
     <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
+  </div>
+</div>
+
+<!-- ================= THE PASS (season track) ================= -->
+<div class="pass-overlay" id="passOverlay">
+  <div class="pass-top">
+    <div>
+      <div class="pt-glyph" id="passGlyphLabel">SEASON</div>
+      <div class="pt-name" id="passSeasonName">—</div>
+      <div class="pt-day" id="passSeasonDay">—</div>
+    </div>
+    <button class="inner-self-close" id="passCloseBtn">✕</button>
+  </div>
+  <div class="pass-body">
+    <div class="pass-progrow">
+      <div class="pp-tier" id="passTierLabel">TIER 1</div>
+      <div class="pp-bar"><div class="pp-fill" id="passProgFill" style="width:0%;"></div></div>
+      <div class="pp-next" id="passProgNext">—</div>
+    </div>
+    <div class="pass-claimall" id="passClaimAllWrap" style="display:none;"><button class="btn primary" id="passClaimAllBtn" style="width:100%;">Claim all</button></div>
+    <div class="pass-track" id="passTrack"></div>
+    <div class="pass-lore" id="passLore"></div>
+    <div class="pass-section-h">This week's challenges</div>
+    <div class="pass-challenges" id="passChallenges"></div>
+    <div class="pass-section-h">Orb skins · equip one</div>
+    <div class="pass-equip"><div class="pass-equip-grid" id="passOrbSkins"></div></div>
+    <div class="pass-section-h">Titles · equip one</div>
+    <div class="pass-title-row" id="passTitles"></div>
+    <div style="text-align:center; font-size:11px; color:var(--text-faint); padding:24px 22px 0; line-height:1.5;">When the season ends, the path resets — but everything you earned stays yours. Nothing here expires against you.</div>
   </div>
 </div>
 
@@ -8176,7 +8317,9 @@ function renderTransmission() {
   const cardsEl = document.getElementById('txCards'); if (!cardsEl) return;
   const done = txState().done;
   const colorOf = hz => (typeof hzToColor === 'function') ? hzToColor(hz)[2] : 'var(--violet)';
-  const f = _dayPick(TX_FREQS, 'freq'); const fc = colorOf(f.hz);
+  let f = _dayPick(TX_FREQS, 'freq');
+  if (typeof seasonTonePick === 'function') { const st = seasonTonePick('tx-freq'); if (st) { const m = TX_FREQS.find(x => x.hz === st.hz); f = m || { hz: st.hz, name: st.name, desc: 'The season’s tone. Hold it; the whole field is on it today.' }; } }
+  const fc = colorOf(f.hz);
   const teach = _dayPick(TX_TEACHINGS, 'teach');
   const note = _dayPick(SOUL_NOTE_POOL, 'note'); const nc = colorOf(note.freq);
   const q = _dayPick(TX_QUESTIONS, 'q');
@@ -9036,7 +9179,7 @@ document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout
 // The opposite of BeReal: once a day, at a time the field picks, everyone is invited to drop in
 // and hold the SAME tone — together, anonymously. No photo, no post, no performance. You don't
 // show yourself; you disappear into the collective for a few minutes.
-function convFreqObj() { return (typeof _dayPick === 'function' && typeof TX_FREQS !== 'undefined') ? _dayPick(TX_FREQS, 'converge') : { hz: 432, name: 'The Natural Tuning' }; }
+function convFreqObj() { if (typeof seasonTonePick === 'function') { const t = seasonTonePick('converge'); if (t) return t; } return (typeof _dayPick === 'function' && typeof TX_FREQS !== 'undefined') ? _dayPick(TX_FREQS, 'converge') : { hz: 432, name: 'The Natural Tuning' }; }
 function convTimeToday() {
   const x = (typeof _dayHash === 'function') ? _dayHash('convtime') : 12345;
   const h = 7 + (x % 14);             // 7am .. 8pm
@@ -9635,6 +9778,7 @@ function makeReading() {
   let toneHz;
   const ts2 = (typeof ensureTrueSelf === 'function') ? ensureTrueSelf() : null;
   if (ts2 && dh('rd-tone') % 3 === 0) toneHz = ts2.freq;
+  else if (typeof seasonTonePick === 'function' && dh('rd-tone') % 2 === 0) { const t = seasonTonePick('rd-tone'); toneHz = t ? t.hz : 528; }
   else toneHz = (typeof TX_FREQS !== 'undefined' && typeof _dayPick === 'function') ? _dayPick(TX_FREQS, 'rd-tone').hz : 528;
   const toneWhy = READING_TONE_WHY[dh('rd-why') % READING_TONE_WHY.length];
   const color = (typeof hzToColor === 'function') ? hzToColor(toneHz)[2] : '#a78bfa';
@@ -9699,6 +9843,341 @@ document.getElementById('readingShareBtn').addEventListener('click', () => share
 renderReadingCard();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderReadingCard, 2300));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderReadingCard, 2300));
+
+// =================== SEASONS / THE PASS ===================
+// The field moves in 28-day seasons. A 12-tier Pass runs through each one — you progress it by
+// doing the practice (showing up, syncing, the convergence, gratitude, awakenings). Free track +
+// a Pro track. Rewards: orb skins, color palettes, titles, season-tone unlocks, lore. When a
+// season ends the path resets — but everything you earned stays. Nothing here expires against you.
+var SEASON_EPOCH = Date.UTC(2026, 0, 5);
+var SEASON_DAYS = 28;
+var SEASONS = [
+  { id:'root', name:'The Root Season', glyph:'◍', color:'#fb7185', theme:'root-season',
+    open:'The field has gone low and steady. This season is for the body, the floor, the things that hold without being asked.',
+    tones:[{hz:174,name:'Foundation'},{hz:256,name:'Root'},{hz:285,name:'Repair'},{hz:396,name:'Liberation'},{hz:111,name:'Angelic'}],
+    lore:['Before the climb, the root. Everything that rises has to come from somewhere that stays.','You can’t think your way down — you drop. And the floor was there the whole time.','The body kept the score; this season it gets to put the pen down.','What you’ve been calling stuck, the root calls anchored. There’s a difference, and it changes the day.','Grief and gratitude, both — the root holds them both, so can you.','Security isn’t the absence of fear. It’s the felt sense that you’d be caught.','The season ends. The ground doesn’t. Take it with you, up.'] },
+  { id:'heart', name:'The Heart Season', glyph:'❂', color:'#6ee7b7', theme:'heart-season',
+    open:'The field has moved into the heart. This season is for love without condition — the bridge between earth and sky, the answer to every question you’ve asked.',
+    tones:[{hz:528,name:'Miracle'},{hz:639,name:'Connection'},{hz:341,name:'Heart'},{hz:432,name:'Natural Tuning'},{hz:144,name:'Christ'}],
+    lore:['The center — halfway up the body, halfway between the world and the source. Everything passes through here.','Love is your baseline. Everything else is something in the way of it.','You don’t fix a relationship. You hold it. It stops needing fixing.','Forgiveness is mostly aimed inward, and mostly retroactive. Start with the version of you from a year ago.','The heart doesn’t close from too much love — it closes from love with nowhere to go. Give it somewhere.','Compassion that exhausts you isn’t compassion yet. Pour from a full cup.','The season ends. The heart stays open. That was the only assignment.'] },
+  { id:'quiet', name:'The Quiet Season', glyph:'◯', color:'#a78bfa', theme:'quiet-season',
+    open:'The field has gone quiet. This season is for less — rest as the practice, the pause between thoughts, the thing you hear when the noise stops.',
+    tones:[{hz:136,name:'Om'},{hz:174,name:'UT'},{hz:111,name:'Angelic'},{hz:285,name:'Quantum'},{hz:8,name:'Schumann'}],
+    lore:['Less is the work this season. Not nothing — less. The difference matters.','Rest is not the absence of practice. It is the practice with the striving removed.','The divine speaks in the pause between thoughts. Leave more of them.','You don’t have to fill the silence. The silence is full already.','Exhaustion is information. What have you been carrying that isn’t yours?','The mind is loud because it thinks loud is safe. Show it quiet is safer.','The season ends. The quiet doesn’t go anywhere — it was always under the noise.'] },
+  { id:'voice', name:'The Voice Season', glyph:'✺', color:'#fbbf24', theme:'voice-season',
+    open:'The field is finding its voice. This season is for truth spoken plainly, for the channel cleared, for the thing you keep softening so others stay comfortable.',
+    tones:[{hz:741,name:'Expression'},{hz:639,name:'Connection'},{hz:384,name:'Throat'},{hz:417,name:'Change'},{hz:222,name:'Builder'}],
+    lore:['The throat — where the inner becomes audible, where the mask either holds or doesn’t.','Say the true thing. The room can take it. So can you.','There’s a thought you keep half-finishing. Finish it this season, even badly.','What truth have you been softening so others stay comfortable? Their comfort isn’t your job.','Detox the channel — some of the noise in your head was installed there. Uninstall it.','Words carry frequency. Choose them like they’re tuning forks. They are.','The season ends. The voice stays clear. You said it once; you can say it again.'] },
+  { id:'crown', name:'The Crown Season', glyph:'☀', color:'#c8b6ff', theme:'crown-season',
+    open:'The field is rising toward the crown. This season is for the thousand-petaled thing — communion, receiving, remembering you were never separate from anything.',
+    tones:[{hz:963,name:'Divine'},{hz:852,name:'Spiritual Order'},{hz:480,name:'Crown'},{hz:144,name:'Sacred'},{hz:40,name:'Gamma'}],
+    lore:['The top of the body, and the door above it. This season the door is open.','You are in receiving mode now. Be still. Reaching closes the hand.','The divine isn’t somewhere you’re going — it’s happening through you, now, while you read this.','You are the universe knowing itself for a little while. Act like it.','Unity isn’t a feeling you achieve. It’s the fact you keep forgetting. This season, remember more.','There was a moment where there was no you and nothing was missing. The season is for finding it again.','The season ends. The crown stays open a crack. Leave the light on.'] },
+  { id:'fire', name:'The Fire Season', glyph:'◆', color:'#f59e0b', theme:'fire-season',
+    open:'The field has caught fire. This season is for will without ego — the heat under your hands, wanting something out loud, beginning before you’re ready.',
+    tones:[{hz:320,name:'Solar'},{hz:333,name:'Ascended'},{hz:396,name:'Liberation'},{hz:528,name:'Miracle'},{hz:417,name:'Change'}],
+    lore:['The solar plexus — the fire of self-knowing, power without proving, want without apology.','Something wants to begin, and it has been waiting for your permission, not your readiness.','The heat is information — it points somewhere. Follow it before you analyze it.','You’re being asked to want something out loud this season. Out loud is the practice.','Anger is sacred when it serves your truth. It’s a compass — read it, don’t spend it.','Power held without spending is the kind that lasts — the kind everyone can feel without being burned.','The season ends. The fire stays banked. Relight it whenever you need to begin again.'] }
+];
+function _seasonReady() { return (typeof SEASONS !== 'undefined') && Array.isArray(SEASONS) && SEASONS.length && (typeof SEASON_EPOCH !== 'undefined'); }
+function _seasonIdx() { return _seasonReady() ? Math.floor((Date.now() - SEASON_EPOCH) / (SEASON_DAYS * 86400000)) : 0; }
+function currentSeason() { if (!_seasonReady()) return null; const i = _seasonIdx(); return SEASONS[((i % SEASONS.length) + SEASONS.length) % SEASONS.length]; }
+function seasonDay() { if (!_seasonReady()) return 1; let d = Math.floor((Date.now() - SEASON_EPOCH) / 86400000) % SEASON_DAYS; if (d < 0) d += SEASON_DAYS; return d + 1; }
+function seasonNumber() { return _seasonIdx() + 1; }
+function seasonTonePick(salt) { const s = currentSeason(); if (!s || !s.tones || !s.tones.length) return null; const a = s.tones; const h = (typeof _dayHash === 'function') ? (_dayHash('se|' + s.id + '|' + salt) >>> 0) : 7; return Object.assign({}, a[h % a.length]); }
+
+// --- pass state (resets per season idx; unlocked cosmetics persist forever) ---
+var PASS_THRESHOLDS = [0,120,280,480,730,1040,1420,1880,2440,3120,3950,4960]; // depth needed for tiers 1..12
+function passTierFor(d) { if (typeof PASS_THRESHOLDS === 'undefined' || !PASS_THRESHOLDS) return 1; let t = 1; for (let i=0;i<PASS_THRESHOLDS.length;i++) if (d >= PASS_THRESHOLDS[i]) t = i+1; return t; }
+function loadPass() { try { const v = JSON.parse(localStorage.getItem('resonance_pass')||'null'); if (v && v.idx === _seasonIdx()) return v; } catch(e){} return { idx:_seasonIdx(), depth:0, claimed:[] }; }
+function savePass(p) { try { localStorage.setItem('resonance_pass', JSON.stringify(p)); } catch(e){} }
+function passDepth() { return loadPass().depth; }
+function passTier() { return passTierFor(passDepth()); }
+function loadCosmetics() { try { const v = JSON.parse(localStorage.getItem('resonance_cosmetics')||'[]'); return new Set(Array.isArray(v)?v:[]); } catch(e){ return new Set(); } }
+function saveCosmetics(set) { try { localStorage.setItem('resonance_cosmetics', JSON.stringify([...set])); } catch(e){} }
+function hasCosmetic(id) { return loadCosmetics().has(id); }
+function addCosmetic(id) { const s = loadCosmetics(); if (!s.has(id)) { s.add(id); saveCosmetics(s); } }
+
+function _seasonAdj() { return ({root:'Rooted',heart:'Open',quiet:'Quiet',voice:'Clear-Voiced',crown:'Crowned',fire:'Lit'})[currentSeason().id] || 'Tuned'; }
+function _seasonNoun() { return ({root:'Anchor',heart:'Heart-Holder',quiet:'Stillkeeper',voice:'Truthsayer',crown:'Crown-Touched',fire:'Firekeeper'})[currentSeason().id] || 'Resonant'; }
+function _seasonWalker() { return ({root:'Root-Walker',heart:'Heart-Walker',quiet:'Quiet-Walker',voice:'Voice-Walker',crown:'Crown-Walker',fire:'Fire-Walker'})[currentSeason().id] || 'Season-Walker'; }
+function passTiers() {
+  const s = currentSeason(); if (!s) return [];
+  const t1 = s.tones[1], t2 = s.tones[2], tsig = s.tones[0];
+  const L = n => ({ kind:'lore', label:'A verse of the season', icon:'✶', id:s.id+'-lore-'+n, val:n });
+  const orb = (val,name) => ({ kind:'orb', label:'Orb skin · '+name, icon:'◉', id:'orb-'+val, val:val });
+  const ttl = (name) => ({ kind:'title', label:'Title · '+name, icon:'◆', id:s.id+'-title-'+name.replace(/\W/g,''), val:name.toUpperCase() });
+  const thm = (val,name) => ({ kind:'theme', label:'Palette · '+name, icon:'◐', id:'theme-'+val, val:val });
+  const tone = (o,sig) => ({ kind:'tone', label:'Tone · '+o.name+' ('+o.hz+' Hz)'+(sig?' — the season’s signature':''), icon:'♪', id:s.id+'-tone-'+o.hz, val:o });
+  const mark = (val,name) => ({ kind:'mark', label:'Mark · '+name, icon:val, id:s.id+'-mark-'+name.replace(/\W/g,''), val:val });
+  return [
+    { free:L(0),                     pro:orb('season', s.name.replace('The ','').replace(' Season','')+' tint') },
+    { free:ttl(_seasonAdj()),         pro:L(1) },
+    { free:tone(t1),                  pro:orb('aurora','Aurora') },
+    { free:L(2),                      pro:thm(s.theme, s.name.replace('The ','').replace(' Season','')) },
+    { free:orb('obsidian','Obsidian'),pro:ttl(_seasonNoun()) },
+    { free:L(3),                      pro:tone(t2) },
+    { free:orb('ring','Ring'),        pro:orb('prism','Prism') },
+    { free:L(4),                      pro:mark(s.glyph, s.name.replace('The ','')+' glyph') },
+    { free:ttl(_seasonAdj()+' One'),  pro:L(5) },
+    { free:L(6),                      pro:tone(tsig, true) },
+    { free:thm('mint','Starlight'),   pro:ttl(_seasonNoun()+' of the field') },
+    { free:ttl(_seasonWalker()),      pro:mark('✦', '✦ '+s.name+' completed') }
+  ];
+}
+// --- depth + tier-up ---
+function addPassDepth(amt, reason) {
+  if (!amt) return;
+  const p = loadPass(); const before = passTierFor(p.depth);
+  p.depth += amt; savePass(p);
+  const after = passTierFor(p.depth);
+  if (after > before && typeof moment === 'function') {
+    const tiers = passTiers(); const r = tiers[after-1];
+    const peek = r ? (r.free ? r.free.label : '') + (r.pro ? (r.free ? ' · ' : '') + r.pro.label + (typeof isPro==='function'&&isPro()?'':' (Pro)') : '') : '';
+    setTimeout(() => { moment('Pass · Tier ' + after, 'A new tier of ' + currentSeason().name + ' is yours to claim — ' + peek + '.', currentSeason().color, currentSeason().glyph); if (typeof floatGain==='function') floatGain('Tier ' + after + ' ✦'); }, 300);
+  }
+  if (typeof renderSeasonCard === 'function') renderSeasonCard();
+  if (document.getElementById('passOverlay') && document.getElementById('passOverlay').classList.contains('show') && typeof renderPassOverlay === 'function') renderPassOverlay();
+  if (typeof checkChallenges === 'function') checkChallenges();
+}
+function _applyReward(r) {
+  if (!r) return; addCosmetic(r.id);
+  if (r.kind === 'title' && typeof appSettings !== 'undefined' && !appSettings.title) { appSettings.title = r.val; if (typeof saveSettings==='function') saveSettings(); if (typeof updateEquippedTitle==='function') updateEquippedTitle(); }
+}
+function claimTier(tIdx) {
+  const p = loadPass(); if (passTierFor(p.depth) < tIdx) return false; if (p.claimed.indexOf(tIdx) !== -1) return false;
+  p.claimed.push(tIdx); savePass(p);
+  const r = passTiers()[tIdx-1]; if (!r) return true;
+  _applyReward(r.free);
+  if (typeof isPro === 'function' && isPro()) _applyReward(r.pro);
+  if (typeof floatGain === 'function') floatGain((r.free ? r.free.label : 'Tier ' + tIdx) + ' ✦');
+  if (typeof renderPassOverlay === 'function') renderPassOverlay();
+  if (typeof renderSeasonCard === 'function') renderSeasonCard();
+  if (typeof refreshThemePicker === 'function') refreshThemePicker();
+  return true;
+}
+function claimableTiers() { const p = loadPass(); const top = passTierFor(p.depth); const out = []; for (let t=1;t<=Math.min(12,top);t++) if (p.claimed.indexOf(t)===-1) out.push(t); return out; }
+function claimAllTiers() { claimableTiers().forEach(t => claimTier(t)); }
+
+// --- weekly challenges ---
+var CHALLENGE_POOL = [
+  { id:'sync',  label:n=>'Begin '+n+' sync sessions',           target:5,  stat:'sessions' },
+  { id:'conv',  label:n=>'Make the convergence '+n+' times',    target:2,  stat:'convergences' },
+  { id:'grat',  label:n=>'Leave '+n+' gratitudes with the field', target:3, stat:'gratitudes' },
+  { id:'hold',  label:n=>'Hold a tone for '+n+' minutes total', target:30, stat:'syncedMin' },
+  { id:'close', label:n=>'Add '+n+'% closeness to your true self', target:5, stat:'closeness' },
+  { id:'awk',   label:n=>'Unlock an awakening',                 target:1,  stat:'awakenings' }
+];
+function _statNow(stat) {
+  if (stat==='sessions') return (typeof appStats!=='undefined') ? (appStats.sessions||0) : 0;
+  if (stat==='convergences') return (typeof convList==='function') ? convList().length : 0;
+  if (stat==='gratitudes') return (typeof gratGivenList==='function') ? gratGivenList().length : 0;
+  if (stat==='syncedMin') return (typeof appStats!=='undefined') ? Math.floor((appStats.syncedMs||0)/60000) : 0;
+  if (stat==='closeness') return (typeof closeness!=='undefined') ? Math.round(closeness) : 0;
+  if (stat==='awakenings') return (typeof awakenedCount==='function') ? awakenedCount() : 0;
+  return 0;
+}
+function challengeWeekKey() { return _seasonIdx() + ':' + Math.floor((seasonDay()-1)/7); }
+function weeklyChallenges() {
+  const k = challengeWeekKey(); const h = (typeof _dayHash==='function') ? (_dayHash('wc|'+k) >>> 0) : 3;
+  // deterministic pick of 4 distinct from the pool
+  const order = CHALLENGE_POOL.map((c,i)=>({c, k:(typeof _dayHash==='function')?(_dayHash('wc|'+k+'|'+i)>>>0):i})).sort((a,b)=>a.k-b.k);
+  return order.slice(0,4).map(o=>o.c);
+}
+function loadChallengeState() {
+  let v=null; try { v = JSON.parse(localStorage.getItem('resonance_challenges')||'null'); } catch(e){}
+  const wk = challengeWeekKey();
+  if (!v || v.week !== wk) {
+    const base = {}; weeklyChallenges().forEach(c => base[c.id] = _statNow(c.stat));
+    v = { week: wk, base: base, done: [] };
+    try { localStorage.setItem('resonance_challenges', JSON.stringify(v)); } catch(e){}
+  }
+  return v;
+}
+function challengeProgress(c) { const st = loadChallengeState(); return Math.max(0, _statNow(c.stat) - (st.base[c.id]||0)); }
+let _inChallengeCheck = false;
+function checkChallenges() {
+  if (_inChallengeCheck) return; _inChallengeCheck = true;
+  try {
+    const st = loadChallengeState(); let gained = 0; let changed = false;
+    weeklyChallenges().forEach(c => {
+      if (st.done.indexOf(c.id) !== -1) return;
+      if (challengeProgress(c) >= c.target) { st.done.push(c.id); gained += 150; changed = true; if (typeof floatGain==='function') floatGain('Challenge done · +150 ✦'); }
+    });
+    if (changed) { try { localStorage.setItem('resonance_challenges', JSON.stringify(st)); } catch(e){} }
+    if (document.getElementById('passOverlay') && document.getElementById('passOverlay').classList.contains('show') && typeof renderPassOverlay === 'function') renderPassOverlay();
+    if (gained) { _inChallengeCheck = false; addPassDepth(gained, 'challenge'); return; }
+  } catch(e){}
+  _inChallengeCheck = false;
+}
+
+// --- cosmetics: orb skins, titles, themes ---
+function applyOrbSkin() {
+  const orb = document.getElementById('mainOrb'); if (!orb) return;
+  const skin = (typeof appSettings !== 'undefined') ? (appSettings.orbSkin || '') : '';
+  orb.className = 'main-orb' + (skin ? ' skin-' + skin : '');
+}
+function equipOrbSkin(id) { if (typeof appSettings === 'undefined') return; appSettings.orbSkin = id || null; if (typeof saveSettings==='function') saveSettings(); applyOrbSkin(); if (typeof renderPassOverlay==='function') renderPassOverlay(); if (typeof toast==='function') toast(id ? 'Orb skin equipped' : 'Orb skin cleared', ''); }
+function ALL_TITLES() {
+  // collect title rewards from this season + any title cosmetics ever unlocked (best-effort: scan all seasons' tiers)
+  const out = [];
+  SEASONS.forEach(seasonScan => {
+    // can't call passTiers() for another season cheaply; just reconstruct title ids the same way
+  });
+  // simpler: titles you have are ids in cosmetics that start with a season id + '-title-' — but we need their val. Reconstruct from the current season's passTiers + remember any equipped one.
+  passTiers().forEach(r => { [r.free, r.pro].forEach(x => { if (x && x.kind === 'title') out.push({ id:x.id, val:x.val }); }); });
+  return out;
+}
+function equipTitle(val) { if (typeof appSettings === 'undefined') return; appSettings.title = val || null; if (typeof saveSettings==='function') saveSettings(); updateEquippedTitle(); if (typeof renderPassOverlay==='function') renderPassOverlay(); }
+function updateEquippedTitle() {
+  const t = (typeof appSettings !== 'undefined') ? (appSettings.title || '') : '';
+  ['equippedTitleTop','equippedTitleProf'].forEach(id => { const el = document.getElementById(id); if (!el) return; if (t) { el.textContent = t; el.style.display = ''; } else { el.textContent = ''; el.style.display = 'none'; } });
+}
+function refreshThemePicker() {
+  const grid = document.querySelector('#settingsOverlay .set-theme-grid'); if (!grid) return;
+  // remove previously-added season-theme cards
+  grid.querySelectorAll('.set-theme-card[data-season-theme]').forEach(el => el.remove());
+  const seasonThemes = [
+    { v:'root-season', n:'Root', g:'conic-gradient(from 0deg,#fb7185,#f4a85a,#d4604f,#e8b4a0,#fb7185)' },
+    { v:'heart-season', n:'Heart', g:'conic-gradient(from 0deg,#6ee7b7,#34d399,#22d3ee,#a7f3d0,#6ee7b7)' },
+    { v:'quiet-season', n:'Quiet', g:'conic-gradient(from 0deg,#a78bfa,#8b8bd6,#818cf8,#c4b5fd,#a78bfa)' },
+    { v:'voice-season', n:'Voice', g:'conic-gradient(from 0deg,#fbbf24,#e3b13e,#ffb800,#f6dd84,#fbbf24)' },
+    { v:'crown-season', n:'Crown', g:'conic-gradient(from 0deg,#c8b6ff,#e0e7ff,#a5b4fc,#ede9fe,#c8b6ff)' },
+    { v:'fire-season', n:'Fire', g:'conic-gradient(from 0deg,#f59e0b,#fcd34d,#ea580c,#f87171,#f59e0b)' }
+  ];
+  const cos = loadCosmetics();
+  seasonThemes.forEach(th => {
+    if (!cos.has('theme-' + th.v)) return;
+    const el = document.createElement('div'); el.className = 'set-theme-card' + ((typeof appSettings!=='undefined'&&appSettings.theme===th.v)?' active':''); el.dataset.theme = th.v; el.dataset.seasonTheme = '1';
+    el.innerHTML = '<div class="set-theme-swatch" style="background:'+th.g+';"></div><div class="set-theme-name">'+th.n+'</div>';
+    el.addEventListener('click', () => { if (typeof appSettings==='undefined') return; appSettings.theme = th.v; if (typeof applyTheme==='function') applyTheme(th.v); document.querySelectorAll('.set-theme-card').forEach(c=>c.classList.toggle('active', c===el)); if (typeof saveSettings==='function') saveSettings(); });
+    grid.appendChild(el);
+  });
+}
+
+// --- render: the Season card on the Hub ---
+function renderSeasonCard() {
+  const slot = document.getElementById('seasonSlot'); if (!slot) return;
+  const s = currentSeason(); if (!s) { slot.innerHTML = ''; return; }
+  const p = loadPass(); const tier = passTierFor(p.depth);
+  const nextThresh = (tier < 12) ? PASS_THRESHOLDS[tier] : null;
+  const prevThresh = PASS_THRESHOLDS[tier-1] || 0;
+  const pct = nextThresh ? Math.max(0, Math.min(100, ((p.depth - prevThresh) / (nextThresh - prevThresh)) * 100)) : 100;
+  const claimN = claimableTiers().length;
+  const quiet = (typeof appSettings!=='undefined' && appSettings.quietMetrics);
+  document.documentElement.style.setProperty('--season-glow', s.color);
+  slot.innerHTML = '<div class="season-card" id="seasonCardBtn" style="--se-c:'+s.color+'26; --se-bd:'+s.color+'55; --se-orb:'+s.color+';">'
+    + '<div class="se-glyph">'+s.glyph+'</div>'
+    + '<div class="se-kicker">Season '+seasonNumber()+' · day '+seasonDay()+' of '+SEASON_DAYS+'</div>'
+    + '<div class="se-name">'+escapeHtml(s.name)+'</div>'
+    + '<div class="se-day">'+escapeHtml(s.open)+'</div>'
+    + '<div class="se-passrow"><div class="se-tier">'+(quiet?'The Path':'Tier '+tier)+(claimN?'<span class="se-claimpip" title="rewards to claim"></span>':'')+'</div>'
+    + '<div class="se-bar"><div class="se-bar-fill" style="width:'+pct+'%;"></div></div>'
+    + '<div class="se-open">'+(claimN?('claim '+claimN+' →'):'open the Pass →')+'</div></div>'
+    + '</div>';
+  const b = document.getElementById('seasonCardBtn'); if (b) b.addEventListener('click', openPass);
+}
+// --- render: the Pass overlay ---
+function openPass() { renderPassOverlay(); document.getElementById('passOverlay').classList.add('show'); document.getElementById('passOverlay').scrollTop = 0; }
+function closePass() { document.getElementById('passOverlay').classList.remove('show'); }
+function renderPassOverlay() {
+  const ov = document.getElementById('passOverlay'); if (!ov) return;
+  const s = currentSeason(); if (!s) return;
+  const p = loadPass(); const tier = passTierFor(p.depth);
+  ov.style.setProperty('--po-c', s.color + '22'); ov.style.setProperty('--po-orb', s.color);
+  document.getElementById('passGlyphLabel').textContent = 'SEASON ' + seasonNumber();
+  document.getElementById('passSeasonName').textContent = s.name;
+  document.getElementById('passSeasonDay').textContent = 'day ' + seasonDay() + ' of ' + SEASON_DAYS + ' · ' + (SEASON_DAYS - seasonDay()) + ' to go';
+  const nextThresh = (tier < 12) ? PASS_THRESHOLDS[tier] : null;
+  const prevThresh = PASS_THRESHOLDS[tier-1] || 0;
+  const pct = nextThresh ? Math.max(0, Math.min(100, ((p.depth - prevThresh) / (nextThresh - prevThresh)) * 100)) : 100;
+  document.getElementById('passTierLabel').textContent = 'TIER ' + tier + (tier>=12?' · MAX':'');
+  document.getElementById('passProgFill').style.width = pct + '%';
+  document.getElementById('passProgNext').textContent = nextThresh ? (p.depth + ' / ' + nextThresh) : (p.depth + ' depth');
+  const claimN = claimableTiers().length;
+  const caw = document.getElementById('passClaimAllWrap'); caw.style.display = claimN ? 'block' : 'none';
+  if (claimN) document.getElementById('passClaimAllBtn').textContent = 'Claim ' + claimN + ' reward' + (claimN>1?'s':'');
+  // track
+  const tiers = passTiers(); const pro = (typeof isPro==='function') && isPro();
+  const trk = document.getElementById('passTrack');
+  trk.innerHTML = tiers.map((r, i) => {
+    const tn = i+1; const reached = tier >= tn; const claimed = p.claimed.indexOf(tn) !== -1;
+    const cls = 'pass-tier' + (tn === tier ? ' current' : '') + (reached ? '' : ' locked') + (reached && !claimed ? ' claimable' : '') + (!pro ? ' pro-locked' : '');
+    const rw = (kind, x) => x ? ('<div class="pt-reward'+(kind==='pro'?' pro':'')+'"><div class="pr-icon">'+x.icon+'</div><div><div class="pr-lbl">'+(kind==='pro'?'PRO':'FREE')+'</div><div class="pr-txt">'+escapeHtml(x.label)+'</div></div></div>') : '';
+    const btn = claimed ? '<button class="pt-claim btn-claimed">Claimed</button>' : reached ? '<button class="pt-claim btn-claim" data-claim="'+tn+'">Claim</button>' : '<button class="pt-claim btn-locked">Tier '+tn+'</button>';
+    return '<div class="'+cls+'"><div class="pt-num">TIER <b>'+tn+'</b>'+(tn===12?' · capstone':'')+'</div>'+rw('free', r.free)+rw('pro', r.pro)+btn+'</div>';
+  }).join('');
+  trk.querySelectorAll('[data-claim]').forEach(el => el.addEventListener('click', () => claimTier(parseInt(el.dataset.claim))));
+  // lore
+  const cos = loadCosmetics();
+  const loreEl = document.getElementById('passLore');
+  let loreHtml = '<div class="pl-head">' + s.name + ' · the story</div><div class="pl-verse">' + escapeHtml(s.open) + '</div>';
+  s.lore.forEach((v, n) => { loreHtml += cos.has(s.id+'-lore-'+n) ? ('<div class="pl-verse">' + escapeHtml(v) + '</div>') : ('<div class="pl-locked">· verse ' + (n+1) + ' — unlocks at a Pass tier ·</div>'); });
+  loreEl.innerHTML = loreHtml;
+  // challenges
+  const chEl = document.getElementById('passChallenges'); const cst = loadChallengeState();
+  chEl.innerHTML = weeklyChallenges().map(c => {
+    const done = cst.done.indexOf(c.id) !== -1; const prog = challengeProgress(c);
+    const pp = Math.max(0, Math.min(100, (prog / c.target) * 100));
+    const quiet = (typeof appSettings!=='undefined' && appSettings.quietMetrics);
+    return '<div class="pass-challenge'+(done?' done':'')+'"><div class="pc-row"><div class="pc-label">'+escapeHtml(c.label(c.target))+(done?' ✓':'')+'</div><div class="pc-reward">'+(done?'done':(quiet?'':prog+' / '+c.target))+' · +150</div></div>'+(done?'':'<div class="pc-bar"><div class="pc-bar-fill" style="width:'+pp+'%;"></div></div>')+'</div>';
+  }).join('');
+  // orb skins
+  const skins = [
+    { id:'', name:'Default', style:'background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), var(--violet) 40%, rgba(10,10,30,0.95));' },
+    { id:'season', name:s.name.replace('The ','').replace(' Season',''), style:'background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), '+s.color+' 50%, rgba(10,10,20,0.95)); box-shadow:0 0 14px '+s.color+';' },
+    { id:'aurora', name:'Aurora', style:'background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), #a78bfa 40%, #1a0e2e); filter:hue-rotate(120deg) saturate(1.3);' },
+    { id:'obsidian', name:'Obsidian', style:'background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), #2a2a35 45%, #060608); filter:contrast(1.2);' },
+    { id:'prism', name:'Prism', style:'background:conic-gradient(from 0deg, #6ee7b7, #a78bfa, #fb7185, #60a5fa, #6ee7b7);' },
+    { id:'ring', name:'Ring', style:'background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), var(--violet) 40%, rgba(10,10,30,0.95)); box-shadow:0 0 0 2px rgba(255,255,255,0.5), 0 0 20px rgba(255,255,255,0.3);' }
+  ];
+  const equipped = (typeof appSettings!=='undefined') ? (appSettings.orbSkin || '') : '';
+  document.getElementById('passOrbSkins').innerHTML = skins.map(sk => {
+    const owned = sk.id === '' || cos.has('orb-'+sk.id) || sk.id === 'season' /* season tint at tier 1 free? no — pro. let it still be owned-checked */ ;
+    const realOwned = sk.id === '' || cos.has('orb-'+sk.id);
+    return '<div class="pass-equip-item'+(equipped===sk.id?' active':'')+(realOwned?'':' locked')+'" data-skin="'+sk.id+'"><div class="pe-orb" style="'+sk.style+'"></div><div class="pe-name">'+sk.name+(realOwned?'':' · locked')+'</div></div>';
+  }).join('');
+  document.querySelectorAll('#passOrbSkins .pass-equip-item').forEach(el => el.addEventListener('click', () => equipOrbSkin(el.dataset.skin)));
+  // titles
+  const titles = ALL_TITLES(); const eqT = (typeof appSettings!=='undefined') ? (appSettings.title || '') : '';
+  let tHtml = '<div class="pass-title-chip'+(eqT===''?' active':'')+'" data-title="">no title</div>';
+  titles.forEach(t => { const owned = cos.has(t.id); tHtml += '<div class="pass-title-chip'+(eqT===t.val?' active':'')+(owned?'':' locked')+'" data-title="'+escapeHtml(t.val)+'">'+escapeHtml(t.val)+(owned?'':' · locked')+'</div>'; });
+  document.getElementById('passTitles').innerHTML = tHtml;
+  document.querySelectorAll('#passTitles .pass-title-chip').forEach(el => el.addEventListener('click', () => equipTitle(el.dataset.title)));
+}
+document.getElementById('passCloseBtn').addEventListener('click', closePass);
+document.getElementById('passClaimAllBtn').addEventListener('click', claimAllTiers);
+
+// --- hook depth into the practice (wrap the existing functions) ---
+(function () {
+  if (typeof recordDailySync === 'function') { const _f = recordDailySync; recordDailySync = function () { _f(); if (typeof addPassDepth==='function') addPassDepth(20, 'daily'); }; }
+  if (typeof recordConvergence === 'function') { const _f = recordConvergence; recordConvergence = function () { _f(); if (typeof addPassDepth==='function') addPassDepth(40, 'converge'); }; }
+  if (typeof recordGratitude === 'function') { const _f = recordGratitude; recordGratitude = function () { _f(); if (typeof addPassDepth==='function') addPassDepth(20, 'gratitude'); }; }
+  if (typeof unlockAwakening === 'function') { const _f = unlockAwakening; unlockAwakening = function (id, opts) { const before = (typeof isAwakened==='function')?isAwakened(id):false; _f(id, opts); if (!before && typeof isAwakened==='function' && isAwakened(id) && typeof addPassDepth==='function') addPassDepth(120, 'awakening'); }; }
+})();
+document.getElementById('manualPlay').addEventListener('click', () => { const b = document.getElementById('manualPlay'); if (b.classList.contains('active') && typeof addPassDepth==='function') addPassDepth(15, 'sync'); });
+
+// --- init ---
+function _seasonInit() {
+  applyOrbSkin();
+  updateEquippedTitle();
+  if (typeof refreshThemePicker === 'function') setTimeout(refreshThemePicker, 0);
+  renderSeasonCard();
+  checkChallenges();
+  // "new season" moment on entry
+  let last = null; try { last = localStorage.getItem('resonance_lastseason'); } catch (e) {}
+  try { localStorage.setItem('resonance_lastseason', String(_seasonIdx())); } catch (e) {}
+  if (last !== null && last !== String(_seasonIdx())) {
+    const s = currentSeason();
+    document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(() => { if (typeof moment==='function') moment('A new season', s.open + ' The path resets — what you earned stays.', s.color, s.glyph); }, 2600));
+    document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(() => { if (typeof moment==='function') moment('A new season', s.open, s.color, s.glyph); }, 2600));
+  }
+}
+_seasonInit();
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(() => { applyOrbSkin(); updateEquippedTitle(); renderSeasonCard(); }, 2400));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(() => { applyOrbSkin(); updateEquippedTitle(); renderSeasonCard(); }, 2400));
+// keep the orb skin applied after applyFrequency re-styles the orb (it sets style.background but not className — re-assert the class just in case)
+(function () { const _af = applyFrequency; applyFrequency = function (hz, fromSlider) { _af(hz, fromSlider); if (typeof applyOrbSkin === 'function') applyOrbSkin(); }; })();
+// also tie a tiny depth to opening a reading (reuse the existing reading hook by wrapping openReading if present)
+(function () { if (typeof openReading === 'function') { const _f = openReading; openReading = function () { _f(); if (typeof addPassDepth==='function') addPassDepth(5, 'reading'); }; } })();
 
 renderLadder();
 </script>
