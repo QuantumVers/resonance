@@ -2206,6 +2206,16 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .depth-page .walk-share-btn:hover { border-color: rgba(157,92,255,0.7); }
 .depth-page .walk-share-btn .wsb-glyph { color: var(--mint); font-size: 18px; filter: drop-shadow(0 0 8px var(--mint)); }
 .depth-page .walk-share-btn .wsb-arrow { opacity: 0.5; }
+/* ============ DATA_AGENT · ON THIS DAY ============ */
+.on-this-day-section .on-this-day-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.on-this-day-section .otd-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(20,20,28,0.55); border: 1px solid var(--border); border-radius: 14px; border-left: 3px solid var(--otd-c, var(--violet)); }
+.on-this-day-section .otd-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--otd-c, var(--violet)); box-shadow: 0 0 12px var(--otd-c, var(--violet)); flex-shrink: 0; }
+.on-this-day-section .otd-body { flex: 1; min-width: 0; }
+.on-this-day-section .otd-meta { font-size: 9.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.on-this-day-section .otd-freq { font-size: 22px; font-weight: 200; color: var(--text); letter-spacing: -0.3px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.on-this-day-section .otd-label { font-size: 12px; color: var(--text-soft); font-style: italic; font-family: Georgia, serif; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ============ /DATA_AGENT ============ */
+
 /* ============ /DATA_AGENT ============ */
 /* ============ DATA_AGENT · WALK RIBBON ============ */
 .depth-page .walk-ribbon { margin: 14px 0 18px; padding: 18px 18px 16px; background: linear-gradient(180deg, rgba(157,92,255,0.10) 0%, rgba(110,231,183,0.05) 100%), rgba(20,20,28,0.55); border: 1px solid rgba(157,92,255,0.32); border-radius: 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
@@ -4483,6 +4493,13 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <span class="wsb-label">Share your walk</span>
           <span class="wsb-arrow">→</span>
         </button>
+      </div>
+
+      <!-- DATA_AGENT · ON THIS DAY -->
+      <div class="depth-section on-this-day-section" id="onThisDayWrap" style="display:none;">
+        <div class="depth-section-h">On this day</div>
+        <div class="depth-section-sub">Memories you saved on this date · the app remembers</div>
+        <div class="on-this-day-list" id="onThisDayList"></div>
       </div>
 
       <!-- Your memories — individual moments you've captured -->
@@ -12905,6 +12922,60 @@ window.shareWalkCard = shareWalkCard;
 // =================== /DATA_AGENT ===================
 // =================== DATA_AGENT · WALK SHARE WIRE ===================
 (function () { const b = document.getElementById('walkShareBtn'); if (b) b.addEventListener('click', () => { try { shareWalkCard(); } catch (e) {} }); })();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · ON THIS DAY ===================
+// Surface memories you saved on this exact day in past weeks/months/years.
+// The data is already there (memories[] with timestamps); just nobody was
+// looking at it through this angle.
+function onThisDayMemories() {
+  if (typeof memories === 'undefined' || !Array.isArray(memories)) return [];
+  const now = new Date();
+  const m = now.getMonth(), d = now.getDate();
+  const today = now.toISOString().slice(0, 10);
+  const out = [];
+  memories.forEach(mem => {
+    if (!mem || !mem.time) return;
+    const dt = new Date(mem.time);
+    if (dt.getMonth() === m && dt.getDate() === d) {
+      const isToday = dt.toISOString().slice(0, 10) === today;
+      if (!isToday) out.push({ mem: mem, daysAgo: Math.round((now - dt) / 86400000) });
+    }
+  });
+  out.sort((a, b) => b.daysAgo - a.daysAgo);
+  return out;
+}
+function renderOnThisDay() {
+  const host = document.getElementById('onThisDayList'); if (!host) return;
+  const wrap = document.getElementById('onThisDayWrap'); if (!wrap) return;
+  const list = onThisDayMemories();
+  if (!list.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  host.innerHTML = list.slice(0, 5).map(item => {
+    const dt = new Date(item.mem.time);
+    const dateStr = dt.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
+    const c = (typeof hzToColor === 'function') ? hzToColor(item.mem.freq) : [null, null, '#a78bfa'];
+    const ago = item.daysAgo >= 365 ? (Math.floor(item.daysAgo / 365) + ' yr ago')
+              : item.daysAgo >= 30 ? (Math.floor(item.daysAgo / 30) + ' mo ago')
+              : (item.daysAgo + ' days ago');
+    const label = (item.mem.label || '').replace(/[<>&]/g, s => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[s]));
+    return '<div class="otd-card" style="--otd-c:' + c[2] + '">'
+         +   '<div class="otd-dot"></div>'
+         +   '<div class="otd-body">'
+         +     '<div class="otd-meta">' + ago + ' · ' + dateStr + '</div>'
+         +     '<div class="otd-freq">' + Math.round(item.mem.freq) + ' Hz</div>'
+         +     '<div class="otd-label">' + label + '</div>'
+         +   '</div>'
+         + '</div>';
+  }).join('');
+}
+// Re-render on Depth open
+(function () {
+  if (typeof renderDepth === 'function') {
+    const _rd = renderDepth;
+    renderDepth = function () { _rd.apply(this, arguments); try { renderOnThisDay(); } catch (e) {} };
+  }
+  try { renderOnThisDay(); } catch (e) {}
+})();
 // =================== /DATA_AGENT ===================
 
 renderLadder();
