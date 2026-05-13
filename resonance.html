@@ -253,6 +253,13 @@ html, body {
 @keyframes lobbyHalo { 0%, 100% { opacity: 0.65; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
 
 
+
+.beat-pattern-host { max-height: 240px; overflow-y: auto; padding: 4px 0 8px; }
+.beat-pattern-host .beat-section-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin: 12px 0 6px; }
+.beat-pattern-host .beat-section-label:first-child { margin-top: 4px; }
+.beat-pattern-host .beat-preset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -5387,15 +5394,14 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   </div>
 
   <div class="beat-presets">
-    <div class="beat-section-label">Assistant · Try a pattern</div>
-    <div class="beat-preset-grid">
-      <button class="beat-preset" data-preset="heartbeat">❤ Heartbeat</button>
-      <button class="beat-preset" data-preset="meditation">✦ Meditation</button>
-      <button class="beat-preset" data-preset="pulse">◯ Pulse</button>
-      <button class="beat-preset" data-preset="trap">⚡ Trap</button>
-      <button class="beat-preset" data-preset="random">⟳ Surprise me</button>
-      <button class="beat-preset" data-preset="clear">⊘ Clear</button>
+    <div class="beat-section-label" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <span>50 patterns · Tap one</span>
+      <span style="display:flex;gap:6px;">
+        <button class="beat-preset" id="beatPatternSaveBtn" style="background:rgba(110,231,183,0.10);border-color:rgba(110,231,183,0.32);color:var(--mint);">＋ Save</button>
+        <button class="beat-preset" id="beatPatternClearBtn">⊘ Clear</button>
+      </span>
     </div>
+    <div class="beat-pattern-host" id="beatLibHost"></div>
   </div>
 
   <div class="beat-grid-wrap">
@@ -14761,6 +14767,143 @@ function lightLine() { return LIGHT_LINES[Math.floor(Math.random() * LIGHT_LINES
   }
 })();
 
+
+
+// =================== BEAT PATTERN LIBRARY (50 patterns, categorized) ===================
+function _parsePat(s) { const a = []; for (let i = 0; i < 16; i++) a.push(s[i] === '1' ? 1 : 0); return a; }
+const BEAT_PATTERN_LIBRARY = [
+  // ============ GROUNDING · root, slow body tempos ============
+  { id: 'heartbeat',     name: 'Heartbeat',       cat: 'Grounding', glyph: '❤', bpm: 60,  pat: { kick:'1000100010001000', snare:'0000000000000000', hat:'0000000000000000', clap:'0000000000000000', bass:'0000000010000000' } },
+  { id: 'earth-pulse',   name: 'Earth Pulse',     cat: 'Grounding', glyph: '◯', bpm: 64,  pat: { kick:'1000000010000000', snare:'0000000000000000', hat:'0000100000001000', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'stone-circle',  name: 'Stone Circle',    cat: 'Grounding', glyph: '◉', bpm: 66,  pat: { kick:'1000100010001000', snare:'0000000000000000', hat:'0010001000100010', clap:'0000000000000000', bass:'0000100000001000' } },
+  { id: 'rooted',        name: 'Rooted',          cat: 'Grounding', glyph: '⌬', bpm: 70,  pat: { kick:'1000001010000010', snare:'0000000000000000', hat:'0010001000100010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'meditation',    name: 'Meditation',      cat: 'Grounding', glyph: '✦', bpm: 56,  pat: { kick:'1000000010000000', snare:'0000000000000000', hat:'0010001000100010', clap:'0000000000000000', bass:'0000000000000000' } },
+
+  // ============ FLOW · sacral, emotional, water tempos ============
+  { id: 'river',         name: 'River',           cat: 'Flow',      glyph: '〰', bpm: 84,  pat: { kick:'1000000010000010', snare:'0000000000000000', hat:'1010101010101010', clap:'0000000000000000', bass:'1000010010000100' } },
+  { id: 'tide',          name: 'Tide',            cat: 'Flow',      glyph: '~', bpm: 78,  pat: { kick:'1000001010000000', snare:'0000000000000000', hat:'0010101000101010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'rain',          name: 'Rain',            cat: 'Flow',      glyph: '⋮', bpm: 90,  pat: { kick:'1000000000000000', snare:'0000000000000000', hat:'1111111111111111', clap:'0000000000000000', bass:'1000000000000000' } },
+  { id: 'bloodstream',   name: 'Bloodstream',     cat: 'Flow',      glyph: '⌇', bpm: 92,  pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'0010001000100010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'midnight-tide', name: 'Midnight Tide',   cat: 'Flow',      glyph: '◐', bpm: 82,  pat: { kick:'1000000010000100', snare:'0000100000001000', hat:'0010001000100010', clap:'0000000000000000', bass:'1000010000001000' } },
+
+  // ============ FIRE · solar, driven ============
+  { id: 'pulse',         name: 'Pulse',           cat: 'Fire',      glyph: '◯', bpm: 120, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'1010101010101010', clap:'0000000000000000', bass:'0000000000000000' } },
+  { id: 'warrior',       name: 'Warrior',         cat: 'Fire',      glyph: '⚔', bpm: 128, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'1011101110111011', clap:'0000100000001000', bass:'1000000000000000' } },
+  { id: 'dawn-fire',     name: 'Dawn Fire',       cat: 'Fire',      glyph: '☀', bpm: 124, pat: { kick:'1000100010001000', snare:'0000100100001001', hat:'1010101010101010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'liberation',    name: 'Liberation',      cat: 'Fire',      glyph: '⚡', bpm: 124, pat: { kick:'1000101010001010', snare:'0000100000001000', hat:'1010101010101010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'desert-wind',   name: 'Desert Wind',     cat: 'Fire',      glyph: '〜', bpm: 118, pat: { kick:'1000001010000010', snare:'0000100000001000', hat:'1011101110111011', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'trap',          name: 'Trap',            cat: 'Fire',      glyph: '⚡', bpm: 140, pat: { kick:'1000000100100000', snare:'0000100000001000', hat:'1011101110111111', clap:'0000100000001000', bass:'1000000000000000' } },
+
+  // ============ HEART · 432/528, open, house tempos ============
+  { id: 'open-chest',    name: 'Open Chest',      cat: 'Heart',     glyph: '♥', bpm: 122, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'0010101000101010', clap:'0000100000001000', bass:'1000010010000100' } },
+  { id: 'soft-house',    name: 'Soft House',      cat: 'Heart',     glyph: '○', bpm: 118, pat: { kick:'1000100010001000', snare:'0000000000000000', hat:'0010101000101010', clap:'0000100000001000', bass:'1000010010000100' } },
+  { id: 'inner-room',    name: 'Inner Room',      cat: 'Heart',     glyph: '◇', bpm: 120, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'0010100010101010', clap:'0000000000000000', bass:'1000000010000010' } },
+  { id: 'breath-house',  name: 'Breath House',    cat: 'Heart',     glyph: '◌', bpm: 116, pat: { kick:'1000000010000000', snare:'0000100000001000', hat:'0010001000100010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'field-warm',    name: 'Field, Warm',     cat: 'Heart',     glyph: '☼', bpm: 122, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'1010101010101010', clap:'0000100000001000', bass:'1010000010100000' } },
+  { id: 'gathered',      name: 'Gathered',        cat: 'Heart',     glyph: '◎', bpm: 124, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'1010101010101010', clap:'0000000010000000', bass:'1000010010000100' } },
+
+  // ============ VOICE · throat, calling ============
+  { id: 'chant',         name: 'Chant',           cat: 'Voice',     glyph: 'Ω', bpm: 100, pat: { kick:'1000000010000000', snare:'0000100000001000', hat:'0010001000100010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'mantra',        name: 'Mantra',          cat: 'Voice',     glyph: '☸', bpm: 96,  pat: { kick:'1000100010001000', snare:'0000000000000000', hat:'0010001000100010', clap:'0000000000000000', bass:'1000000000000000' } },
+  { id: 'call-response', name: 'Call & Response', cat: 'Voice',     glyph: '↔', bpm: 104, pat: { kick:'1000000010000000', snare:'0000100000001000', hat:'0010100010101010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'chorus',        name: 'Chorus',          cat: 'Voice',     glyph: '♪', bpm: 108, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'0010101000101010', clap:'0000100000001000', bass:'1000010010000100' } },
+  { id: 'declaration',   name: 'Declaration',     cat: 'Voice',     glyph: '◈', bpm: 112, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'1010101010101010', clap:'0000100000001000', bass:'1000000010000000' } },
+
+  // ============ VISION · third eye, dreamy ============
+  { id: 'temple',        name: 'Temple',          cat: 'Vision',    glyph: '△', bpm: 88,  pat: { kick:'1000000010000000', snare:'0000000000000000', hat:'1010101010101010', clap:'0000100000001000', bass:'1000000010000000' } },
+  { id: 'aurora',        name: 'Aurora',          cat: 'Vision',    glyph: '✺', bpm: 92,  pat: { kick:'1000000010000010', snare:'0000000000000000', hat:'1010101010101010', clap:'0000000000000000', bass:'1000010000001000' } },
+  { id: 'mirror-pond',   name: 'Mirror Pond',     cat: 'Vision',    glyph: '◇', bpm: 84,  pat: { kick:'1000000010000000', snare:'0000000000000000', hat:'0010001000100010', clap:'0000000000000000', bass:'1000000000000000' } },
+  { id: 'threshold',     name: 'Threshold',       cat: 'Vision',    glyph: '⌧', bpm: 96,  pat: { kick:'1000001010000010', snare:'0000100000001000', hat:'1010101010101010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'the-seen',      name: 'The Seen',        cat: 'Vision',    glyph: '◐', bpm: 90,  pat: { kick:'1000000010000000', snare:'0000000000001000', hat:'1010101010101010', clap:'0000100000000000', bass:'1000000010000000' } },
+
+  // ============ CROWN · transcendent, ascending ============
+  { id: 'ascending',     name: 'Ascending',       cat: 'Crown',     glyph: '∞', bpm: 128, pat: { kick:'1000100010001000', snare:'0000000000000000', hat:'1111111111111111', clap:'0000000000000000', bass:'1010000010100000' } },
+  { id: 'light-rain',    name: 'Light Rain',      cat: 'Crown',     glyph: '☼', bpm: 124, pat: { kick:'1000000010000000', snare:'0000000000000000', hat:'1111111111111111', clap:'0000100000001000', bass:'1000000010000000' } },
+  { id: 'the-quiet',     name: 'The Quiet',       cat: 'Crown',     glyph: '◌', bpm: 72,  pat: { kick:'1000000000000000', snare:'0000000000000000', hat:'0010001000100010', clap:'0000000000000000', bass:'0000000000000000' } },
+  { id: 'crown-pulse',   name: 'Crown Pulse',     cat: 'Crown',     glyph: '◎', bpm: 126, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'1010101010101010', clap:'0000000010000000', bass:'1000000010000000' } },
+  { id: 'already-home',  name: 'Already Home',    cat: 'Crown',     glyph: '◯', bpm: 100, pat: { kick:'1000000010000000', snare:'0000000000000000', hat:'1010101010101010', clap:'0000100000001000', bass:'1000000010000000' } },
+
+  // ============ HOUSE GENRES · for the song-makers ============
+  { id: 'afro-house',    name: 'Afro House',      cat: 'House',     glyph: '◇', bpm: 122, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'0010001000100010', clap:'0000100000001000', bass:'1010000010100000' } },
+  { id: 'deep-house',    name: 'Deep House',      cat: 'House',     glyph: '◉', bpm: 120, pat: { kick:'1000100010001000', snare:'0000000000000000', hat:'0010001000100010', clap:'0000100000001000', bass:'1000010010000100' } },
+  { id: 'tech-house',    name: 'Tech House',      cat: 'House',     glyph: '◯', bpm: 126, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'1010101010101010', clap:'0000100000001000', bass:'1000010000001000' } },
+  { id: 'progressive',   name: 'Progressive',     cat: 'House',     glyph: '↗', bpm: 124, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'1010101010101010', clap:'0000000000000000', bass:'1010000010100000' } },
+  { id: 'french-touch',  name: 'French Touch',    cat: 'House',     glyph: '✿', bpm: 120, pat: { kick:'1000100010001000', snare:'0000100000001000', hat:'1010101010101010', clap:'0000100000001000', bass:'1010100010101000' } },
+
+  // ============ OTHER ============
+  { id: 'breakbeat',     name: 'Breakbeat',       cat: 'Other',     glyph: '◊', bpm: 132, pat: { kick:'1010000010100000', snare:'0000100000001010', hat:'1010101010101010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'downtempo',     name: 'Downtempo',       cat: 'Other',     glyph: '◔', bpm: 80,  pat: { kick:'1000000010000000', snare:'0000100000001000', hat:'0010001000100010', clap:'0000000000000000', bass:'1000000010000000' } },
+  { id: 'dub',           name: 'Dub',             cat: 'Other',     glyph: '∽', bpm: 70,  pat: { kick:'1000000010000000', snare:'0000100000001000', hat:'0010001000100010', clap:'0000000000000000', bass:'1000000000000010' } },
+  { id: 'ambient-pulse', name: 'Ambient Pulse',   cat: 'Other',     glyph: '◌', bpm: 60,  pat: { kick:'1000000000000000', snare:'0000000000000000', hat:'1000000010000000', clap:'0000000000000000', bass:'1000000000000000' } },
+  { id: 'footwork',      name: 'Footwork',        cat: 'Other',     glyph: '⚡', bpm: 160, pat: { kick:'1001001010010010', snare:'0000100100001001', hat:'1010101010101010', clap:'0000100000001000', bass:'1000000000000000' } },
+  { id: 'garage-shuffle',name: 'Garage Shuffle',  cat: 'Other',     glyph: '◇', bpm: 134, pat: { kick:'1000000010001000', snare:'0000100000001000', hat:'1011101110111011', clap:'0000100000001000', bass:'1000000010000000' } },
+  { id: 'lofi',          name: 'Lo-fi',           cat: 'Other',     glyph: '◐', bpm: 78,  pat: { kick:'1000000010000010', snare:'0000100000001000', hat:'0010101000101010', clap:'0000000000000000', bass:'1000010000001000' } },
+  { id: 'tribal',        name: 'Tribal',          cat: 'Other',     glyph: '◈', bpm: 110, pat: { kick:'1010001010100010', snare:'0000100000001000', hat:'1010101010101010', clap:'0010001000100010', bass:'1000000010000000' } },
+  { id: 'surprise',      name: 'Surprise me',     cat: 'Other',     glyph: '⟳', bpm: 0,   pat: null }
+];
+function applyPatternFromLibrary(id) {
+  const p = BEAT_PATTERN_LIBRARY.find(x => x.id === id); if (!p || !editingBeat) return;
+  if (id === 'surprise') {
+    editingBeat.pattern = (typeof emptyPattern === 'function') ? emptyPattern() : { kick:[], snare:[], hat:[], clap:[], bass:[] };
+    for (let s = 0; s < 16; s++) {
+      if (s % 4 === 0 && Math.random() < 0.88) editingBeat.pattern.kick[s] = true;
+      if (s % 4 === 2 && Math.random() < 0.7) editingBeat.pattern.snare[s] = true;
+      if (Math.random() < 0.5) editingBeat.pattern.hat[s] = true;
+      if (Math.random() < 0.18) editingBeat.pattern.clap[s] = true;
+      if (s % 8 === 0 && Math.random() < 0.6) editingBeat.pattern.bass[s] = true;
+    }
+    editingBeat.bpm = 80 + Math.floor(Math.random() * 80);
+  } else {
+    editingBeat.pattern = (typeof emptyPattern === 'function') ? emptyPattern() : { kick:[], snare:[], hat:[], clap:[], bass:[] };
+    ['kick','snare','hat','clap','bass'].forEach(pad => { _parsePat(p.pat[pad]).forEach((v, i) => { if (v) editingBeat.pattern[pad][i] = true; }); });
+    if (p.bpm) editingBeat.bpm = p.bpm;
+  }
+  if (typeof beatBpm !== 'undefined') beatBpm = editingBeat.bpm || beatBpm;
+  const bpmSlider = document.getElementById('beatBpmSlider'); if (bpmSlider) bpmSlider.value = editingBeat.bpm || 90;
+  const bpmVal = document.getElementById('beatBpmVal'); if (bpmVal) bpmVal.textContent = editingBeat.bpm || 90;
+  if (typeof renderBeatGrid === 'function') renderBeatGrid();
+}
+function renderBeatLibrary() {
+  const host = document.getElementById('beatLibHost'); if (!host) return;
+  // group by category
+  const cats = {}; BEAT_PATTERN_LIBRARY.forEach(p => { (cats[p.cat] = cats[p.cat] || []).push(p); });
+  host.innerHTML = '';
+  Object.entries(cats).forEach(([cat, list]) => {
+    const lbl = document.createElement('div'); lbl.className = 'beat-section-label'; lbl.textContent = cat;
+    host.appendChild(lbl);
+    const grid = document.createElement('div'); grid.className = 'beat-preset-grid';
+    list.forEach(p => {
+      const b = document.createElement('button'); b.className = 'beat-preset'; b.textContent = (p.glyph || '◯') + ' ' + p.name;
+      b.addEventListener('click', () => applyPatternFromLibrary(p.id));
+      grid.appendChild(b);
+    });
+    host.appendChild(grid);
+  });
+}
+// when the beat maker opens, render the library
+if (typeof openBeatMaker === 'function') {
+  const _open = openBeatMaker;
+  openBeatMaker = function (existing) { _open(existing); setTimeout(renderBeatLibrary, 0); };
+}
+
+
+
+// Beat pattern Save + Clear buttons
+{ const b = document.getElementById('beatPatternClearBtn'); if (b) b.addEventListener('click', () => { if (typeof applyPreset === 'function') applyPreset('clear'); }); }
+{ const b = document.getElementById('beatPatternSaveBtn'); if (b) b.addEventListener('click', () => {
+    if (typeof editingBeat === 'undefined' || !editingBeat) return;
+    const name = (editingBeat.name || '').trim() || ('Pattern ' + new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit' }));
+    editingBeat.name = name;
+    if (typeof beats !== 'undefined' && Array.isArray(beats)) {
+      // upsert
+      const idx = beats.findIndex(b => b.id === editingBeat.id);
+      const snapshot = { id: editingBeat.id, name: name, bpm: editingBeat.bpm, pattern: JSON.parse(JSON.stringify(editingBeat.pattern)) };
+      if (idx >= 0) beats[idx] = snapshot; else beats.unshift(snapshot);
+      if (typeof saveBeats === 'function') saveBeats();
+      if (typeof renderBeatList === 'function') renderBeatList();
+      if (typeof notify === 'function') notify('Pattern saved · ' + name, "It's in your locker. You can switch to it any time.", '✦', '#6ee7b7');
+    }
+  }); }
 
 renderLadder();
 </script>
