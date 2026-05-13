@@ -4085,6 +4085,7 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .enough-actions .btn { min-width: 220px; }
 
 /* Step Out — screen-off ritual */
+/* ============ UX_AGENT · STEP OUT (the brand-defining ritual) ============ */
 .stepout-overlay {
   position: fixed; inset: 0; height: 100vh; height: 100dvh;
   z-index: 500;
@@ -4092,7 +4093,25 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
   display: none; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; padding: 32px;
 }
-.stepout-overlay.show { display: flex; animation: gateIn 0.8s var(--ease); }
+.stepout-overlay.show { display: flex; animation: stepoutVoid 1.6s cubic-bezier(.16,.84,.32,1); }
+.stepout-overlay.show > * {
+  opacity: 0; transform: translateY(8px);
+  animation: stepoutContentIn 1.4s cubic-bezier(.16,.84,.32,1) forwards;
+}
+.stepout-overlay.show > *:nth-child(1) { animation-delay: 0.4s; }
+.stepout-overlay.show > *:nth-child(2) { animation-delay: 0.8s; }
+.stepout-overlay.show > *:nth-child(3) { animation-delay: 1.1s; }
+.stepout-overlay.show > *:nth-child(4) { animation-delay: 1.3s; }
+@keyframes stepoutVoid {
+  0%   { opacity: 0; background: rgba(167,139,250,0.0); backdrop-filter: blur(0); }
+  20%  { opacity: 1; background: rgba(1,1,2,0.65); backdrop-filter: blur(28px); }
+  100% { opacity: 1; background: #010102; backdrop-filter: blur(0); }
+}
+@keyframes stepoutContentIn { to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .stepout-overlay.show, .stepout-overlay.show > * { animation: none; opacity: 1; transform: none; }
+}
+/* ============ /UX_AGENT ============ */
 .stepout-dot {
   width: 70px; height: 70px; border-radius: 50%;
   border: 1.5px solid rgba(167,139,250,0.5);
