@@ -2476,10 +2476,35 @@ input[type="date"].signup-input {
   .main-orb.playing::before, .main-orb.playing::after { animation: none; opacity: 0.4; }
 }
 /* ============ /UX_AGENT ============ */
-.freq-display { text-align: center; margin: 40px 0 24px; }
-.freq-value { font-size: 72px; font-weight: 200; letter-spacing: -0.04em; line-height: 1; }
-.freq-unit { font-size: 12px; letter-spacing: 4px; color: var(--text-faint); margin-top: 6px; text-transform: uppercase; }
-.freq-meaning { margin-top: 14px; font-size: 13px; color: var(--text-dim); max-width: 320px; margin-left: auto; margin-right: auto; line-height: 1.5; min-height: 40px; }
+/* ============ UX_AGENT · FREQ DISPLAY (hero number) ============ */
+.freq-display { text-align: center; margin: 44px 0 24px; }
+.freq-value {
+  font-size: 80px; font-weight: 200; letter-spacing: -0.04em; line-height: 1;
+  font-variant-numeric: tabular-nums; /* digits don't dance on slider move */
+  background: linear-gradient(180deg, var(--text) 0%, rgba(255,255,255,0.55) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 24px rgba(167,139,250,0.20));
+  transition: filter 0.3s var(--ease);
+}
+/* When a tone is playing (the body of #manualPlay is .active OR the orb is .playing),
+   the hero number breathes gently and the drop-shadow intensifies — visual partner of audio. */
+.sync-page #mainOrb.playing ~ .freq-display .freq-value,
+.sync-page:has(#mainOrb.playing) .freq-value {
+  animation: freqValueBreath 3.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 32px rgba(167,139,250,0.45));
+}
+@keyframes freqValueBreath {
+  0%,100% { filter: drop-shadow(0 0 24px rgba(167,139,250,0.32)); }
+  50%     { filter: drop-shadow(0 0 38px rgba(110,231,183,0.45)); }
+}
+.freq-unit { font-size: 12px; letter-spacing: 4px; color: var(--text-faint); margin-top: 8px; text-transform: uppercase; font-weight: 600; }
+.freq-meaning {
+  margin-top: 16px; font-size: 13.5px; color: var(--text-dim);
+  max-width: 340px; margin-left: auto; margin-right: auto;
+  line-height: 1.6; min-height: 44px;
+  font-family: Georgia, serif; font-style: italic;
+}
+/* ============ /UX_AGENT ============ */
 .detected-freq { margin-top: 10px; font-size: 11px; letter-spacing: 2px; color: var(--mint); opacity: 0; transition: opacity 0.3s; text-transform: uppercase; font-weight: 600; }
 .detected-freq.visible { opacity: 1; }
 .scroll-bar-section { margin: 24px auto 0; }
