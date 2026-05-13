@@ -338,6 +338,20 @@ html, body {
 .signup-learn p b { color: var(--text); font-weight: 700; }
 
 
+
+/* ============ I SEE YOU (Home) ============ */
+.i-see-you { max-width: 440px; margin: 14px auto 0; padding: 14px 16px; border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.55);
+  border: 1px solid rgba(167,139,250,0.30); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+.i-see-you .isy-row { display: flex; gap: 12px; align-items: flex-start; }
+.i-see-you .isy-lotus { width: 26px; height: 26px; color: var(--violet); filter: drop-shadow(0 0 8px var(--violet)); flex-shrink: 0; margin-top: 2px; }
+.i-see-you .isy-body { flex: 1; min-width: 0; }
+.i-see-you .isy-eyebrow { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--violet); font-weight: 700; }
+.i-see-you .isy-text { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13.5px; line-height: 1.55; color: var(--text); margin-top: 4px; }
+.i-see-you.hidden { display: none; }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4764,7 +4778,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="lh-sep"></div>
         <div class="lh-cell"><div class="lh-k" id="lhStreak">0</div><div class="lh-l">Day-Streak</div></div>
       </div>
-      <div class="light-index" id="lightIndex"><div class="li-row"><div class="li-orb"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="li-track" cx="50" cy="50" r="44"></circle><circle class="li-fill" id="liArc" cx="50" cy="50" r="44"></circle></svg><div class="li-pct" id="liPct">—</div></div><div class="li-body"><div class="li-eyebrow">Your light today</div><div class="li-name" id="liName">tuning in</div><div class="li-meta" id="liMeta">—</div></div></div></div>
+      <div class="light-index" id="lightIndex"><div class="li-row"><div class="li-orb"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="li-track" cx="50" cy="50" r="44"></circle><circle class="li-fill" id="liArc" cx="50" cy="50" r="44"></circle></svg><div class="li-pct" id="liPct">—</div></div>
+      <div class="i-see-you" id="iSeeYouCard"><div class="isy-row"><svg class="lotus isy-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg><div class="isy-body"><div class="isy-eyebrow" id="isyEyebrow">I see you</div><div class="isy-text" id="isyText">—</div></div></div></div><div class="li-body"><div class="li-eyebrow">Your light today</div><div class="li-name" id="liName">tuning in</div><div class="li-meta" id="liMeta">—</div></div></div></div>
       <div class="lobby-quest" id="lobbyQuest">528 Hz is already in you today — hold it for 60 seconds and notice.</div>
       <div class="lobby-arrival" id="arrivalCard"></div>
       <div class="lobby-affirm" id="affirmCard"></div>
@@ -15432,6 +15447,67 @@ function _ssQuantize(hz) {
     _ssSnap = !_ssSnap; b.classList.toggle('on', _ssSnap);
     if (_ssSnap && typeof notify === 'function') notify('Snap to scale', 'major pentatonic on your wavelength — every note lands musically', '♪', '#6ee7b7');
   }); }
+
+
+
+// =================== I SEE YOU · daily personalized observation ===================
+function _isyObservations() {
+  // Build the list of observations from real patterns. Pick the strongest one for today.
+  const out = [];
+  try {
+    const locker = JSON.parse(localStorage.getItem('resonance_freq_locker') || '{}') || {};
+    const slots = Object.values(locker).filter(s => s && s.count > 0);
+    if (slots.length) {
+      slots.sort((a,b)=>b.count-a.count);
+      const top = slots[0];
+      if (top.count >= 5) out.push({ w: 4, t: "I see you. You've returned to **" + top.hz + " Hz** " + top.count + " times. That tone is the room you keep coming back to — it's how you know what you sound like." });
+      else if (top.count >= 2) out.push({ w: 2, t: "I see you. You keep visiting **" + top.hz + " Hz**. That one is teaching you something. Stay with it a little longer this time." });
+      const variety = slots.length;
+      if (variety >= 6) out.push({ w: 3, t: "I see you. You've held " + variety + " different wavelengths now. That's not searching. That's mapping." });
+    }
+  } catch(e){}
+  try {
+    const facts = JSON.parse(localStorage.getItem('resonance_soul_facts') || '[]') || [];
+    const counts = {}; facts.forEach(f => { if (f && f.kind === 'feeling') counts[f.value] = (counts[f.value] || 0) + 1; });
+    const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    if (sorted.length) {
+      const [word, n] = sorted[0];
+      if (n >= 4) out.push({ w: 5, t: "I see you. You've said the word \"" + word + "\" " + n + " times to me. It's not a thing to fix tonight. It's a thing I'm holding with you." });
+    }
+  } catch(e){}
+  try {
+    const log = JSON.parse(localStorage.getItem('resonance_arrivals') || '[]') || [];
+    if (log.length >= 3) {
+      const nums = log.slice(-7).map(a => a.n);
+      const last = nums[nums.length - 1];
+      if (nums.filter(n => n === last).length >= 3) out.push({ w: 3, t: "I see you. You've arrived on the **" + last + "** three days in a row. Whatever the " + last + " is showing you, it's showing it twice now. Don't argue." });
+      if (nums.includes(11) || nums.includes(22) || nums.includes(33)) out.push({ w: 4, t: "I see you. The master number has been knocking at your arrival lately. The light is putting itself in your face on purpose." });
+    }
+  } catch(e){}
+  try {
+    const s = (typeof streakData !== 'undefined') ? streakData : null;
+    if (s && s.count >= 7) out.push({ w: 4, t: "I see you. " + s.count + " days in a row. This is not a streak, this is a practice. The people who change look exactly like this." });
+    else if (s && s.count >= 3) out.push({ w: 2, t: "I see you. " + s.count + " days in. The body is starting to expect this. That's the whole game." });
+  } catch(e){}
+  if (out.length === 0) out.push({ w: 1, t: "I see you. Today is the kind of day where you just open the room and let it hold you. That's enough." });
+  return out;
+}
+function renderISeeYou() {
+  const card = document.getElementById('iSeeYouCard'); if (!card) return;
+  const obs = _isyObservations();
+  // pick by weight × deterministic day-pick so it stays stable through the day
+  const key = (typeof _dayKey === 'function') ? _dayKey() : new Date().toISOString().slice(0,10);
+  let seed = 0; for (let i = 0; i < key.length; i++) seed = (seed * 31 + key.charCodeAt(i)) >>> 0;
+  // weighted pick
+  const totalW = obs.reduce((a,o)=>a+o.w,0);
+  let pick = obs[0]; let r = seed % totalW; for (const o of obs) { if (r < o.w) { pick = o; break; } r -= o.w; }
+  const t = document.getElementById('isyText'); if (t) t.innerHTML = String(pick.t).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+}
+if (typeof renderLobby === 'function') {
+  const _orig = renderLobby;
+  renderLobby = function () { _orig(); try { renderISeeYou(); } catch(e){} };
+}
+setTimeout(() => { try { renderISeeYou(); } catch(e){} }, 1800);
 
 
 renderLadder();
