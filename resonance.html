@@ -2240,6 +2240,15 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .on-this-day-section .otd-meta { font-size: 9.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
 .on-this-day-section .otd-freq { font-size: 22px; font-weight: 200; color: var(--text); letter-spacing: -0.3px; margin-top: 2px; font-variant-numeric: tabular-nums; }
 .on-this-day-section .otd-label { font-size: 12px; color: var(--text-soft); font-style: italic; font-family: Georgia, serif; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ============ DATA_AGENT · PERSONAL RECORDS ============ */
+.personal-records-section .personal-records-list { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin-top: 12px; padding-bottom: 4px; }
+.personal-records-section .personal-records-list::-webkit-scrollbar { display: none; }
+.personal-records-section .pr-card { flex: 0 0 auto; min-width: 152px; padding: 14px 14px 12px; background: linear-gradient(180deg, rgba(255,184,0,0.06) 0%, rgba(255,184,0,0.01) 100%), rgba(20,20,28,0.55); border: 1px solid rgba(255,184,0,0.3); border-radius: 14px; }
+.personal-records-section .pr-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+.personal-records-section .pr-value { font-size: 24px; font-weight: 200; color: var(--text); letter-spacing: -0.5px; margin-top: 4px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.personal-records-section .pr-sub { font-size: 10px; color: var(--text-faint); margin-top: 3px; font-style: italic; font-family: Georgia, serif; }
+/* ============ /DATA_AGENT ============ */
+
 /* ============ /DATA_AGENT ============ */
 
 /* ============ /DATA_AGENT ============ */
@@ -4528,6 +4537,13 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <span class="wsb-label">Share your walk</span>
           <span class="wsb-arrow">→</span>
         </button>        <div class="depth-identity-card" id="depthIdentityCard"></div>
+      </div>
+
+      <!-- DATA_AGENT · PERSONAL RECORDS -->
+      <div class="depth-section personal-records-section" id="personalRecordsWrap" style="display:none;">
+        <div class="depth-section-h">Personal records</div>
+        <div class="depth-section-sub">Numbers you've already beaten · kept forever</div>
+        <div class="personal-records-list" id="personalRecordsList"></div>
       </div>
 
       <!-- DATA_AGENT · ON THIS DAY -->
@@ -13367,6 +13383,91 @@ function renderTimeMachine() {
     renderLobby = function () { _r.apply(this, arguments); _updateWalkPill(); };
   }
   _updateWalkPill();
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · PERSONAL RECORDS ===================
+// Records derived from data the app already keeps:
+//   - Longest single tone-hold (uses the existing sessionStart hook indirectly
+//     via recordSessionEnd; we store per-session lengths and surface the max).
+//   - Most-held frequency total time (from _freqLocker)
+//   - Longest break-then-return ("the comeback") — gap between two day_visits.
+function recordSessionLength(ms) {
+  if (!window.RState || !(ms > 0)) return;
+  let rec = RState.get('records', null);
+  if (!rec || typeof rec !== 'object') rec = { longestSessionMs: 0, longestSessionAt: null, longestComebackDays: 0, longestComebackEnded: null };
+  if (ms > (rec.longestSessionMs || 0)) {
+    rec.longestSessionMs = ms;
+    rec.longestSessionAt = Date.now();
+  }
+  RState.set('records', rec);
+}
+function refreshComebackRecord() {
+  if (!window.RState) return;
+  const visits = RState.get('day_visits', []) || [];
+  if (visits.length < 2) return;
+  let rec = RState.get('records', null);
+  if (!rec || typeof rec !== 'object') rec = { longestSessionMs: 0, longestSessionAt: null, longestComebackDays: 0, longestComebackEnded: null };
+  let maxGap = 0, maxEnded = null;
+  for (let i = 1; i < visits.length; i++) {
+    const a = Date.parse(visits[i - 1]);
+    const b = Date.parse(visits[i]);
+    if (isNaN(a) || isNaN(b)) continue;
+    const gapDays = Math.round((b - a) / 86400000);
+    if (gapDays > maxGap) { maxGap = gapDays; maxEnded = visits[i]; }
+  }
+  if (maxGap > (rec.longestComebackDays || 0)) {
+    rec.longestComebackDays = maxGap;
+    rec.longestComebackEnded = maxEnded;
+    RState.set('records', rec);
+  }
+}
+
+// Hook the existing recordSessionEnd so session lengths flow into records.
+(function () {
+  if (typeof recordSessionEnd === 'function') {
+    const _r = recordSessionEnd;
+    recordSessionEnd = function (ms) { _r.apply(this, arguments); try { recordSessionLength(ms); } catch (e) {} };
+  }
+  try { refreshComebackRecord(); } catch (e) {}
+})();
+
+function renderPersonalRecords() {
+  const host = document.getElementById('personalRecordsList'); if (!host) return;
+  const wrap = document.getElementById('personalRecordsWrap'); if (!wrap) return;
+  if (!window.RState) { wrap.style.display = 'none'; return; }
+  const rec = RState.get('records', null) || {};
+  const locker = (typeof _freqLocker !== 'undefined' && _freqLocker) || {};
+  const lockerArr = Object.values(locker);
+  lockerArr.sort((a, b) => (b.count || 0) - (a.count || 0));
+  const topFreq = lockerArr[0] || null;
+
+  const records = [];
+  if (rec.longestSessionMs > 60000) {
+    const mins = Math.round(rec.longestSessionMs / 60000);
+    records.push({ label: 'Longest single hold', value: mins + ' min', sub: (rec.longestSessionAt ? new Date(rec.longestSessionAt).toLocaleDateString() : '') });
+  }
+  if (topFreq && topFreq.hz) {
+    records.push({ label: 'Most-returned tone', value: Math.round(topFreq.hz) + ' Hz', sub: (topFreq.count || 0) + ' visit' + ((topFreq.count || 0) === 1 ? '' : 's') });
+  }
+  if (rec.longestComebackDays > 7) {
+    records.push({ label: 'The comeback', value: rec.longestComebackDays + ' days', sub: rec.longestComebackEnded ? ('returned ' + rec.longestComebackEnded) : 'and you came back' });
+  }
+  if (!records.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  host.innerHTML = records.map(r =>
+    '<div class="pr-card">' +
+      '<div class="pr-label">' + r.label + '</div>' +
+      '<div class="pr-value">' + r.value + '</div>' +
+      '<div class="pr-sub">' + (r.sub || '') + '</div>' +
+    '</div>'
+  ).join('');
+}
+(function () {
+  if (typeof renderStatsPage === 'function') {
+    const _r = renderStatsPage;
+    renderStatsPage = function () { _r.apply(this, arguments); try { renderPersonalRecords(); } catch (e) {} };
+  }
+  try { renderPersonalRecords(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
 
