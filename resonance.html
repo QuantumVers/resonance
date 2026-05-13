@@ -108,6 +108,56 @@ html, body {
 @keyframes notifyIn { 0% { opacity: 0; transform: translateY(-14px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes notifyOut { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-12px) scale(0.95); } }
 
+/* ============ UX_AGENT · PORTAL BURST (Home orb → Sync ritual) ============ */
+.portal-burst {
+  position: fixed; inset: 0; z-index: 9000;
+  pointer-events: none; opacity: 0;
+  background: radial-gradient(
+    circle at var(--pb-x, 50%) var(--pb-y, 50%),
+    rgba(255,255,255,0.95) 0%,
+    var(--pb-c, #a78bfa) 10%,
+    rgba(167,139,250,0.55) 22%,
+    rgba(110,231,183,0.32) 38%,
+    rgba(5,5,7,0.0) 70%
+  );
+  transition: opacity 0.18s ease-out;
+}
+.portal-burst.show { opacity: 1; animation: portalBloom 0.9s cubic-bezier(.18,.78,.22,1) forwards; }
+.portal-burst.close { animation: portalFade 0.45s ease-out forwards; }
+@keyframes portalBloom {
+  0%   { opacity: 0; filter: blur(20px); transform: scale(0.6); }
+  35%  { opacity: 1; filter: blur(0); transform: scale(1); }
+  100% { opacity: 1; filter: blur(0); transform: scale(1.15); }
+}
+@keyframes portalFade {
+  from { opacity: 1; transform: scale(1.15); }
+  to   { opacity: 0; transform: scale(1.6); }
+}
+.lobby-orb.firing .lo-core {
+  animation: lobbyOrbBlast 0.42s cubic-bezier(.2,.8,.2,1) forwards !important;
+}
+@keyframes lobbyOrbBlast {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(0.86); }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.lobby-orb.firing .lo-ring { animation: lobbyRingBlast 0.42s ease-out forwards !important; }
+@keyframes lobbyRingBlast {
+  to { transform: scale(2.8); opacity: 0; border-color: rgba(255,255,255,0.6); }
+}
+.main-orb.arriving { animation: orbArrive 0.95s cubic-bezier(.16,.78,.32,1) !important; }
+@keyframes orbArrive {
+  0%   { transform: scale(0.45); opacity: 0; filter: blur(14px); }
+  55%  { opacity: 1; filter: blur(0); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-burst.show, .portal-burst.close { animation: none; opacity: 0; }
+  .lobby-orb.firing .lo-core { animation: none !important; }
+  .main-orb.arriving { animation: none !important; }
+}
+/* ============ /UX_AGENT ============ */
+
 /* ============ BOOT SEQUENCE ============ */
 .boot-overlay { position: fixed; inset: 0; z-index: 9999; background: #010103; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.6s ease; }
 .boot-overlay.hide { opacity: 0; pointer-events: none; }
@@ -3882,6 +3932,9 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 
 <!-- ================= NOTIFICATION STACK (iOS-style top drops, no more middle-of-screen pop-ups) ================= -->
 <div class="notify-stack" id="notifyStack" aria-live="polite"></div>
+
+<!-- UX_AGENT · PORTAL BURST (Home orb → Sync ritual) -->
+<div class="portal-burst" id="portalBurst" aria-hidden="true"></div>
 
 <!-- ================= FLOATING "talk to your soul" LAUNCHER (every screen) ================= -->
 <button class="soul-fab" id="soulFab" aria-label="Talk to your soul">
@@ -12882,7 +12935,53 @@ function renderLobby() {
     qEl.textContent = 'Hold ' + hz + ' Hz for 60 seconds today.';
   }
 }
-{ const b = document.getElementById('lobbyOrb'); if (b) b.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('sync'); if (typeof ensureAudio === 'function') ensureAudio(); }); }
+// =================== UX_AGENT · PORTAL TRANSITION (Home orb → Sync) ===================
+// Tap the lobby orb → it expands radially into a portal burst, then Sync reveals
+// with the main orb fading in already breathing. Makes Begin Sync feel sacred.
+function portalToSync() {
+  const orb = document.getElementById('lobbyOrb');
+  const burst = document.getElementById('portalBurst');
+  if (!orb || !burst) {
+    if (typeof gotoTab === 'function') gotoTab('sync');
+    return;
+  }
+  const reduce = (typeof matchMedia === 'function') && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) {
+    if (typeof gotoTab === 'function') gotoTab('sync');
+    if (typeof ensureAudio === 'function') ensureAudio();
+    return;
+  }
+  const r = orb.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+  let color = '#a78bfa';
+  try {
+    if (typeof hzToColor === 'function' && typeof userFreq !== 'undefined') {
+      const c = hzToColor(userFreq);
+      if (c && c[1]) color = c[1];
+    }
+  } catch(e){}
+  burst.style.setProperty('--pb-x', cx + 'px');
+  burst.style.setProperty('--pb-y', cy + 'px');
+  burst.style.setProperty('--pb-c', color);
+  orb.classList.add('firing');
+  burst.classList.remove('close');
+  burst.classList.add('show');
+  if (typeof ensureAudio === 'function') ensureAudio();
+  setTimeout(() => {
+    if (typeof gotoTab === 'function') gotoTab('sync');
+    const main = document.getElementById('mainOrb');
+    if (main) {
+      main.classList.remove('arriving');
+      void main.offsetWidth;
+      main.classList.add('arriving');
+      setTimeout(() => main.classList.remove('arriving'), 1000);
+    }
+  }, 380);
+  setTimeout(() => { burst.classList.remove('show'); burst.classList.add('close'); }, 720);
+  setTimeout(() => { burst.classList.remove('close'); orb.classList.remove('firing'); }, 1180);
+}
+{ const b = document.getElementById('lobbyOrb'); if (b) b.addEventListener('click', portalToSync); }
 { const b = document.getElementById('lobbySoulBtn'); if (b) b.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
 { const f = document.getElementById('soulFab'); if (f) f.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
 // hide the FAB while the inner-self overlay is open (the chat surface is already up)
