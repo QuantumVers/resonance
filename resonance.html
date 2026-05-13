@@ -2189,6 +2189,16 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .depth-library summary::-webkit-details-marker { display: none; }
 .depth-library summary::after { content: '+'; font-weight: 300; font-size: 22px; color: var(--text-faint); transition: transform .3s; }
 .depth-library[open] summary::after { transform: rotate(45deg); }
+/* ============ DATA_AGENT · STATS PAGE ============ */
+.stats-section .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.stats-section .stats-card { background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%), rgba(20,20,28,0.55); border: 1px solid var(--border); border-radius: 14px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 4px; }
+.stats-section .stats-card-wide { grid-column: span 2; }
+.stats-section .sc-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.stats-section .sc-value { font-size: 26px; font-weight: 200; color: var(--text); letter-spacing: -0.5px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stats-section .sc-sub { font-size: 10.5px; color: var(--text-faint); margin-top: 2px; }
+body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
+/* ============ /DATA_AGENT ============ */
+
 .depth-library .dl-summary-lbl { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text); font-weight: 700; }
 .depth-library .dl-summary-sub { font-size: 10px; color: var(--text-faint); text-align: right; line-height: 1.4; }
 .depth-page .create-instrument-card { margin: 0 0 12px; }
@@ -4397,6 +4407,54 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="locker-top-row" id="lockerTopRow"></div>
         <div class="locker-grid" id="lockerGrid"></div>
         <div class="locker-empty" id="lockerEmpty" style="display:none;">No skins collected yet. Hold a tone in Sync — the moment you press <b>Begin Sync</b>, that frequency lands in your Locker.</div>
+      </div>
+
+      <!-- DATA_AGENT · STATS — surfaces what the app knows about you -->
+      <div class="depth-section stats-section" id="depthStatsSection">
+        <div class="depth-section-h">Your stats</div>
+        <div class="depth-section-sub">Quiet numbers. Only for you.</div>
+        <div class="stats-grid" id="statsGrid">
+          <div class="stats-card">
+            <div class="sc-label">Time in app</div>
+            <div class="sc-value" id="statTotalTime">—</div>
+            <div class="sc-sub" id="statTotalTimeSub">total</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Sessions</div>
+            <div class="sc-value" id="statSessionsCount">—</div>
+            <div class="sc-sub">opens</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Time synced</div>
+            <div class="sc-value" id="statSyncedTime">—</div>
+            <div class="sc-sub">holding tone</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Streak</div>
+            <div class="sc-value" id="statStreakNow">—</div>
+            <div class="sc-sub">days returning</div>
+          </div>
+          <div class="stats-card stats-card-wide">
+            <div class="sc-label">Favorite frequency</div>
+            <div class="sc-value" id="statFavFreq">—</div>
+            <div class="sc-sub" id="statFavFreqSub">no skin yet</div>
+          </div>
+          <div class="stats-card stats-card-wide">
+            <div class="sc-label">Most-played song</div>
+            <div class="sc-value" id="statTopSong">—</div>
+            <div class="sc-sub" id="statTopSongSub">tap a song in Create to start counting</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Awakenings</div>
+            <div class="sc-value" id="statAwakenings">—</div>
+            <div class="sc-sub">unlocked</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Memories</div>
+            <div class="sc-value" id="statMemoriesCount">—</div>
+            <div class="sc-sub">saved</div>
+          </div>
+        </div>
       </div>
 
       <!-- Your memories — individual moments you've captured -->
@@ -12288,6 +12346,74 @@ window.statsTopFreq = function () {
     return v[0] || null;
   } catch (e) { return null; }
 };
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · STATS RENDER ===================
+function _fmtTimeLong(ms) {
+  ms = Math.max(0, ms || 0);
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1)   return 'just started';
+  if (mins < 60)  return mins + ' min';
+  const hrs = mins / 60;
+  if (hrs < 24)   return (hrs < 10 ? hrs.toFixed(1) : Math.round(hrs)) + 'h';
+  const days = hrs / 24;
+  return (days < 10 ? days.toFixed(1) : Math.round(days)) + ' days';
+}
+function renderStatsPage() {
+  if (!document.getElementById('depthStatsSection')) return;
+  const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+  setText('statTotalTime', _fmtTimeLong((appStats && appStats.totalMs) || 0));
+  setText('statSessionsCount', quiet ? (((appStats && appStats.sessions) || 0) >= 30 ? 'many' : ((appStats && appStats.sessions) || 0) >= 5 ? 'some' : ((appStats && appStats.sessions) || 0) >= 1 ? 'a few' : 'none') : ((appStats && appStats.sessions) || 0));
+  setText('statSyncedTime', _fmtTimeLong((appStats && appStats.syncedMs) || 0));
+
+  const sc = (typeof streakData === 'object' && streakData) ? streakData : { count: 0 };
+  setText('statStreakNow', sc.count || 0);
+
+  // Favorite frequency (from the locker)
+  const top = (typeof statsTopFreq === 'function') ? statsTopFreq() : null;
+  if (top && top.hz) {
+    setText('statFavFreq', Math.round(top.hz) + ' Hz');
+    setText('statFavFreqSub', (top.count || 0) + ' visit' + ((top.count || 0) === 1 ? '' : 's'));
+  } else {
+    setText('statFavFreq', '—');
+    setText('statFavFreqSub', 'no skin yet');
+  }
+
+  // Most-played song
+  const ts = (typeof statsTopSong === 'function') ? statsTopSong() : null;
+  if (ts && ts.id) {
+    let name = ts.id;
+    try {
+      const all = (typeof SONG_PRESETS !== 'undefined' ? SONG_PRESETS : []).concat(window._userSongs || []);
+      const s = all.find(x => x && x.id === ts.id);
+      if (s && s.name) name = s.name;
+    } catch (e) {}
+    setText('statTopSong', name);
+    setText('statTopSongSub', ts.count + ' play' + (ts.count === 1 ? '' : 's'));
+  } else {
+    setText('statTopSong', '—');
+    setText('statTopSongSub', 'tap a song in Create to start counting');
+  }
+
+  // Awakenings
+  let aw = 0, awTotal = 0;
+  try { aw = (typeof awakenedCount === 'function') ? awakenedCount() : 0; awTotal = (typeof AWAKENINGS !== 'undefined') ? AWAKENINGS.length : 0; } catch (e) {}
+  setText('statAwakenings', awTotal ? (aw + ' / ' + awTotal) : aw);
+
+  // Memories
+  let mem = 0; try { mem = (typeof memories !== 'undefined' && Array.isArray(memories)) ? memories.length : 0; } catch (e) {}
+  setText('statMemoriesCount', mem);
+}
+// Re-render on Depth open
+(function () {
+  if (typeof renderDepth === 'function') {
+    const _rd = renderDepth;
+    renderDepth = function () { _rd.apply(this, arguments); try { renderStatsPage(); } catch (e) {} };
+  }
+})();
+// Initial paint
+renderStatsPage();
 // =================== /DATA_AGENT ===================
 
 renderLadder();
