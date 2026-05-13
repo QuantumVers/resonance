@@ -76,31 +76,71 @@ html, body {
 @media (min-width: 720px) {
   .notify-stack { left: auto; right: 24px; transform: none; width: 340px; top: 24px; }
 }
+/* ============ UX_AGENT · NOTIFY (type-aware glow, edge accent, entry burst) ============ */
 .notify-card {
+  position: relative; overflow: hidden;
   pointer-events: auto;
   display: flex; align-items: flex-start; gap: 12px;
-  padding: 12px 14px 12px 14px; border-radius: 18px;
-  /* Apple Liquid Glass */
+  padding: 12px 14px 12px 16px; border-radius: 18px;
+  /* Apple Liquid Glass + per-card colour tint */
   background:
+    radial-gradient(circle at 100% 0%, var(--n-glow, rgba(167,139,250,0.18)), transparent 55%),
     linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%),
     rgba(20,20,28,0.55);
   border: 1px solid rgba(255,255,255,0.14);
   backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
-  box-shadow: 0 18px 50px rgba(0,0,0,0.45), 0 0 1px rgba(255,255,255,0.08) inset, 0 0 24px var(--n-glow, rgba(167,139,250,0.16));
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45), 0 0 1px rgba(255,255,255,0.08) inset, 0 0 30px var(--n-glow, rgba(167,139,250,0.18));
   opacity: 0; transform: translateY(-12px) scale(0.97);
-  animation: notifyIn 0.45s cubic-bezier(.2,.7,.2,1) forwards;
+  animation: notifyIn 0.55s cubic-bezier(.2,.7,.2,1) forwards;
   cursor: pointer; transition: transform .2s var(--ease), opacity .25s var(--ease);
   font-feature-settings: "ss01";
 }
+/* a 3px left-edge accent stripe in the card's colour — fast visual classification */
+.notify-card::before {
+  content: ''; position: absolute; top: 8px; bottom: 8px; left: 0; width: 3px;
+  background: linear-gradient(180deg, transparent, var(--n-c, var(--violet)) 20%, var(--n-c, var(--violet)) 80%, transparent);
+  border-radius: 0 3px 3px 0;
+  filter: drop-shadow(0 0 6px var(--n-c, var(--violet)));
+  pointer-events: none;
+}
+/* one-shot diagonal sheen across the card as it enters */
+.notify-card::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(115deg, transparent 35%, var(--n-glow, rgba(167,139,250,0.18)) 50%, transparent 65%);
+  transform: translateX(-110%);
+  animation: notifySheen 1.2s cubic-bezier(.2,.7,.2,1) 0.15s forwards;
+}
 .notify-card:active { transform: scale(0.985); }
+.notify-card.out::after { animation: none; }
 .notify-card.out { animation: notifyOut 0.35s cubic-bezier(.4,0,.2,1) forwards; pointer-events: none; }
 .notify-card .nc-glyph {
-  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), var(--n-c, var(--violet)) 60%, rgba(15,5,40,0.85));
-  box-shadow: 0 0 10px var(--n-c, var(--violet));
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), var(--n-c, var(--violet)) 55%, rgba(15,5,40,0.85));
+  box-shadow: 0 0 14px var(--n-c, var(--violet));
   font-size: 14px; color: rgba(255,255,255,0.95); font-weight: 300;
+  position: relative;
 }
+/* glyph ring — a pulse that runs once when the card lands */
+.notify-card .nc-glyph::before {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  border: 1px solid var(--n-c, var(--violet));
+  opacity: 0; transform: scale(0.6);
+  animation: notifyGlyphRing 1.4s ease-out 0.05s forwards;
+}
+@keyframes notifySheen {
+  to { transform: translateX(110%); }
+}
+@keyframes notifyGlyphRing {
+  0%   { opacity: 0; transform: scale(0.6); }
+  40%  { opacity: 0.9; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notify-card { animation: none; opacity: 1; transform: none; }
+  .notify-card::after, .notify-card .nc-glyph::before { animation: none; opacity: 0; }
+}
+/* ============ /UX_AGENT ============ */
 .notify-card .nc-body { flex: 1; min-width: 0; }
 .notify-card .nc-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.96); letter-spacing: -0.01em; line-height: 1.25; }
 .notify-card .nc-sub { font-size: 11.5px; color: rgba(255,255,255,0.6); line-height: 1.4; margin-top: 2px; }
