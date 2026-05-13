@@ -2383,8 +2383,9 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
   position: absolute; inset: 14%; border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), var(--violet) 38%, rgba(15,5,40,0.95) 100%);
   box-shadow: 0 0 80px var(--violet), 0 0 24px rgba(255,255,255,0.18), inset 0 0 40px rgba(255,255,255,0.10);
-  animation: lobbyPulse 3.2s ease-in-out infinite;
-  transition: transform .4s var(--pop), box-shadow .4s var(--ease);
+  animation: lobbyPulse var(--orb-mood-dur, 3.2s) ease-in-out infinite;
+  transition: transform .4s var(--pop), box-shadow .4s var(--ease), filter 6s ease;
+  filter: hue-rotate(var(--orb-mood-hue, 0deg)) saturate(var(--orb-mood-sat, 1));
 }
 .lobby-orb:active .lo-core { transform: scale(0.96); box-shadow: 0 0 120px var(--mint), 0 0 24px rgba(255,255,255,0.3); }
 .lobby-orb .lo-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,0.10); pointer-events: none; }
@@ -12768,7 +12769,46 @@ function renderLobby() {
   }
   // COORD: live field-now — deterministic per-minute, identical for every user who opens the app this minute
   if (typeof _renderFieldNow === 'function') _renderFieldNow();
+  // COORD: daily orb mood — subtle hue + breath-rate shift by hour-of-day and day-of-week
+  if (typeof _applyOrbMood === 'function') _applyOrbMood();
 }
+// ============ COORD · DAILY ORB MOOD ============
+// The lobby orb subtly shifts hue + breath speed based on the user's local time + day. So
+// Tuesday-morning orb feels different from Saturday-night orb — the app meets you where you are.
+function _applyOrbMood() {
+  const orb = document.getElementById('lobbyOrbCore'); if (!orb) return;
+  const now = new Date(); const h = now.getHours(); const d = now.getDay(); // 0=Sun..6=Sat
+  // hour-of-day hue shift in degrees (-30 cool/violet ←→ +25 warm/gold), driven by a smooth curve
+  // morning (5-10): -10°  (cool dawn)
+  // mid-morning (10-12): -2°
+  // noon-afternoon (12-15): +8° (warm)
+  // late afternoon (15-18): +18° (gold)
+  // evening (18-21): +10° (warm violet)
+  // night (21-24): -8°
+  // late night (0-5): -22° (deep cool)
+  let hue = 0;
+  if (h >= 5 && h < 10) hue = -10;
+  else if (h < 12) hue = -2;
+  else if (h < 15) hue = 8;
+  else if (h < 18) hue = 18;
+  else if (h < 21) hue = 10;
+  else if (h < 24) hue = -8;
+  else hue = -22;
+  // day-of-week nudge: Sun gold (+6), Mon cool (-4), Tue mint (-2), Wed neutral, Thu warm (+3), Fri gold-mint (+2), Sat violet (-6)
+  const dayNudge = [6, -4, -2, 0, 3, 2, -6][d] || 0;
+  hue += dayNudge;
+  // breath rate (animation duration): slower at night, faster morning
+  // ~2.8s morning, ~3.2s midday, ~3.6s evening, ~4.4s late night
+  const dur = h < 5 ? 4.4 : h < 10 ? 2.8 : h < 18 ? 3.2 : h < 22 ? 3.6 : 4.2;
+  // saturation: slightly desaturated late night so it feels held, not loud
+  const sat = h < 6 ? 0.85 : 1.0;
+  orb.style.setProperty('--orb-mood-hue', hue + 'deg');
+  orb.style.setProperty('--orb-mood-dur', dur + 's');
+  orb.style.setProperty('--orb-mood-sat', sat);
+}
+// re-evaluate hourly while Home is in view (cheap; no work if not active)
+setInterval(() => { const home = document.getElementById('page-home'); if (home && home.classList.contains('active')) _applyOrbMood(); }, 5 * 60 * 1000);
+// ============ /COORD ============
 
 // ============ COORD · LIVE FIELD-NOW ============
 // A small "the field, right now" line on Home. Updates every 30 seconds. The number of souls and
