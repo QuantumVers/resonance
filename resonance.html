@@ -3061,6 +3061,44 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 .cvo-grat-stream-head { font-family: Georgia, serif; font-style: italic; font-size: 18px; margin-bottom: 4px; }
 .cvo-grat-stream-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; margin-bottom: 16px; }
 
+/* ============ THE READING (daily oracle) ============ */
+.reading-card {
+  margin: 12px 20px 0; padding: 18px 18px 16px; border-radius: 22px;
+  background: radial-gradient(circle at 100% 0%, var(--rd-c, rgba(167,139,250,0.18)), transparent 62%), var(--card);
+  border: 1px solid var(--rd-bd, var(--border-hi)); backdrop-filter: blur(20px);
+  position: relative; overflow: hidden; cursor: pointer; transition: transform 0.2s var(--pop);
+}
+.reading-card:active { transform: scale(0.99); }
+.reading-card .rd-pip { position: absolute; top: -26px; right: -26px; width: 110px; height: 110px; border-radius: 50%; background: var(--rd-orb, var(--violet)); opacity: 0.18; filter: blur(26px); }
+.reading-card .rd-kicker { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--rd-orb, var(--violet)); font-weight: 700; margin-bottom: 8px; position: relative; }
+.reading-card .rd-open { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 18px; line-height: 1.4; color: var(--text); position: relative; }
+.reading-card .rd-more { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-top: 12px; position: relative; }
+.reading-card .rd-seen-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--rd-orb, var(--violet)); margin-right: 5px; vertical-align: middle; box-shadow: 0 0 6px var(--rd-orb, var(--violet)); }
+
+.reading-overlay {
+  position: fixed; inset: 0; height: 100vh; height: 100dvh;
+  z-index: 528;
+  display: none; flex-direction: column; align-items: center;
+  text-align: center; overflow-y: auto;
+  padding: 22px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+  background: radial-gradient(circle at 50% 24%, var(--ro-c, rgba(167,139,250,0.16)), transparent 58%), radial-gradient(circle at 50% 100%, rgba(110,231,183,0.08), transparent 55%), #010103;
+}
+.reading-overlay.show { display: flex; animation: gateIn 0.7s var(--ease); }
+.reading-overlay .ro-top { width: 100%; display: flex; justify-content: flex-end; }
+.reading-overlay .ro-orb { width: 110px; height: 110px; border-radius: 50%; margin: 6px auto 18px; flex-shrink: 0; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), var(--ro-orb, var(--violet)) 50%, rgba(0,0,0,0.55)); box-shadow: 0 0 56px var(--ro-orb, var(--violet)); animation: pulse 4s ease-in-out infinite; }
+.reading-overlay .ro-eyebrow { font-size: 10px; letter-spacing: 6px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 4px; }
+.reading-overlay .ro-date { font-family: ui-monospace, 'SF Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-faint); margin-bottom: 22px; }
+.reading-overlay .ro-block { max-width: 380px; width: 100%; margin-bottom: 20px; opacity: 0; transform: translateY(8px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.reading-overlay .ro-block.in { opacity: 1; transform: translateY(0); }
+.reading-overlay .ro-label { font-size: 9px; letter-spacing: 3.5px; text-transform: uppercase; color: var(--ro-orb, var(--violet)); font-weight: 700; margin-bottom: 7px; }
+.reading-overlay .ro-text { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 19px; line-height: 1.5; color: rgba(255,255,255,0.92); }
+.reading-overlay .ro-tone-row { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.reading-overlay .ro-tone-hz { font-size: 30px; font-weight: 200; letter-spacing: -0.02em; line-height: 1; color: var(--ro-orb, var(--violet)); }
+.reading-overlay .ro-tone-hz .u { font-size: 11px; color: var(--text-faint); letter-spacing: 1.5px; text-transform: uppercase; margin-left: 2px; }
+.reading-overlay .ro-bless { font-family: Georgia, serif; font-style: italic; font-size: 15px; color: var(--text-dim); }
+.reading-overlay .ro-actions { display: flex; gap: 10px; margin-top: 8px; opacity: 0; transform: translateY(8px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.reading-overlay .ro-actions.in { opacity: 1; transform: translateY(0); }
+
 /* ============ THE FIELD, RIGHT NOW ============ */
 .field-strip {
   margin: 12px 20px 0; padding: 11px 14px; border-radius: 16px;
@@ -3361,6 +3399,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         </div>
       </div>
 
+      <!-- The Reading — a daily oracle, keyed to who you are -->
+      <div id="readingSlot"></div>
       <!-- The Convergence — once a day the whole field holds one tone together -->
       <div id="convergeSlot"></div>
       <!-- After the convergence: what the field is grateful for -->
@@ -4143,6 +4183,20 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 
     <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
   </div>
+</div>
+
+<!-- ================= THE READING ================= -->
+<div class="reading-overlay" id="readingOverlay">
+  <div class="ro-top"><button class="inner-self-close" id="readingCloseBtn">✕</button></div>
+  <div class="ro-orb" id="readingOrb"></div>
+  <div class="ro-eyebrow">Today's reading · for <span id="readingForName">you</span></div>
+  <div class="ro-date" id="readingDate">—</div>
+  <div class="ro-block" id="roBlock1"><div class="ro-text" id="roOpen">—</div></div>
+  <div class="ro-block" id="roBlock2"><div class="ro-label">The current under it</div><div class="ro-text" id="roCurrent">—</div></div>
+  <div class="ro-block" id="roBlock3"><div class="ro-label">The tone for today</div><div class="ro-tone-row"><div class="ro-tone-hz"><span id="roToneHz">—</span><span class="u">Hz</span></div></div><div class="ro-text" id="roTone" style="font-size:15px; margin-top:8px; color:var(--text-dim);">—</div></div>
+  <div class="ro-block" id="roBlock4"><div class="ro-label">Watch for</div><div class="ro-text" id="roWatch">—</div></div>
+  <div class="ro-block" id="roBlock5"><div class="ro-bless" id="roBless">—</div></div>
+  <div class="ro-actions" id="roActions"><button class="btn primary" id="readingHoldBtn">Hold the tone</button><button class="btn" id="readingShareBtn">Share this reading ✦</button></div>
 </div>
 
 <!-- ================= THE CONVERGENCE ================= -->
@@ -9330,8 +9384,10 @@ function makeCardCanvas(opts) {
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
   const isPlate = opts.kind === 'plate' && opts.plateId && (typeof PLATE_BY_ID !== 'undefined') && PLATE_BY_ID[opts.plateId];
+  const isReading = opts.kind === 'reading' && opts.reading;
   const ts = (typeof ensureTrueSelf === 'function') ? ensureTrueSelf() : { freq: 432, archetype: 'a soul' };
-  const hz = opts.hz || ((typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432);
+  const rd = isReading ? opts.reading : null;
+  const hz = isReading ? (rd.toneHz || 432) : (opts.hz || ((typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432));
   let accent = (typeof hzToColor === 'function') ? hzToColor(hz)[2] : '#a78bfa';
   let plate = null;
   if (isPlate) { plate = PLATE_BY_ID[opts.plateId]; const cm = { arrival: '#dadae6', hearth: '#f6c64a', pillar: '#b69cf5', beacon: '#5fe3cf', lighthouse: '#e9e9f6' }; accent = cm[opts.plateId] || accent; }
@@ -9348,7 +9404,7 @@ function makeCardCanvas(opts) {
   // top label
   try { ctx.letterSpacing = '8px'; } catch (e) {}
   ctx.fillStyle = accent; ctx.font = '700 26px ' + _CARD_SANS;
-  ctx.fillText(isPlate ? 'I REACHED' : 'RESONATING AT', cx, oy - oR - 64);
+  ctx.fillText(isPlate ? 'I REACHED' : isReading ? 'TODAY’S READING' : 'RESONATING AT', cx, oy - oR - 64);
   try { ctx.letterSpacing = '0px'; } catch (e) {}
   // orb / medallion
   ctx.save(); ctx.shadowColor = accent; ctx.shadowBlur = oR * 0.95;
@@ -9375,6 +9431,15 @@ function makeCardCanvas(opts) {
     const ps = (typeof plateState === 'function') ? plateState() : { daysAtHome: 0 };
     const metaTxt = plate.days ? ((ps.daysAtHome || plate.days) + ' days at my highest path') : 'all the way home — and early';
     ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = 'italic 36px ' + _CARD_SERIF; ctx.fillText(metaTxt, cx, y);
+  } else if (isReading) {
+    const nm = rd.name || ((typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name.split(' ')[0] : 'you');
+    ctx.fillStyle = '#fafafa'; ctx.font = 'italic 44px ' + _CARD_SERIF;
+    y = _cardWrapText(ctx, 'Today, ' + nm + ', you are ' + rd.open + '.', cx, y, W - 160, 58) + 78;
+    try { ctx.letterSpacing = '5px'; } catch (e) {}
+    ctx.fillStyle = accent; ctx.font = '700 24px ' + _CARD_SANS; ctx.fillText('THE TONE · ' + (rd.toneHz || 432) + ' HZ', cx, y); y += 64;
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = 'italic 30px ' + _CARD_SERIF;
+    y = _cardWrapText(ctx, rd.bless || '', cx, y, W - 220, 42);
   } else {
     ctx.fillStyle = '#fafafa'; ctx.font = '100 210px ' + _CARD_SANS; ctx.fillText(String(hz), cx, y);
     try { ctx.letterSpacing = '10px'; } catch (e) {}
@@ -9398,25 +9463,30 @@ function makeCardCanvas(opts) {
   ctx.fillText('quantumvers.github.io/resonance', cx, H - 66);
   return cv;
 }
-async function shareCard(kind) {
+async function shareCard(kind, extra) {
   let opts;
   if (kind && typeof kind === 'object' && kind.plate) opts = { kind: 'plate', plateId: kind.plate };
+  else if (kind === 'reading') opts = { kind: 'reading', reading: extra || ((typeof makeReading === 'function') ? makeReading() : null) };
   else opts = { kind: 'resonance', hz: (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432 };
+  if (opts.kind === 'reading' && !opts.reading) { if (typeof toast === 'function') toast('No reading to share yet', 'warn'); return; }
   let cv; try { cv = makeCardCanvas(opts); } catch (e) { if (typeof toast === 'function') toast('Couldn’t make the card', 'warn'); return; }
   const blob = await new Promise(res => { try { cv.toBlob(res, 'image/png', 0.95); } catch (e) { res(null); } });
   if (!blob) { if (typeof toast === 'function') toast('Couldn’t render the card here', 'warn'); return; }
-  const hz = opts.hz || ((typeof ensureTrueSelf === 'function') ? ensureTrueSelf().freq : 432);
+  const hz = (opts.kind === 'reading') ? (opts.reading.toneHz || 432) : (opts.hz || ((typeof ensureTrueSelf === 'function') ? ensureTrueSelf().freq : 432));
   const name = (typeof inviteSenderDefault === 'function') ? inviteSenderDefault() : '';
   const url = (typeof buildShareUrl === 'function') ? buildShareUrl(hz, (typeof activeModeNames === 'function' ? activeModeNames() : []), name) : 'https://quantumvers.github.io/resonance/';
   let text;
   if (opts.kind === 'plate' && typeof PLATE_BY_ID !== 'undefined' && PLATE_BY_ID[opts.plateId]) {
     const p = PLATE_BY_ID[opts.plateId];
     text = (p.days ? 'I reached ' + p.name + ' — ' + p.tagline.toLowerCase() + '.' : 'I walked all the way home — ' + p.name + '.') + ' Come find your tone. → ' + url;
+  } else if (opts.kind === 'reading') {
+    const nm = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name.split(' ')[0] : 'I';
+    text = 'Today, Resonance told me I am ' + opts.reading.open + '. It read me. Come find out what you are. → ' + url;
   } else {
     const st = (typeof frequencyState === 'function') ? frequencyState(hz) : { short: 'my resonance' };
     text = 'I’m resonating at ' + hz + ' Hz today — ' + st.short + '. Come find yours. → ' + url;
   }
-  const fname = (opts.kind === 'plate' ? 'resonance-plate-' + opts.plateId : 'resonance-' + hz + 'hz') + '.png';
+  const fname = (opts.kind === 'plate' ? 'resonance-plate-' + opts.plateId : opts.kind === 'reading' ? 'resonance-reading' : 'resonance-' + hz + 'hz') + '.png';
   try {
     const file = new File([blob], fname, { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -9435,6 +9505,140 @@ async function shareCard(kind) {
 }
 { const b = document.getElementById('inviteCardBtn'); if (b) b.addEventListener('click', () => shareCard('resonance')); }
 { const b = document.getElementById('plateShareBtn'); if (b) b.addEventListener('click', () => shareCard({ plate: _shownPlateId || ((typeof highestPlateId === 'function') ? highestPlateId() : 'arrival') })); }
+
+// =================== THE READING (daily oracle) ===================
+// A reading keyed to who you are — your numerology, your sky, your tone, your closeness, the day.
+// The kind of thing you screenshot. Refreshes at midnight.
+var READING_OPEN = {
+  1:  ['the first move someone has been waiting for', 'a door, slightly ajar, that only opens from your side'],
+  2:  ['the soft place two hard things are trying to land on', 'a bridge that is tired of being walked on without thanks'],
+  3:  ['a thing that wants to be made, getting impatient', 'the joke and the ache, told at the same time'],
+  4:  ['the foundation, asking to be trusted', 'a structure that holds — and is allowed to rest inside it'],
+  5:  ['free, and standing still on purpose', 'the road and the one who stayed home, in the same body'],
+  6:  ['a full cup that keeps getting poured from', 'the one everyone leans on, leaning back at last'],
+  7:  ['done searching — about to start hearing', 'a held breath about to be exhaled'],
+  8:  ['power that does not need to be proven today', 'the heat under your hands, and the choice not to spend it'],
+  9:  ['the circle, closing, gently', 'grief and gratitude, in the same chair'],
+  11: ['the knowing that arrives before the thought', 'a signal, clear, that you keep talking yourself out of'],
+  22: ['the vision, asking for the last ten percent', 'a builder of things that will outlast the building'],
+  33: ['love with no conditions, learning to say it out loud', 'a quiet that teaches more than the speech would have']
+};
+var READING_CURRENT = {
+  Fire:  ['Something wants to begin, and it has been waiting for your permission, not your readiness.', 'The heat is information — it is pointing somewhere. Follow it before you analyze it.', 'You are being asked to want something out loud today.'],
+  Earth: ['Slow is not the same as stuck. Today, slow is the medicine.', 'The thing you keep meaning to tend is fine — but it is noticing.', 'Ground first. The day will rearrange itself once you are actually here.'],
+  Air:   ['There is a thought you keep half-finishing. Finish it today, even badly.', 'Say the true thing. The room can take it. So can you.', 'Clear the channel — the noise is not yours, and it is in the way.'],
+  Water: ['Something needs to move through you. Let it. Tears clear the channel.', 'Underneath the busyness today is a feeling that just wants to be witnessed.', 'You are more porous than usual. Choose carefully what you stand near.']
+};
+var READING_WATCH = [
+  'a message you almost do not send. Send it.',
+  'the person who needs you to be soft today — you will know them by how careful you want to be.',
+  'a small no that protects a big yes.',
+  'the moment around mid-afternoon when you will want to disappear. Don’t. Breathe instead.',
+  'a coincidence that is not one.',
+  'the urge to make yourself smaller in a room. Notice it. Stay your size.',
+  'an old friend, or an old version of you, reaching back.',
+  'a door that opens when you stop pushing on it.',
+  'the thing you are pretending not to know — it will surface around someone you trust.',
+  'a kindness from a stranger you will want to wave off. Receive it instead.',
+  'the second-to-last hour of the day, when the truth gets quiet enough to hear.',
+  'a feeling that arrives in your body before you have words for it. Trust the body’s draft.'
+];
+var READING_BLESS = {
+  judaism: 'May the Shechinah walk the day with you. Hineni — you are here.',
+  christianity: 'May the Spirit move through this. You are held — you have always been held.',
+  islam: 'Bismillah. Your nature is light; the veil is thin today.',
+  buddhism: 'Notice the thought. Don’t chase it. Be the mind that is awake.',
+  hinduism: 'Tat Tvam Asi. You are That — you have never been anything else.',
+  spiritual: 'You are the universe knowing itself for a little while. Act like it.',
+  indigenous: 'Walk in beauty. The land remembers you; your ancestors walk beside you.',
+  jewishrenewal: 'May the Ruach — the breath of renewal — move through your day.',
+  mixed: 'Every path you are on points at the same moon. Walk all of them.',
+  universal: 'You are pure vibration. Frequency is the only truth that does not need your belief.'
+};
+var READING_TONE_WHY = [
+  'It will meet the thing you are carrying.',
+  'Hold it longer than feels necessary.',
+  'This one is a remedy, not a destination — don’t move in.',
+  'Let it find the place that is tight, and stay there.',
+  'It is the floor under today. Stand on it.',
+  'Ten quiet minutes with it will do more than you think.'
+];
+function makeReading() {
+  const num = (typeof userProfile !== 'undefined' && userProfile.numerology) ? userProfile.numerology : 7;
+  const el = (typeof userProfile !== 'undefined' && userProfile.zodiac && userProfile.zodiac.element) ? userProfile.zodiac.element : 'Air';
+  const trad = (typeof userProfile !== 'undefined' && userProfile.tradition) ? userProfile.tradition : 'universal';
+  const dh = s => (typeof _dayHash === 'function') ? (_dayHash(s) >>> 0) : 7;
+  const oa = (READING_OPEN[num] || READING_OPEN[7]); const open = oa[dh('rd-open') % oa.length];
+  const ca = (READING_CURRENT[el] || READING_CURRENT['Air']); const current = ca[dh('rd-cur') % ca.length];
+  const watch = 'Watch for ' + READING_WATCH[dh('rd-watch') % READING_WATCH.length];
+  const bless = READING_BLESS[trad] || READING_BLESS['universal'];
+  let toneHz;
+  const ts2 = (typeof ensureTrueSelf === 'function') ? ensureTrueSelf() : null;
+  if (ts2 && dh('rd-tone') % 3 === 0) toneHz = ts2.freq;
+  else toneHz = (typeof TX_FREQS !== 'undefined' && typeof _dayPick === 'function') ? _dayPick(TX_FREQS, 'rd-tone').hz : 528;
+  const toneWhy = READING_TONE_WHY[dh('rd-why') % READING_TONE_WHY.length];
+  const color = (typeof hzToColor === 'function') ? hzToColor(toneHz)[2] : '#a78bfa';
+  const name = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name.split(' ')[0] : 'you';
+  return { open: open, current: current, toneHz: toneHz, toneWhy: toneWhy, watch: watch, bless: bless, color: color, name: name };
+}
+function _readingSeenKey() { return 'resonance_reading_seen_' + ((typeof _dayKey === 'function') ? _dayKey() : 'd'); }
+function renderReadingCard() {
+  const slot = document.getElementById('readingSlot'); if (!slot) return;
+  let r; try { r = makeReading(); } catch (e) { slot.innerHTML = ''; return; }
+  let seen = false; try { seen = !!localStorage.getItem(_readingSeenKey()); } catch (e) {}
+  slot.innerHTML = `<div class="reading-card" id="readingCardBtn" style="--rd-c:${r.color}26; --rd-bd:${r.color}55; --rd-orb:${r.color};">
+    <div class="rd-pip"></div>
+    <div class="rd-kicker">Today’s reading · for ${escapeHtml(r.name)}</div>
+    <div class="rd-open">Today, ${escapeHtml(r.name)}, you are ${escapeHtml(r.open)}.</div>
+    <div class="rd-more">${seen ? '<span class="rd-seen-dot"></span>read · open it again →' : 'Open the reading →'}</div>
+  </div>`;
+  const b = document.getElementById('readingCardBtn'); if (b) b.addEventListener('click', openReading);
+}
+let _readingTimers = [];
+function openReading() {
+  let r; try { r = makeReading(); } catch (e) { return; }
+  window.__currentReading = r;
+  const ov = document.getElementById('readingOverlay'); if (!ov) return;
+  ov.style.setProperty('--ro-c', r.color + '24'); ov.style.setProperty('--ro-orb', r.color);
+  const orb = document.getElementById('readingOrb');
+  orb.style.background = 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), ' + r.color + ' 50%, rgba(0,0,0,0.55))';
+  orb.style.boxShadow = '0 0 56px ' + r.color;
+  document.getElementById('readingForName').textContent = r.name;
+  document.getElementById('readingDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  document.getElementById('roOpen').textContent = 'Today, ' + r.name + ', you are ' + r.open + '.';
+  document.getElementById('roCurrent').textContent = r.current;
+  document.getElementById('roToneHz').textContent = r.toneHz;
+  document.getElementById('roTone').textContent = r.toneWhy;
+  document.getElementById('roWatch').textContent = r.watch;
+  document.getElementById('roBless').textContent = r.bless;
+  const blocks = ['roBlock1', 'roBlock2', 'roBlock3', 'roBlock4', 'roBlock5'].map(id => document.getElementById(id));
+  blocks.forEach(bl => bl && bl.classList.remove('in'));
+  document.getElementById('roActions').classList.remove('in');
+  ov.scrollTop = 0;
+  ov.classList.add('show');
+  _readingTimers.forEach(clearTimeout); _readingTimers = [];
+  blocks.forEach((bl, i) => { _readingTimers.push(setTimeout(() => bl && bl.classList.add('in'), 550 + i * 800)); });
+  _readingTimers.push(setTimeout(() => { const a = document.getElementById('roActions'); if (a) a.classList.add('in'); }, 550 + 3 * 800));
+  try { localStorage.setItem(_readingSeenKey(), '1'); } catch (e) {}
+  renderReadingCard();
+}
+function closeReading() { document.getElementById('readingOverlay').classList.remove('show'); _readingTimers.forEach(clearTimeout); _readingTimers = []; }
+document.getElementById('readingCloseBtn').addEventListener('click', closeReading);
+document.getElementById('readingHoldBtn').addEventListener('click', async () => {
+  const r = window.__currentReading || makeReading();
+  if (typeof ensureAudio === 'function') await ensureAudio();
+  if (typeof stopAllTones === 'function') stopAllTones();
+  if (typeof applyFrequency === 'function') applyFrequency(r.toneHz);
+  if (typeof startTone === 'function') startTone(r.toneHz, 'manual');
+  const mp = document.getElementById('manualPlay'); if (mp) { mp.textContent = 'Stop Sync'; mp.classList.add('active'); }
+  closeReading();
+  if (typeof gotoTab === 'function') gotoTab('sync');
+  if (typeof toast === 'function') toast('Holding ' + r.toneHz + ' Hz — today’s tone', 'ok');
+});
+document.getElementById('readingShareBtn').addEventListener('click', () => shareCard('reading', window.__currentReading || makeReading()));
+renderReadingCard();
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderReadingCard, 2300));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderReadingCard, 2300));
 
 renderLadder();
 </script>
