@@ -10542,6 +10542,22 @@ document.getElementById('constCanvas').addEventListener('pointerdown', e => {
   if (best && best.mem && typeof openMemory === 'function') { constClose(); setTimeout(() => openMemory(best.mem), 160); }
 });
 (function () { const el = document.getElementById('memoriesHeader'); if (el) el.addEventListener('click', constOpen); })();
+// ============ COORD · EASTER EGG — 7 taps on the streak pill opens The Constellation ============
+(function () {
+  const el = document.getElementById('streakPill'); if (!el) return;
+  let count = 0, timer = null;
+  el.addEventListener('click', (e) => {
+    count++;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => { count = 0; }, 1400);
+    if (count >= 7) {
+      count = 0;
+      if (typeof notify === 'function') notify('The Constellation', 'You found it.', '✦', '#9d5cff');
+      if (typeof constOpen === 'function') setTimeout(constOpen, 250);
+    }
+  });
+})();
+// ============ /COORD ============
 window.addEventListener('resize', () => {
   const ov = document.getElementById('constellationOverlay');
   if (ov && ov.classList.contains('show')) { const rect = constInitCanvas(); constBuildStars(rect.width, rect.height); }
