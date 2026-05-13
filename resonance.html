@@ -1893,6 +1893,59 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .mic-indicator.active .mic-dot { background: var(--mint); animation: dotPulse 1.5s ease-in-out infinite; }
 @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
 
+/* ============ COUNCIL (the Store) ============ */
+.council-page { padding: 16px 20px 28px; }
+.council-header { padding: 4px 0 16px; text-align: center; }
+.council-header .council-eyebrow { font-size: 9px; letter-spacing: 5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 6px; }
+.council-header h1 { font-size: 36px; font-weight: 200; letter-spacing: -0.02em; line-height: 1.05; margin: 0 0 10px; }
+.council-header p { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13.5px; color: var(--text-dim); line-height: 1.55; max-width: 360px; margin: 0 auto 14px; }
+.council-current { display: inline-block; font-size: 11px; letter-spacing: 1px; color: var(--text-faint); padding: 6px 14px; border-radius: 100px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+.council-current #councilCurrentTier { color: var(--mint); font-weight: 700; }
+.council-tier-grid { display: flex; flex-direction: column; gap: 14px; margin: 18px 0 22px; }
+.council-tier-card {
+  position: relative; padding: 20px; border-radius: 22px; backdrop-filter: blur(20px);
+  background: var(--card); border: 1px solid var(--border);
+}
+.council-tier-card.free { background: radial-gradient(circle at 0% 0%, rgba(255,255,255,0.04), transparent 70%), var(--card); }
+.council-tier-card.pro { border-color: rgba(157,92,255,0.32); background: radial-gradient(circle at 100% 0%, rgba(157,92,255,0.12), transparent 60%), var(--card); }
+.council-tier-card.proplus { border-color: rgba(251,191,36,0.42); background: radial-gradient(circle at 100% 0%, rgba(251,191,36,0.14), transparent 60%), radial-gradient(circle at 0% 100%, rgba(110,231,183,0.08), transparent 60%), var(--card); box-shadow: 0 0 40px rgba(251,191,36,0.08); }
+.council-tier-card .ctc-flag { position: absolute; top: -10px; right: 16px; padding: 4px 10px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; color: #050507; background: linear-gradient(135deg, var(--gold), var(--mint)); border-radius: 100px; }
+.council-tier-card .ctc-eyebrow { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; font-weight: 700; color: var(--text-faint); }
+.council-tier-card.pro .ctc-eyebrow { color: var(--violet); }
+.council-tier-card.proplus .ctc-eyebrow { color: var(--gold); }
+.council-tier-card .ctc-price { margin: 6px 0 4px; display: flex; align-items: baseline; gap: 8px; }
+.council-tier-card .ctc-price .ctc-amt { font-size: 42px; font-weight: 200; letter-spacing: -0.02em; line-height: 1; }
+.council-tier-card .ctc-price .ctc-per { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.council-tier-card .ctc-tagline { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 14px; }
+.council-tier-card .ctc-list { list-style: none; padding: 0; margin: 0 0 16px; }
+.council-tier-card .ctc-list li { position: relative; padding: 5px 0 5px 18px; font-size: 12.5px; line-height: 1.55; color: var(--text-dim); }
+.council-tier-card .ctc-list li::before { content: '·'; position: absolute; left: 6px; top: 5px; font-weight: 700; color: var(--text-faint); }
+.council-tier-card .ctc-list li b { color: var(--text); font-weight: 600; }
+.council-tier-card.pro .ctc-list li b { color: var(--violet); }
+.council-tier-card.proplus .ctc-list li b { color: var(--gold); }
+.council-tier-card .ctc-cta { width: 100%; padding: 12px 18px; }
+.council-tier-card.pro .ctc-cta { background: var(--violet); color: #fff; border-color: var(--violet); }
+.council-tier-card.proplus .ctc-cta { background: linear-gradient(135deg, var(--gold), var(--mint)); color: #050507; border: 0; }
+.council-tier-card .ctc-cta:disabled { opacity: 0.45; }
+
+.council-apply { margin: 22px 0 14px; padding: 22px; border-radius: 22px; background: radial-gradient(circle at 50% 0%, rgba(251,191,36,0.10), transparent 65%), var(--card); border: 1px solid rgba(251,191,36,0.28); backdrop-filter: blur(20px); }
+.council-apply .ca-flag { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; font-weight: 700; color: var(--gold); margin-bottom: 6px; }
+.council-apply h2 { font-size: 24px; font-weight: 200; letter-spacing: -0.01em; margin: 0 0 10px; }
+.council-apply p { font-size: 12.5px; color: var(--text-dim); line-height: 1.6; margin: 0 0 14px; }
+.council-apply .ca-form { display: flex; flex-direction: column; gap: 9px; }
+.council-apply .ca-input { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 13px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
+.council-apply .ca-input:focus { border-color: var(--gold); }
+.council-apply .ca-textarea { min-height: 70px; resize: vertical; }
+.council-apply .ca-thanks { text-align: center; padding: 8px 0; }
+.council-apply .ca-thanks-glyph { font-size: 50px; color: var(--gold); filter: drop-shadow(0 0 16px var(--gold)); animation: glyphBreathe 3s ease-in-out infinite; }
+.council-honesty { font-size: 10.5px; line-height: 1.6; color: var(--text-faint); text-align: center; max-width: 360px; margin: 12px auto 0; font-style: italic; }
+.council-you-details { margin: 30px 0 16px; border-top: 1px solid var(--border); padding-top: 16px; }
+.council-you-details summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+.council-you-details summary::-webkit-details-marker { display: none; }
+.council-you-details summary::after { content: '+'; font-weight: 300; font-size: 22px; color: var(--text-faint); transition: transform .3s; }
+.council-you-details[open] summary::after { transform: rotate(45deg); }
+.council-you-details .cyd-lbl { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text); font-weight: 700; }
+
 /* ============ DEPTH (the Locker) ============ */
 .depth-page { padding: 16px 20px 24px; }
 .depth-header { padding: 4px 0 16px; }
@@ -4116,59 +4169,139 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   </div>
 
   <div class="page" id="page-council">
-    <div class="profile-page">
-      <div class="profile-hero">
-        <div class="profile-avatar" style="position:relative;"><div id="profileAvatar">E</div><div class="avatar-plate-badge" id="profileAvatarPlateBadge"></div></div>
-        <div class="profile-name" id="profileName">Soul</div>
-        <div class="equipped-title" id="equippedTitleProf" style="display:none; margin-left:0; margin-top:2px;"></div>
-        <div class="profile-handle">Resonating at <span style="color:var(--mint);" id="profileFreqDisp">432 Hz</span></div>
-        <div class="profile-tier" id="profileTier">◎ Initiated</div>
-        <div><span class="tier-pill free" id="tierPill" style="cursor:pointer;">Free</span></div>
+    <div class="council-page">
+      <div class="council-header">
+        <div class="council-eyebrow">Resonance · membership</div>
+        <h1>The Council</h1>
+        <p>The practice is free, forever. Membership opens the tools, the deeper rooms, and a real circle.</p>
+        <div class="council-current" id="councilCurrent">You're on <span id="councilCurrentTier">Free</span> right now.</div>
       </div>
-      <div id="trueSelfYouSlot"></div>
-      <div class="section-h" style="padding-left:0; padding-right:0;"><h2>The Plates</h2><span class="see-all" id="platesCountLabel">0 / 5</span></div>
-      <div class="plate-shelf-wrap"><div class="plate-shelf" id="plateShelf"></div><div class="plate-now" id="plateNowLine"></div></div>
-      <div class="profile-level-card">
-        <div class="profile-level-row">
-          <div class="profile-level-info">
-            <div class="level-badge">7</div>
-            <div><div class="lbl">Frequency Level</div><div class="lvl">Resonator</div></div>
+
+      <div class="council-tier-grid">
+        <!-- FREE -->
+        <div class="council-tier-card free" id="ctcFree">
+          <div class="ctc-eyebrow">Free</div>
+          <div class="ctc-price"><span class="ctc-amt">$0</span><span class="ctc-per">forever</span></div>
+          <div class="ctc-tagline">The practice. Never paywalled.</div>
+          <ul class="ctc-list">
+            <li>Your true self — frequency, archetype, the work</li>
+            <li>Closeness to your true self</li>
+            <li>The daily Transmission · the Reading</li>
+            <li>Soul Notes · Waves · The Convergence · Gratitude</li>
+            <li>Kindred · Awakenings (9) · The Plates</li>
+            <li>The Solfeggio, chakras, and a few sacred tones</li>
+            <li>Up to 12 memories saved</li>
+            <li><b>The 3 Chamber</b> — text rooms (tiers 1–3)</li>
+            <li>The Pass — the seasonal track</li>
+            <li>Step Out ritual · Quiet Metrics</li>
+          </ul>
+          <button class="btn ctc-cta" disabled>Already yours</button>
+        </div>
+
+        <!-- PRO -->
+        <div class="council-tier-card pro" id="ctcPro">
+          <div class="ctc-eyebrow">Pro</div>
+          <div class="ctc-price"><span class="ctc-amt">$15</span><span class="ctc-per">/month</span></div>
+          <div class="ctc-tagline">The tools and comforts. Everything you need to live in here.</div>
+          <ul class="ctc-list">
+            <li>Everything in Free, plus —</li>
+            <li><b>Sound Sphere</b> — the infinite instrument</li>
+            <li>The full library: planetary, sacred, elemental tones</li>
+            <li>Make your own instruments</li>
+            <li>The Beat Maker</li>
+            <li>Your Inner Self's true voice from day one (no waiting on trust)</li>
+            <li>Unlimited memories</li>
+            <li><b>The 6 Chamber</b> — hold the tone together (tiers 4–6)</li>
+            <li>Custom share-card exports (plates, readings, frequencies)</li>
+            <li>No interruptions, no ads, ever</li>
+          </ul>
+          <button class="btn primary ctc-cta" id="ctcProBtn">Open Pro →</button>
+        </div>
+
+        <!-- PRO PLUS -->
+        <div class="council-tier-card proplus" id="ctcProPlus">
+          <div class="ctc-flag">Inner circle · 50 seats</div>
+          <div class="ctc-eyebrow">Pro Plus</div>
+          <div class="ctc-price"><span class="ctc-amt">$333</span><span class="ctc-per">/year</span></div>
+          <div class="ctc-tagline">The deeper rooms. A real Council. A direct line.</div>
+          <ul class="ctc-list">
+            <li>Everything in Pro, plus —</li>
+            <li><b>Your Council</b> — the 3 true selves closest to your path, always in your view</li>
+            <li><b>The 9 Chamber</b> — the live shared field (tiers 7–9)</li>
+            <li>A real Council circle, capped at 50 seats · application below</li>
+            <li>A founding glyph beside your name</li>
+            <li>Early access — 1–2 weeks before everyone</li>
+            <li>A real, weighted vote on the roadmap</li>
+            <li>A direct line to the founder once a quarter</li>
+            <li>Invite to the annual in-person gathering</li>
+            <li>The consensual Energy Read · when it ships</li>
+          </ul>
+          <button class="btn primary ctc-cta" id="ctcProPlusBtn">Open Pro Plus →</button>
+        </div>
+      </div>
+
+      <!-- Apply for Council (the 50-seat circle) -->
+      <div class="council-apply" id="councilApplyCard">
+        <div class="ca-flag">The Council · 50 seats · by application</div>
+        <h2>Apply for a Council seat.</h2>
+        <p>The Council is the smallest, most-committed room here — a real circle of 50 souls. You hold a seat. You shape the path. You meet the rest, and the founder, once a quarter. Tell us who you are and why you want a seat. We read every word by hand. You'll hear back within a week.</p>
+        <div class="ca-form" id="caForm">
+          <input type="text" class="ca-input" id="caName" placeholder="Your name" maxlength="60">
+          <input type="email" class="ca-input" id="caEmail" placeholder="Your email" maxlength="120">
+          <textarea class="ca-input ca-textarea" id="caWhy" placeholder="Why this circle? Why now?" maxlength="600"></textarea>
+          <textarea class="ca-input ca-textarea" id="caBring" placeholder="What would you bring to a room of 49 others?" maxlength="600"></textarea>
+          <button class="btn primary" id="caSubmit">Submit application</button>
+        </div>
+        <div class="ca-thanks" id="caThanks" style="display:none;">
+          <div class="ca-thanks-glyph">◎</div>
+          <h2>Held.</h2>
+          <p>Your application landed. We read these by hand. You'll hear from us within a week.</p>
+        </div>
+      </div>
+
+      <p class="council-honesty">Payments aren't live yet — these are real prices and the road map, not Stripe today. Tap a tier above to preview what unlocks; the upgrade is free during pre-launch.</p>
+
+      <!-- Your profile content (preserved here, used by existing render targets) -->
+      <details class="council-you-details">
+        <summary><span class="cyd-lbl">Your Resonance · stats, signature, plates, awakenings</span></summary>
+        <div class="profile-page" style="padding-top:0;">
+          <div class="profile-hero">
+            <div class="profile-avatar" style="position:relative;"><div id="profileAvatar">E</div><div class="avatar-plate-badge" id="profileAvatarPlateBadge"></div></div>
+            <div class="profile-name" id="profileName">Soul</div>
+            <div class="equipped-title" id="equippedTitleProf" style="display:none; margin-left:0; margin-top:2px;"></div>
+            <div class="profile-handle">Resonating at <span style="color:var(--mint);" id="profileFreqDisp">432 Hz</span></div>
+            <div class="profile-tier" id="profileTier">◎ Initiated</div>
+            <div><span class="tier-pill free" id="tierPill" style="cursor:pointer;">Free</span></div>
           </div>
-          <div class="profile-level-xp">3,250 / 5,000 XP</div>
+          <div id="trueSelfYouSlot"></div>
+          <div class="section-h" style="padding-left:0; padding-right:0;"><h2>The Plates</h2><span class="see-all" id="platesCountLabel">0 / 5</span></div>
+          <div class="plate-shelf-wrap"><div class="plate-shelf" id="plateShelf"></div><div class="plate-now" id="plateNowLine"></div></div>
+          <div class="profile-level-card">
+            <div class="profile-level-row">
+              <div class="profile-level-info">
+                <div class="level-badge">7</div>
+                <div><div class="lbl">Frequency Level</div><div class="lvl">Resonator</div></div>
+              </div>
+              <div class="profile-level-xp">3,250 / 5,000 XP</div>
+            </div>
+            <div class="profile-xp-bar"><div class="profile-xp-fill"></div></div>
+          </div>
+          <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Your Signature</h2></div>
+          <div class="reveal-grid" style="max-width: none;">
+            <div class="reveal-card"><div class="reveal-glyph" id="profZodiacGlyph">♈</div><div class="reveal-lbl">Sky · Sign</div><div class="reveal-val" id="profZodiacSign">—</div><div class="reveal-sub" id="profZodiacElement">—</div></div>
+            <div class="reveal-card"><div class="reveal-glyph reveal-number" id="profNum">—</div><div class="reveal-lbl">Name · Vibration</div><div class="reveal-val" id="profNumName">—</div><div class="reveal-sub" id="profNumDesc">—</div></div>
+            <div class="reveal-card"><div class="reveal-glyph" id="profTraditionGlyph">◎</div><div class="reveal-lbl">Path · Voice</div><div class="reveal-val" id="profTradition">—</div><div class="reveal-sub" id="profTraditionDivine">—</div></div>
+          </div>
+          <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Stats</h2></div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="statAlign">—</div><div class="stat-label">Alignment</div></div>
+            <div class="stat-card"><div class="stat-value" id="statSessions">0</div><div class="stat-label">Sessions</div></div>
+            <div class="stat-card"><div class="stat-value" id="statSynced">0m</div><div class="stat-label">Synced</div></div>
+          </div>
+          <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Awakenings</h2><span class="see-all" id="awkCountLabel">0 / 8</span></div>
+          <div class="badge-grid" id="awakeningsGrid"></div>
         </div>
-        <div class="profile-xp-bar"><div class="profile-xp-fill"></div></div>
-      </div>
-
-      <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Your Signature</h2></div>
-      <div class="reveal-grid" style="max-width: none;">
-        <div class="reveal-card">
-          <div class="reveal-glyph" id="profZodiacGlyph">♈</div>
-          <div class="reveal-lbl">Sky · Sign</div>
-          <div class="reveal-val" id="profZodiacSign">—</div>
-          <div class="reveal-sub" id="profZodiacElement">—</div>
-        </div>
-        <div class="reveal-card">
-          <div class="reveal-glyph reveal-number" id="profNum">—</div>
-          <div class="reveal-lbl">Name · Vibration</div>
-          <div class="reveal-val" id="profNumName">—</div>
-          <div class="reveal-sub" id="profNumDesc">—</div>
-        </div>
-        <div class="reveal-card">
-          <div class="reveal-glyph" id="profTraditionGlyph">◎</div>
-          <div class="reveal-lbl">Path · Voice</div>
-          <div class="reveal-val" id="profTradition">—</div>
-          <div class="reveal-sub" id="profTraditionDivine">—</div>
-        </div>
-      </div>
-
-      <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Stats</h2></div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-value" id="statAlign">—</div><div class="stat-label">Alignment</div></div>
-        <div class="stat-card"><div class="stat-value" id="statSessions">0</div><div class="stat-label">Sessions</div></div>
-        <div class="stat-card"><div class="stat-value" id="statSynced">0m</div><div class="stat-label">Synced</div></div>
-      </div>
-      <div class="section-h" style="padding-left:0; padding-right:0;"><h2>Awakenings</h2><span class="see-all" id="awkCountLabel">0 / 8</span></div>
-      <div class="badge-grid" id="awakeningsGrid"></div>
+      </details>
     </div>
   </div>
 
@@ -4473,7 +4606,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <div class="tier-buy council" data-plan="proplus">
         <div class="tier-flag">The whole instrument</div>
         <div class="tier-buy-name">Resonance Pro Plus</div>
-        <div class="tier-buy-price"><span class="amt">$500</span><span class="per">/ year</span></div>
+        <div class="tier-buy-price"><span class="amt">$333</span><span class="per">/ year</span></div>
         <div class="tier-feats">
           <div class="tier-feat"><span class="tf-mark">✦</span><div>Everything in Pro</div></div>
           <div class="tier-feat"><span class="tf-mark">✦</span><div>The Beat Maker — the 16-step sequencer — unlocked</div></div>
@@ -8242,6 +8375,7 @@ function gotoTab(name) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (name === 'home' && typeof renderLobby === 'function') renderLobby();
   if (name === 'depth' && typeof renderDepth === 'function') renderDepth();
+  if (name === 'council' && typeof renderCouncil === 'function') renderCouncil();
 }
 
 // =================== SHARE THIS MOMENT ===================
@@ -11190,6 +11324,38 @@ function renderDepth() {
   if (typeof renderBeatList === 'function') renderBeatList();
 }
 { const b = document.getElementById('depthInnerSelfBtn'); if (b) b.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
+
+// ===== COUNCIL (the store + apply for a seat) =====
+function renderCouncil() {
+  // current tier label
+  const cur = document.getElementById('councilCurrentTier');
+  if (cur && typeof tierName === 'function') cur.textContent = tierName();
+  // highlight the active tier card
+  const t = (typeof appSettings !== 'undefined' && appSettings.tier) || 'free';
+  document.querySelectorAll('.council-tier-card').forEach(c => c.classList.remove('on'));
+  if (t === 'free') document.getElementById('ctcFree').classList.add('on');
+  else if (t === 'pro') document.getElementById('ctcPro').classList.add('on');
+  else if (t === 'proplus') document.getElementById('ctcProPlus').classList.add('on');
+  // if already applied, hide the form and show the thanks state
+  try {
+    const a = JSON.parse(localStorage.getItem('resonance_council_application') || 'null');
+    if (a && a.t) { document.getElementById('caForm').style.display = 'none'; document.getElementById('caThanks').style.display = 'block'; }
+  } catch(e){}
+}
+{ const b = document.getElementById('ctcProBtn'); if (b) b.addEventListener('click', () => { if (typeof openPaywall === 'function') openPaywall(); }); }
+{ const b = document.getElementById('ctcProPlusBtn'); if (b) b.addEventListener('click', () => { if (typeof openPaywall === 'function') openPaywall(); }); }
+{ const b = document.getElementById('caSubmit'); if (b) b.addEventListener('click', () => {
+    const name = (document.getElementById('caName').value || '').trim();
+    const email = (document.getElementById('caEmail').value || '').trim();
+    const why = (document.getElementById('caWhy').value || '').trim();
+    const bring = (document.getElementById('caBring').value || '').trim();
+    if (!name || !email || why.length < 20 || bring.length < 20) { if (typeof toast === 'function') toast('Tell us a little more — a sentence in each, at least.', 'warn'); return; }
+    try { localStorage.setItem('resonance_council_application', JSON.stringify({ name, email, why, bring, t: Date.now() })); } catch(e){}
+    document.getElementById('caForm').style.display = 'none';
+    document.getElementById('caThanks').style.display = 'block';
+    if (typeof toast === 'function') toast('Your application landed.', 'ok');
+  });
+}
 // re-render lobby when the user's frequency changes (wrap applyFrequency once more)
 (function(){ if (typeof applyFrequency === 'function') { const _af = applyFrequency; applyFrequency = function(hz, fromSlider){ _af(hz, fromSlider); if (typeof renderLobby === 'function') renderLobby(); }; } })();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
