@@ -5591,6 +5591,22 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   const word = 'RESONANCE'; let html = '';
   for (let i = 0; i < word.length; i++) html += '<span class="bt-letter" style="animation-delay:' + (1.05 + i * 0.07) + 's">' + word[i] + '</span>';
   title.innerHTML = html;
+  // COORD: boot orb pulses in the user's tradition accent — read directly from localStorage
+  // before RState boots, so even the very first paint is already theirs on returning visits.
+  try {
+    const raw = localStorage.getItem('resonance_identity');
+    if (raw) {
+      const id = JSON.parse(raw); const trad = id && id.tradition;
+      const TRAD_C = { judaism: '#ffb800', christianity: '#fafafa', islam: '#00f5d4', buddhism: '#fde68a', hinduism: '#fb7185', spiritual: '#9d5cff', indigenous: '#c8763c', jewishrenewal: '#2dd4bf', mixed: '#c4b5fd', universal: '#00f5d4' };
+      const c = TRAD_C[trad] || '#9d5cff';
+      const orb = document.querySelector('.boot-overlay .boot-orb');
+      if (orb) {
+        orb.style.background = 'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.6), ' + c + ' 40%, rgba(15,5,40,0.95) 100%)';
+        orb.style.boxShadow = '0 0 80px ' + c + ', 0 0 24px rgba(255,255,255,0.4), inset 0 0 40px rgba(255,255,255,0.15)';
+      }
+      const titleEl = document.getElementById('bootTitle'); if (titleEl) titleEl.style.textShadow = '0 0 20px ' + c + '66';
+    }
+  } catch (e) {}
   setTimeout(() => {
     const ov = document.getElementById('bootOverlay'); if (ov) { ov.classList.add('hide'); setTimeout(() => { try { ov.remove(); } catch(e){} }, 700); }
   }, 2500);
