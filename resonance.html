@@ -2198,6 +2198,11 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .stats-section .sc-sub { font-size: 10.5px; color: var(--text-faint); margin-top: 2px; }
 body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 /* ============ /DATA_AGENT ============ */
+/* ============ DATA_AGENT · STATS HEALTH FOOTER ============ */
+.stats-health-footer { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; flex-wrap: wrap; gap: 6px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
+.stats-health-footer .shf-dot { opacity: 0.5; }
+/* ============ /DATA_AGENT ============ */
+
 
 .depth-library .dl-summary-lbl { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text); font-weight: 700; }
 .depth-library .dl-summary-sub { font-size: 10px; color: var(--text-faint); text-align: right; line-height: 1.4; }
@@ -12506,6 +12511,87 @@ function renderStatsPage() {
 })();
 // Initial paint
 renderStatsPage();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · DATED-KEY SWEEP + HEALTH CHECK ===================
+// Daily keys (resonance_tx_<day>, resonance_gratitude_<day>, resonance_wave_<day>,
+// resonance_soulnote_<day>, resonance_reading_seen_<day>) accumulate forever, one per
+// day. After ~90 days they're junk. Sweep them.
+(function () {
+  if (!window.RState) return;
+
+  function _parseDayKey(k) {
+    // Matches resonance_<prefix>_YYYY-MM-DD
+    const m = /^resonance_[a-z_]+_(\d{4}-\d{2}-\d{2})$/.exec(k);
+    if (!m) return null;
+    const ms = Date.parse(m[1]);
+    return isNaN(ms) ? null : ms;
+  }
+
+  RState.cleanupDatedKeys = function (keepDays) {
+    const cutoff = Date.now() - (keepDays || 90) * 86400000;
+    const removed = [];
+    RState.listKeys().forEach(k => {
+      const t = _parseDayKey(k);
+      if (t != null && t < cutoff) { RState.remove(k); removed.push(k); }
+    });
+    return removed;
+  };
+
+  RState.healthCheck = function () {
+    const keys = RState.listKeys();
+    let bytes = 0;
+    keys.forEach(k => { try { const v = RState._raw.getRaw(k); if (v) bytes += v.length; } catch (e) {} });
+    const snap = RState.lastSnapshot();
+    return {
+      schemaVersion: RState.VERSION,
+      keyCount: keys.length,
+      approxBytes: bytes,
+      lastSnapshot: snap ? snap.t : null
+    };
+  };
+
+  // Throttle: once per day. Tracked in RState so it survives reload.
+  function _todayKey() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  const lastSweep = RState.get('housekeeping') || {};
+  if (lastSweep.sweptOn !== _todayKey()) {
+    try { RState.cleanupDatedKeys(90); } catch (e) {}
+    RState.set('housekeeping', { sweptOn: _todayKey() });
+  }
+
+  // Register a v0 → v1 migration. For older installs that pre-date the schema-version
+  // stamp, this is the first migration to run: just a no-op cleanup pass that gets us
+  // onto the versioned track.
+  RState.migration(0, function (api) { try { api.cleanupDatedKeys(120); } catch (e) {} });
+})();
+
+// Surface a small "Health" footer on the Stats page so the user can see how much
+// they've got stored, the schema version, and whether a snapshot is available.
+(function () {
+  if (typeof renderStatsPage !== 'function') return;
+  const _orig = renderStatsPage;
+  renderStatsPage = function () {
+    _orig.apply(this, arguments);
+    if (!window.RState || !RState.healthCheck) return;
+    const sec = document.getElementById('depthStatsSection'); if (!sec) return;
+    let footer = sec.querySelector('.stats-health-footer');
+    if (!footer) {
+      footer = document.createElement('div');
+      footer.className = 'stats-health-footer';
+      sec.appendChild(footer);
+    }
+    const h = RState.healthCheck();
+    const kb = Math.max(1, Math.round(h.approxBytes / 1024));
+    const snapStr = h.lastSnapshot ? ('snapshot · ' + new Date(h.lastSnapshot).toLocaleDateString()) : 'no snapshot yet';
+    footer.innerHTML =
+      '<span>' + h.keyCount + ' keys</span>' +
+      '<span class="shf-dot">·</span>' +
+      '<span>' + kb + ' KB</span>' +
+      '<span class="shf-dot">·</span>' +
+      '<span>schema v' + h.schemaVersion + '</span>' +
+      '<span class="shf-dot">·</span>' +
+      '<span>' + snapStr + '</span>';
+  };
+})();
 // =================== /DATA_AGENT ===================
 
 renderLadder();
