@@ -8993,6 +8993,118 @@ saveMemory = function(freq, label) {
 // Initial tier
 _lastTierN = getCurrentTier(userFreq).n;
 
+// =================== POLISH_AGENT · SONIC VOCABULARY ===================
+// A bank of short, one-shot UI sounds — the audio counterpart to a button's hover
+// state. Lives on its own light reverb bus so it never muddies the long-form tone
+// holds AUDIO_AGENT owns. Lazily inits the first time the AudioContext is running;
+// if it's locked (no user gesture yet), polishSfx() silently no-ops and a later
+// gesture will boot it via _sfxKick().
+//
+// Vocabulary:
+//   click    — soft tick        (default button press)
+//   tap      — brighter pip     (chips, toggles, tab change)
+//   chime    — 2-note bell      (gate steps, soft confirmations, notifications)
+//   success  — 3-note ascent    (memory saved, applied, win-state)
+//   error    — 2-note descent   (failed action)
+//   whoosh   — pink-noise sweep (page transitions, sheet open)
+//   anchor   — low membrane hit (significant tap — lock-in, anchor)
+//   bell     — pure metal bell  (small reveals)
+//   awakening — chord + bell    (full unlock cinematics)
+//   swell    — long sine triad  (boot, hero overlays)
+//   breath   — slow soft triad  (exhale moments, step-out)
+let _sfx = null;
+let _sfxReady = false;
+function _initSfx() {
+  if (_sfxReady) return _sfx;
+  if (typeof Tone === 'undefined') return null;
+  if (!Tone.context || Tone.context.state !== 'running') return null;
+  try {
+    const verb = new Tone.Reverb({ decay: 1.4, wet: 0.22 }).toDestination();
+    const bus = new Tone.Volume(-9).connect(verb);
+    const lp = new Tone.Filter({ frequency: 6500, type: 'lowpass', Q: 0.6 }).connect(bus);
+    _sfx = {
+      click:   new Tone.MembraneSynth({ pitchDecay: 0.005, octaves: 2, envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.06 } }).connect(new Tone.Volume(-16).connect(lp)),
+      tap:     new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.001, decay: 0.07, sustain: 0, release: 0.08 } }).connect(new Tone.Volume(-20).connect(lp)),
+      chime:   new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.002, decay: 0.45, sustain: 0, release: 1.6 } }).connect(new Tone.Volume(-15).connect(lp)),
+      success: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.002, decay: 0.35, sustain: 0.05, release: 1.0 } }).connect(new Tone.Volume(-13).connect(lp)),
+      err:     new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.18, sustain: 0, release: 0.22 } }).connect(new Tone.Volume(-18).connect(lp)),
+      whoosh:  new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.04, decay: 0.32, sustain: 0 } }).connect(new Tone.Filter({ frequency: 1200, type: 'bandpass', Q: 1.2 }).connect(new Tone.Volume(-22).connect(lp))),
+      anchor:  new Tone.MembraneSynth({ pitchDecay: 0.06, octaves: 5, envelope: { attack: 0.001, decay: 0.55, sustain: 0, release: 0.7 } }).connect(new Tone.Volume(-11).connect(bus)),
+      bell:    new Tone.MetalSynth({ frequency: 220, envelope: { attack: 0.001, decay: 0.55, release: 0.4 }, harmonicity: 5.1, modulationIndex: 14, resonance: 4200, octaves: 1.2 }).connect(new Tone.Volume(-26).connect(lp)),
+      swell:   new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, envelope: { attack: 0.6, decay: 0.6, sustain: 0.45, release: 2.2 } }).connect(new Tone.Volume(-22).connect(lp)),
+      breath:  new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, envelope: { attack: 1.2, decay: 0.8, sustain: 0.55, release: 3.0 } }).connect(new Tone.Volume(-24).connect(lp))
+    };
+    _sfxReady = true;
+  } catch (e) { _sfx = null; _sfxReady = false; }
+  return _sfx;
+}
+let _sfxLast = 0;
+function polishSfx(name, opts) {
+  const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  if (now - _sfxLast < 28) return;
+  if (typeof appSettings !== 'undefined' && appSettings.muteSfx) return;
+  const s = _initSfx(); if (!s) return;
+  _sfxLast = now;
+  const t = Tone.now();
+  const v = (opts && typeof opts.gain === 'number') ? opts.gain : 1;
+  try {
+    switch (name) {
+      case 'click':   s.click.triggerAttackRelease('C3', '64n', t, 0.4 * v); break;
+      case 'tap':     s.tap.triggerAttackRelease('A5', '64n', t, 0.35 * v); break;
+      case 'chime':
+        s.chime.triggerAttackRelease('E6', '8n', t, 0.6 * v);
+        s.chime.triggerAttackRelease('B6', '16n', t + 0.09, 0.4 * v);
+        break;
+      case 'success':
+        s.success.triggerAttackRelease('E5', '16n', t, 0.5 * v);
+        s.success.triggerAttackRelease('A5', '16n', t + 0.10, 0.5 * v);
+        s.success.triggerAttackRelease('E6', '8n',  t + 0.22, 0.55 * v);
+        break;
+      case 'error':
+        s.err.triggerAttackRelease('G#3', '16n', t, 0.45 * v);
+        s.err.triggerAttackRelease('D3', '8n',   t + 0.10, 0.4 * v);
+        break;
+      case 'whoosh':  s.whoosh.triggerAttackRelease('8n', t, 0.55 * v); break;
+      case 'anchor':  s.anchor.triggerAttackRelease('C2', '8n', t, 0.5 * v); break;
+      case 'bell':    s.bell.triggerAttackRelease('A4', '4n', t, 0.5 * v); break;
+      case 'awakening':
+        s.swell.triggerAttackRelease(['E4', 'B4', 'E5', 'G#5'], 2.6, t, 0.45 * v);
+        s.bell.triggerAttackRelease('E5', '4n', t + 0.28, 0.55 * v);
+        s.bell.triggerAttackRelease('B5', '4n', t + 0.62, 0.45 * v);
+        break;
+      case 'swell':   s.swell.triggerAttackRelease(['C4', 'G4', 'C5'], 1.8, t, 0.4 * v); break;
+      case 'breath':  s.breath.triggerAttackRelease(['G3', 'D4', 'G4'], 3.4, t, 0.5 * v); break;
+    }
+  } catch (e) {}
+}
+async function _sfxKick() {
+  try { if (typeof Tone !== 'undefined' && Tone.context && Tone.context.state !== 'running') await Tone.start(); } catch (e) {}
+}
+(function _wireSfxDelegation() {
+  if (typeof document === 'undefined') return;
+  document.addEventListener('pointerdown', (e) => {
+    const t = e.target && e.target.closest ? e.target.closest('button, .tab-btn, .toggle, .ss-chip, .is-quick, .lib-tab, .tradition-card, .lobby-orb, .ascend-btn, .gate-btn, .lobby-soul-btn, .locker-slot, .song-card, .freq-card, .badge') : null;
+    if (!t || t.disabled) return;
+    _sfxKick();
+    if (t.classList.contains('lobby-orb'))    return polishSfx('anchor');
+    if (t.classList.contains('tab-btn'))      return polishSfx('tap');
+    if (t.classList.contains('toggle') || t.classList.contains('ss-chip') || t.classList.contains('is-quick') || t.classList.contains('lib-tab')) return polishSfx('tap');
+    if (t.classList.contains('gate-btn'))     return polishSfx('chime');
+    if (t.classList.contains('locker-slot') || t.classList.contains('song-card') || t.classList.contains('freq-card') || t.classList.contains('badge')) return polishSfx('bell');
+    if (t.classList.contains('tradition-card') || t.classList.contains('lobby-soul-btn')) return polishSfx('chime');
+    polishSfx('click');
+  }, { passive: true });
+})();
+(function _hookNotifyChime() {
+  if (typeof notify !== 'function') return;
+  const _n = notify;
+  notify = function (title, sub, glyph, color) {
+    try { polishSfx('chime'); } catch (e) {}
+    return _n.apply(this, arguments);
+  };
+})();
+// =================== /POLISH_AGENT ===================
+
 // =================== INSTRUMENT CREATOR ===================
 let instruments = [];
 let editingInstrument = {
