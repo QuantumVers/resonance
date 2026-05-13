@@ -1698,25 +1698,50 @@ input[type="date"].signup-input {
   backdrop-filter: blur(20px);
 }
 .memory-card:active { transform: scale(0.95); }
+/* ============ UX_AGENT · MEMORY CAPTURE CARD ============ */
 .memory-card.capture {
+  position: relative; overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   gap: 8px;
-  background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(110,231,183,0.08));
-  border: 1.5px dashed rgba(255,255,255,0.2);
+  background: radial-gradient(circle at 50% 20%, rgba(167,139,250,0.18), transparent 60%), linear-gradient(135deg, rgba(167,139,250,0.10), rgba(110,231,183,0.08));
+  border: 1.5px dashed rgba(167,139,250,0.32);
+  transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  cursor: pointer;
 }
+.memory-card.capture:hover { border-color: rgba(167,139,250,0.55); box-shadow: 0 0 24px rgba(167,139,250,0.22); }
 .memory-card.capture .cap-icon {
-  width: 38px; height: 38px;
+  width: 42px; height: 42px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--violet), var(--mint));
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
+  font-size: 22px;
   color: #fff;
   font-weight: 300;
-  box-shadow: 0 0 20px rgba(167,139,250,0.4);
+  box-shadow: 0 0 22px rgba(167,139,250,0.5);
+  animation: capIconBreath 3.5s ease-in-out infinite;
 }
+@keyframes capIconBreath {
+  0%,100% { box-shadow: 0 0 18px rgba(167,139,250,0.45); transform: scale(1); }
+  50%     { box-shadow: 0 0 30px rgba(110,231,183,0.55); transform: scale(1.06); }
+}
+/* one-shot burst when clicked — uses a JS-toggled .capturing class */
+.memory-card.capture.capturing::before {
+  content: ''; position: absolute; inset: -2px; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.55), rgba(167,139,250,0.4) 35%, transparent 65%);
+  animation: capBurst 0.95s cubic-bezier(.2,.78,.22,1) forwards;
+}
+@keyframes capBurst {
+  0%   { opacity: 0; transform: scale(0.5); }
+  35%  { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .memory-card.capture .cap-icon, .memory-card.capture.capturing::before { animation: none; }
+}
+/* ============ /UX_AGENT ============ */
 .memory-card.capture .cap-label {
   font-size: 9px;
   letter-spacing: 2px;
@@ -9322,6 +9347,9 @@ function renderMemories() {
   cap.className = 'memory-card capture';
   cap.innerHTML = `<div class="cap-icon">+</div><div class="cap-label">Capture this moment</div>`;
   cap.addEventListener('click', () => {
+    // UX_AGENT — one-shot capture burst animation on the card before opening the modal
+    cap.classList.add('capturing');
+    setTimeout(() => { try { cap.classList.remove('capturing'); } catch(e){} }, 1000);
     const m = saveMemory(userFreq, frequencyState(userFreq).short);
     openMemory(m);
   });
