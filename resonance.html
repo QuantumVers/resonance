@@ -1921,6 +1921,12 @@ input[type="date"].signup-input {
 .sync-mode-toggle button.active { background: rgba(255,255,255,0.12); color: var(--text); }
 .orb-stage { position: relative; width: 300px; height: 300px; margin: 20px auto 0; }
 .spectrum-canvas { position: absolute; top: -40px; left: -40px; width: 380px; height: 380px; z-index: 1; pointer-events: none; }
+/* ============ COORD · SACRED GEOMETRY (Flower of Life behind the orb) ============ */
+.sacred-geom { position: absolute; top: -30px; left: -30px; width: 360px; height: 360px; z-index: 0; pointer-events: none; color: var(--sg-c, var(--violet)); opacity: 0.085; mix-blend-mode: screen; filter: drop-shadow(0 0 18px var(--sg-c, var(--violet))); }
+.sacred-geom .sg-rotor { transform-origin: 0 0; animation: sacredRotate 90s linear infinite; }
+@keyframes sacredRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sacred-geom .sg-rotor { animation-duration: 600s; } }
+/* ============ /COORD ============ */
 .hold-ring {
   position: absolute; top: -10px; left: -10px;
   width: 320px; height: 320px;
@@ -4384,6 +4390,31 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       </div>
       <div class="orb-stage">
         <canvas class="spectrum-canvas" id="spectrumCanvas"></canvas>
+        <!-- COORD · sacred geometry behind the orb (Flower of Life, 19 circles, slow rotate) -->
+        <svg class="sacred-geom" id="sacredGeom" viewBox="-160 -160 320 320" aria-hidden="true">
+          <g class="sg-rotor">
+            <circle r="42" cx="0" cy="0" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="42" cy="0" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="-42" cy="0" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="21" cy="36.373" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="-21" cy="36.373" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="21" cy="-36.373" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="-21" cy="-36.373" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="84" cy="0" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="-84" cy="0" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="42" cy="72.746" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="-42" cy="72.746" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="42" cy="-72.746" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="-42" cy="-72.746" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="63" cy="36.373" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="-63" cy="36.373" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="63" cy="-36.373" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="-63" cy="-36.373" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="0" cy="72.746" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="42" cx="0" cy="-72.746" fill="none" stroke="currentColor" stroke-width="0.6"/>
+            <circle r="126" cx="0" cy="0" fill="none" stroke="currentColor" stroke-width="0.4" opacity="0.6"/>
+          </g>
+        </svg>
         <div class="main-orb" id="mainOrb"></div>
         <svg class="hold-ring" id="holdRing" viewBox="0 0 320 320" aria-hidden="true">
           <circle class="hold-ring-track" cx="160" cy="160" r="150"></circle>
@@ -13324,6 +13355,8 @@ function renderCouncil() {
 }
 // re-render lobby when the user's frequency changes (wrap applyFrequency once more)
 (function(){ if (typeof applyFrequency === 'function') { const _af = applyFrequency; applyFrequency = function(hz, fromSlider){ _af(hz, fromSlider); if (typeof renderLobby === 'function') renderLobby(); }; } })();
+// COORD: sacred-geometry tint follows the current frequency
+(function(){ if (typeof applyFrequency === 'function') { const _af = applyFrequency; applyFrequency = function(hz, fromSlider){ _af(hz, fromSlider); const sg = document.getElementById('sacredGeom'); if (sg && typeof hzToColor === 'function') { const [, , a] = hzToColor(hz); sg.style.color = a || 'var(--violet)'; } }; } })();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
 renderLobby();
