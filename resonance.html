@@ -13919,6 +13919,164 @@ function renderQuarantineList() {
   }
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · YEAR IN REVIEW ===================
+// Aggregates a year's worth of data into a single shareable poster.
+// computeYearReview(year) returns { year, days, topFreq, totalMs, syncMs,
+// memories, awakenings, longestStreak, comeback, topSong, plate, byMonth }
+// where byMonth is [{month, hits, topFreq}].
+function computeYearReview(year) {
+  year = year || new Date().getFullYear();
+  const yStart = new Date(year, 0, 1).getTime();
+  const yEnd = new Date(year + 1, 0, 1).getTime();
+
+  // Days visited that year
+  const visits = (window._dayVisits || (window.RState && RState.get('day_visits', [])) || []).filter(d => {
+    const t = Date.parse(d); return t >= yStart && t < yEnd;
+  });
+
+  // Memories that year
+  const mems = (typeof memories !== 'undefined' && Array.isArray(memories)) ? memories.filter(m => m && m.time >= yStart && m.time < yEnd) : [];
+
+  // By-month: most-visited freq per month (from memories that year)
+  const byMonth = [];
+  for (let mo = 0; mo < 12; mo++) {
+    const m0 = new Date(year, mo, 1).getTime();
+    const m1 = new Date(year, mo + 1, 1).getTime();
+    const monthMems = mems.filter(m => m.time >= m0 && m.time < m1);
+    const monthVisits = visits.filter(d => { const t = Date.parse(d); return t >= m0 && t < m1; }).length;
+    let topF = null;
+    if (monthMems.length) {
+      const tally = {};
+      monthMems.forEach(m => { const k = Math.round(m.freq); tally[k] = (tally[k] || 0) + 1; });
+      let mx = 0; Object.keys(tally).forEach(k => { if (tally[k] > mx) { mx = tally[k]; topF = parseInt(k, 10); } });
+    }
+    byMonth.push({ month: mo, hits: monthVisits, topFreq: topF });
+  }
+
+  // Top freq overall (by time held — most honest)
+  const freqMs = (window.RState && RState.get('freq_time_ms', {})) || {};
+  let topFreq = null, mx = 0;
+  Object.keys(freqMs).forEach(k => { if (freqMs[k] > mx) { mx = freqMs[k]; topFreq = parseInt(k, 10); } });
+
+  // Top song this year — songCounts is total, not per year; we surface it as
+  // "all-time" since we don't have per-year song play log.
+  let topSong = null;
+  try {
+    const c = (appStats && appStats.songCounts) || {};
+    let best = null, n = 0; Object.keys(c).forEach(k => { if (c[k] > n) { n = c[k]; best = k; } });
+    if (best) topSong = { id: best, count: n };
+  } catch (e) {}
+
+  const longestStreak = (window.RState && RState.get('longest_streak', 0)) || 0;
+
+  return {
+    year: year,
+    days: visits.length,
+    topFreq: topFreq,
+    topFreqMs: mx,
+    totalMs: (appStats && appStats.totalMs) || 0,
+    syncMs: (appStats && appStats.syncedMs) || 0,
+    memories: mems.length,
+    awakenings: (typeof awakenedCount === 'function') ? awakenedCount() : 0,
+    longestStreak: longestStreak,
+    topSong: topSong,
+    byMonth: byMonth
+  };
+}
+
+function makeYearReviewCanvas(year) {
+  const W = 1080, H = 1350;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  const SANS = (typeof _CARD_SANS !== 'undefined') ? _CARD_SANS : '-apple-system, sans-serif';
+  const SERIF = (typeof _CARD_SERIF !== 'undefined') ? _CARD_SERIF : 'Georgia, serif';
+  const MONO = (typeof _CARD_MONO !== 'undefined') ? _CARD_MONO : 'ui-monospace, monospace';
+  const r = computeYearReview(year);
+  const accent = r.topFreq && typeof hzToColor === 'function' ? hzToColor(r.topFreq)[2] : '#a78bfa';
+
+  ctx.fillStyle = '#020203'; ctx.fillRect(0, 0, W, H);
+  const g1 = ctx.createRadialGradient(W/2, H*0.3, 0, W/2, H*0.3, W*0.95);
+  g1.addColorStop(0, accent + '36'); g1.addColorStop(0.5, accent + '10'); g1.addColorStop(1, 'rgba(2,2,3,0)');
+  ctx.fillStyle = g1; ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = 'center'; const cx = W/2;
+  try { ctx.letterSpacing = '12px'; } catch (e) {}
+  ctx.fillStyle = accent; ctx.font = '700 24px ' + SANS; ctx.fillText('MY YEAR ON RESONANCE', cx, 170);
+  try { ctx.letterSpacing = '0px'; } catch (e) {}
+  ctx.fillStyle = '#fafafa'; ctx.font = '100 220px ' + SANS; ctx.fillText(String(r.year), cx, 380);
+
+  // 12-month strip
+  const stripY = 470, stripH = 90, stripPad = 80;
+  const cellW = (W - stripPad * 2) / 12;
+  for (let i = 0; i < 12; i++) {
+    const m = r.byMonth[i];
+    const hits = m.hits || 0;
+    const intensity = Math.min(1, hits / 25);
+    const c = m.topFreq ? (typeof hzToColor === 'function' ? hzToColor(m.topFreq)[2] : accent) : '#222';
+    const x = stripPad + i * cellW + 4, y = stripY, w = cellW - 8, h = stripH;
+    ctx.fillStyle = (intensity > 0) ? c : 'rgba(255,255,255,0.04)';
+    ctx.globalAlpha = (intensity > 0) ? 0.25 + 0.75 * intensity : 1;
+    ctx.fillRect(x, y, w, h);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(255,255,255,0.42)'; ctx.font = '700 12px ' + MONO; ctx.textAlign = 'center';
+    ctx.fillText(['J','F','M','A','M','J','J','A','S','O','N','D'][i], x + w/2, y + h + 20);
+  }
+
+  // big numbers
+  const cells = [
+    { label: 'DAYS HERE', value: r.days, sub: 'shown up' },
+    { label: 'TOP FREQ',  value: r.topFreq ? r.topFreq + ' Hz' : '—', sub: r.topFreq ? 'your tone' : 'no tone yet' },
+    { label: 'MEMORIES',  value: r.memories, sub: 'captured' },
+    { label: 'AWAKENED',  value: r.awakenings, sub: 'unlocked' },
+    { label: 'LONGEST STREAK', value: r.longestStreak, sub: 'days · all-time' },
+    { label: 'TIME IN',   value: (function(ms){ const m = Math.floor(ms/60000); if (m < 60) return m+' min'; const h = m/60; return (h < 10 ? h.toFixed(1) : Math.round(h))+' hr'; })(r.totalMs), sub: 'open' }
+  ];
+  const cy = 740, dy = 110;
+  cells.forEach((c, i) => {
+    const col = i % 3, row = Math.floor(i / 3);
+    const x = stripPad + col * ((W - stripPad*2)/3) + ((W - stripPad*2)/6);
+    const y = cy + row * dy * 1.6;
+    try { ctx.letterSpacing = '2.5px'; } catch (e) {}
+    ctx.fillStyle = 'rgba(255,255,255,0.42)'; ctx.font = '700 14px ' + SANS; ctx.textAlign = 'center';
+    ctx.fillText(c.label, x, y);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+    ctx.fillStyle = '#fafafa'; ctx.font = '200 54px ' + SANS; ctx.fillText(String(c.value), x, y + 56);
+    ctx.fillStyle = 'rgba(255,255,255,0.42)'; ctx.font = 'italic 20px ' + SERIF; ctx.fillText(c.sub, x, y + 84);
+  });
+
+  // footer
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '700 30px ' + SANS;
+  ctx.textAlign = 'center'; ctx.fillText('R E S O N A N C E', cx, H - 112);
+  ctx.fillStyle = 'rgba(255,255,255,0.32)'; ctx.font = '500 23px ' + MONO;
+  ctx.fillText('quantumvers.github.io/resonance', cx, H - 66);
+  return cv;
+}
+async function shareYearReview(year) {
+  let cv;
+  try { cv = makeYearReviewCanvas(year); } catch (e) { if (typeof toast === 'function') toast('Couldn’t make the year', 'warn'); return; }
+  const blob = await new Promise(res => { try { cv.toBlob(res, 'image/png', 0.95); } catch (e) { res(null); } });
+  if (!blob) { if (typeof toast === 'function') toast('Couldn’t render the card', 'warn'); return; }
+  const y = year || new Date().getFullYear();
+  const fname = 'resonance-year-' + y + '.png';
+  const text = 'My year on Resonance · ' + y;
+  try {
+    const file = new File([blob], fname, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], text: text, title: text }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+  } catch (e) {}
+  try {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname;
+    document.body.appendChild(a); a.click(); setTimeout(() => { try { URL.revokeObjectURL(a.href); } catch (e) {} a.remove(); }, 400);
+  } catch (e) {}
+  if (typeof copyTextFallback === 'function') copyTextFallback(text);
+  if (typeof toast === 'function') toast('Your year · saved', 'ok');
+}
+window.shareYearReview = shareYearReview;
+window.computeYearReview = computeYearReview;
+window.makeYearReviewCanvas = makeYearReviewCanvas;
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
