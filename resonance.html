@@ -1310,6 +1310,58 @@ input[type="date"].signup-input {
 }
 /* ============ /FEATURES_AGENT ============ */
 
+/* ============ UX_AGENT · PER-PAGE AURORA BACKGROUND ============ */
+/* Every tab is its own room. A fixed-position gradient field painted under
+   the page content; the tones are different on each tab so the eye knows
+   it's somewhere new. Each :after fades in with the page. */
+.page.active > .page-aurora,
+#page-home.active::after,
+#page-sync.active::after,
+#page-create.active::after,
+#page-depth.active::after,
+#page-ascend.active::after,
+#page-council.active::after {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  pointer-events: none;
+  opacity: 0; animation: pageAuroraIn 1.0s 0.05s cubic-bezier(.16,.84,.32,1) forwards;
+}
+#page-home.active::after {
+  background:
+    radial-gradient(circle at 20% 12%, rgba(167,139,250,0.20), transparent 55%),
+    radial-gradient(circle at 78% 88%, rgba(251,191,36,0.08), transparent 55%);
+}
+#page-sync.active::after {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(110,231,183,0.18), transparent 60%),
+    radial-gradient(circle at 18% 90%, rgba(96,165,250,0.12), transparent 55%);
+}
+#page-create.active::after {
+  background:
+    radial-gradient(circle at 80% 10%, rgba(251,191,36,0.12), transparent 55%),
+    radial-gradient(circle at 18% 88%, rgba(251,113,133,0.10), transparent 55%);
+}
+#page-depth.active::after {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(251,191,36,0.10), transparent 55%),
+    radial-gradient(circle at 86% 84%, rgba(167,139,250,0.14), transparent 55%);
+}
+#page-ascend.active::after {
+  background:
+    radial-gradient(circle at 50% 12%, rgba(110,231,183,0.16), transparent 55%),
+    radial-gradient(circle at 50% 88%, rgba(167,139,250,0.14), transparent 55%);
+}
+#page-council.active::after {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(251,191,36,0.14), transparent 60%),
+    radial-gradient(circle at 50% 95%, rgba(255,255,255,0.04), transparent 55%);
+}
+@keyframes pageAuroraIn { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  #page-home.active::after, #page-sync.active::after, #page-create.active::after,
+  #page-depth.active::after, #page-ascend.active::after, #page-council.active::after { animation: none; opacity: 1; }
+}
+/* ============ /UX_AGENT ============ */
+
 /* ============ UX_AGENT · CINEMATIC PAGE TRANSITIONS ============ */
 .page { display: none; }
 .page.active {
