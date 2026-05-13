@@ -4905,8 +4905,11 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="set-row-sub" style="margin-bottom:12px;">Everything you do here is stored only in this browser.</div>
     <div class="set-actions">
       <button class="btn" id="setExportBtn">Export JSON</button>
+      <button class="btn" id="setImportBtn">Import JSON</button>
+      <button class="btn" id="setRestoreSnapBtn" style="display:none;">Restore last snapshot</button>
       <button class="btn" id="setResetBtn">Reset all data</button>
     </div>
+    <input type="file" id="setImportFile" accept="application/json,.json" style="display:none;">
   </div>
 
   <div class="set-section" style="border-top:1px solid var(--border); padding-top:18px;">
@@ -9297,22 +9300,109 @@ document.querySelectorAll('.set-theme-card').forEach(card => {
     saveSettings();
   });
 });
-document.getElementById('setExportBtn').addEventListener('click', () => {
-  const out = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.indexOf('resonance_') === 0) { try { out[k] = JSON.parse(localStorage.getItem(k)); } catch (e) { out[k] = localStorage.getItem(k); } }
-  }
-  out._exportedAt = new Date().toISOString();
-  if (typeof userProfile !== 'undefined') out._profile = userProfile;
-  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+// =================== DATA_AGENT · EXPORT / IMPORT ===================
+// Versioned envelope so imports on another device (or after a schema change)
+// can be validated and migrated forward.
+function _buildExportEnvelope() {
+  const data = (window.RState && RState.getAll) ? RState.getAll() : (function () {
+    const out = {};
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('resonance_') === 0) { try { out[k] = JSON.parse(localStorage.getItem(k)); } catch (e) { out[k] = localStorage.getItem(k); } } }
+    return out;
+  })();
+  return {
+    app: 'resonance',
+    schemaVersion: (window.RState && RState.VERSION) || 1,
+    exportedAt: new Date().toISOString(),
+    profile: (typeof userProfile !== 'undefined') ? userProfile : null,
+    data: data
+  };
+}
+function _downloadJson(obj, filename) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'resonance-data-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.download = filename;
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 200);
-  toast('Data exported', 'ok');
+}
+document.getElementById('setExportBtn').addEventListener('click', () => {
+  _downloadJson(_buildExportEnvelope(), 'resonance-data-' + new Date().toISOString().slice(0, 10) + '.json');
+  if (typeof toast === 'function') toast('Data exported', 'ok');
 });
+
+let _importArmed = null;
+document.getElementById('setImportBtn').addEventListener('click', () => {
+  const fi = document.getElementById('setImportFile');
+  if (fi) fi.click();
+});
+document.getElementById('setImportFile').addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    let env;
+    try { env = JSON.parse(ev.target.result); }
+    catch (err) { if (typeof toast === 'function') toast('Invalid JSON', 'warn'); return; }
+    // Accept either the new envelope { app, schemaVersion, data } or the legacy flat
+    // shape (every resonance_* key at the top level — what we exported before).
+    let payload = null;
+    if (env && env.app === 'resonance' && env.data && typeof env.data === 'object') payload = env.data;
+    else if (env && typeof env === 'object') {
+      const flat = {};
+      Object.keys(env).forEach(k => { if (k.indexOf('resonance_') === 0) flat[k] = env[k]; });
+      if (Object.keys(flat).length) payload = flat;
+    }
+    if (!payload) { if (typeof toast === 'function') toast('Not a Resonance export', 'warn'); return; }
+    _importArmed = payload;
+    const btn = document.getElementById('setImportBtn');
+    btn.textContent = 'Tap to confirm import (' + Object.keys(payload).length + ' keys)';
+    btn.classList.add('danger');
+    setTimeout(() => { if (_importArmed) { _importArmed = null; btn.textContent = 'Import JSON'; btn.classList.remove('danger'); } }, 6000);
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+// Confirm-tap: actually do the import (snapshot first, then write each key, then reload).
+document.getElementById('setImportBtn').addEventListener('click', () => {
+  if (!_importArmed) return; // first click opens the picker; second click after a file is loaded confirms
+  const payload = _importArmed; _importArmed = null;
+  // Snapshot current state so the user can roll back if the import was wrong.
+  try { if (window.RState && RState.snapshot) RState.snapshot(); } catch (e) {}
+  // Clear existing resonance_* keys first, then write the imported ones.
+  const existing = (window.RState && RState.listKeys) ? RState.listKeys() : (function () {
+    const k = []; for (let i = 0; i < localStorage.length; i++) { const x = localStorage.key(i); if (x && x.indexOf('resonance_') === 0) k.push(x); } return k;
+  })();
+  existing.forEach(k => { if (k.indexOf('resonance__') !== 0) localStorage.removeItem(k); });
+  Object.keys(payload).forEach(k => {
+    if (k.indexOf('resonance_') !== 0) return;
+    const v = payload[k];
+    try { localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)); } catch (err) {}
+  });
+  if (typeof toast === 'function') toast('Imported — reloading', 'ok');
+  setTimeout(() => location.reload(), 900);
+});
+
+// Restore-last-snapshot button: visible only if a snapshot exists.
+(function () {
+  const btn = document.getElementById('setRestoreSnapBtn');
+  if (!btn) return;
+  function _refresh() {
+    const snap = (window.RState && RState.lastSnapshot) ? RState.lastSnapshot() : null;
+    if (!snap) { btn.style.display = 'none'; return; }
+    btn.style.display = '';
+    btn.textContent = 'Restore last snapshot (' + new Date(snap.t || Date.now()).toLocaleString() + ')';
+  }
+  _refresh();
+  let armed = false, timer = null;
+  btn.addEventListener('click', () => {
+    if (!armed) { armed = true; btn.classList.add('danger'); const orig = btn.textContent; btn.textContent = 'Tap again to restore'; timer = setTimeout(() => { armed = false; btn.classList.remove('danger'); btn.textContent = orig; }, 4000); return; }
+    if (timer) clearTimeout(timer);
+    if (window.RState && RState.restoreSnapshot && RState.restoreSnapshot()) {
+      if (typeof toast === 'function') toast('Snapshot restored — reloading', 'ok');
+      setTimeout(() => location.reload(), 900);
+    } else if (typeof toast === 'function') toast('No snapshot to restore', 'warn');
+  });
+})();
+// =================== /DATA_AGENT ===================
 let _resetArmed = false, _resetTimer = null;
 document.getElementById('setResetBtn').addEventListener('click', () => {
   const btn = document.getElementById('setResetBtn');
@@ -9322,6 +9412,8 @@ document.getElementById('setResetBtn').addEventListener('click', () => {
     return;
   }
   if (_resetTimer) clearTimeout(_resetTimer);
+  // DATA_AGENT: snapshot before destructive reset so the user can recover.
+  try { if (window.RState && RState.snapshot) RState.snapshot(); } catch (e) {}
   const keys = [];
   for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('resonance_') === 0) keys.push(k); }
   keys.forEach(k => localStorage.removeItem(k));
