@@ -5441,6 +5441,35 @@ function toast(message, type) {
   try { _runMigrations(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · INSTALL META (client_id, firstOpenedAt) ===================
+// Persistent install identity — generated once, never changes. Powers:
+//   - "Day N of your walk" surface (firstOpenedAt → days since)
+//   - Future backend handshake (clientId is the device's identity until login lands)
+//   - Future invite/share lineage that doesn't rely on the in-memory user name
+(function () {
+  if (!window.RState) return;
+  let meta = RState.get('install_meta');
+  if (!meta || typeof meta !== 'object') meta = {};
+  if (!meta.clientId) {
+    // RFC4122-ish v4 (no crypto dep — readable, unique-enough for local install ID)
+    function _rand(n) { let s = ''; for (let i = 0; i < n; i++) s += Math.floor(Math.random() * 16).toString(16); return s; }
+    meta.clientId = _rand(8) + '-' + _rand(4) + '-4' + _rand(3) + '-' + (8 + Math.floor(Math.random() * 4)).toString(16) + _rand(3) + '-' + _rand(12);
+  }
+  if (!meta.firstOpenedAt) meta.firstOpenedAt = Date.now();
+  meta.lastSeenAt = Date.now();
+  meta.openCount = (meta.openCount || 0) + 1;
+  RState.set('install_meta', meta);
+  // Expose globally so other modules and the Stats page can read without re-hitting storage.
+  window.__installMeta = meta;
+})();
+
+// Day N of your walk — derived; null-safe; respects Quiet Metrics.
+window.dayNOfWalk = function () {
+  const m = window.__installMeta || (window.RState && RState.get('install_meta')) || {};
+  if (!m.firstOpenedAt) return 0;
+  return Math.max(1, Math.floor((Date.now() - m.firstOpenedAt) / 86400000) + 1);
+};
+// =================== /DATA_AGENT ===================
 
 // =================== SETTINGS (state) ===================
 const DEFAULT_SETTINGS = { volume: 80, notify: false, theme: 'violet', quietMetrics: false, tier: 'free' };
