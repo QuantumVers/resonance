@@ -67,6 +67,74 @@ html, body {
 }
 .soul-fab.hidden { opacity: 0; pointer-events: none; transform: scale(0.7); }
 
+
+/* ============ THE ASSUMPTION ============ */
+.assumption-overlay {
+  position: fixed; inset: 0; z-index: 9500; display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: #010103; overflow: hidden;
+  -webkit-user-select: none; user-select: none;
+}
+.assumption-overlay.show { display: flex; animation: axIn 1.2s ease-out; }
+@keyframes axIn { from { opacity: 0; } to { opacity: 1; } }
+.assumption-overlay .ax-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(167,139,250,0.20), transparent 55%),
+              radial-gradient(circle at 50% 50%, rgba(110,231,183,0.06), transparent 70%),
+              #010103;
+}
+.assumption-overlay .ax-eyebrow {
+  position: absolute; top: 8vh; left: 0; right: 0; text-align: center;
+  font-size: 11px; letter-spacing: 7px; text-transform: uppercase;
+  color: rgba(255,255,255,0.55); font-weight: 700;
+  animation: axTextIn 1.5s ease-out 0.4s backwards;
+}
+.assumption-overlay .ax-sub {
+  position: absolute; top: calc(8vh + 22px); left: 0; right: 0; text-align: center;
+  font-family: Georgia, "Times New Roman", serif; font-style: italic;
+  font-size: 13.5px; color: rgba(255,255,255,0.55);
+  animation: axTextIn 1.6s ease-out 0.9s backwards;
+}
+@keyframes axTextIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 0.7; transform: translateY(0); } }
+.assumption-overlay .ax-stage { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 36px; padding: 0 24px; }
+.assumption-overlay .ax-orb {
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), rgba(167,139,250,0.92) 40%, rgba(15,5,40,0.95) 100%);
+  box-shadow: 0 0 120px rgba(167,139,250,0.55), 0 0 24px rgba(255,255,255,0.18), inset 0 0 40px rgba(255,255,255,0.10);
+  animation: axBreathe 8s ease-in-out infinite;
+}
+@keyframes axBreathe {
+  0%, 100% { transform: scale(0.85); box-shadow: 0 0 60px rgba(167,139,250,0.35), inset 0 0 30px rgba(255,255,255,0.08); }
+  50%      { transform: scale(1.18); box-shadow: 0 0 160px rgba(167,139,250,0.7), inset 0 0 50px rgba(255,255,255,0.18); }
+}
+.assumption-overlay .ax-line {
+  font-family: Georgia, "Times New Roman", serif; font-style: italic;
+  font-size: 22px; line-height: 1.5; letter-spacing: -0.01em;
+  max-width: 460px; text-align: center; color: rgba(255,255,255,0.92);
+  text-shadow: 0 0 24px rgba(167,139,250,0.35);
+  opacity: 0; transition: opacity 1.4s ease;
+}
+.assumption-overlay .ax-line.show { opacity: 1; }
+.assumption-overlay .ax-ring {
+  position: absolute; left: 50%; bottom: 12vh; transform: translateX(-50%);
+  width: 56px; height: 56px;
+}
+.assumption-overlay .ax-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.assumption-overlay .ax-ring-track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 3; }
+.assumption-overlay .ax-ring-fill { fill: none; stroke: rgba(167,139,250,0.75); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 289; stroke-dashoffset: 289; transition: stroke-dashoffset 1s linear; }
+.assumption-overlay .ax-exit {
+  position: absolute; top: max(16px, env(safe-area-inset-top, 16px)); right: 18px;
+  width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.65); font-size: 14px;
+  cursor: pointer; backdrop-filter: blur(20px);
+}
+.assumption-overlay .ax-foot {
+  position: absolute; bottom: 4vh; left: 0; right: 0; text-align: center;
+  font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.35); font-weight: 700;
+  animation: axTextIn 1.8s ease-out 2s backwards;
+}
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4145,6 +4213,21 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 </style>
 </head>
 <body>
+
+
+<!-- ================= THE ASSUMPTION · 60s Nevillian breath ritual ================= -->
+<div class="assumption-overlay" id="assumptionOverlay" role="dialog" aria-label="The Assumption">
+  <div class="ax-bg"></div>
+  <div class="ax-eyebrow" id="axEyebrow">The Assumption</div>
+  <div class="ax-sub" id="axSub">Sixty seconds inside the wish fulfilled.</div>
+  <div class="ax-stage">
+    <div class="ax-orb" id="axOrb"></div>
+    <div class="ax-line" id="axLine">&nbsp;</div>
+  </div>
+  <div class="ax-ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ax-ring-track" cx="50" cy="50" r="46"></circle><circle class="ax-ring-fill" id="axRingFill" cx="50" cy="50" r="46"></circle></svg></div>
+  <button class="ax-exit" id="axExit" aria-label="Return">✕</button>
+  <div class="ax-foot">tap anywhere to return</div>
+</div>
 
 <!-- ================= NOTIFICATION STACK (iOS-style top drops, no more middle-of-screen pop-ups) ================= -->
 <div class="notify-stack" id="notifyStack" aria-live="polite"></div>
@@ -14145,6 +14228,98 @@ renderStatsPage();
   setInterval(_heartbeat, 30000);
 })();
 // =================== /DATA_AGENT ===================
+
+
+// =================== THE ASSUMPTION · 60s Nevillian breath ritual ===================
+// CONDUCTOR's note: this app is already what it is. The Assumption is the room where the user
+// LIVES inside the wish fulfilled for one minute. Long-press the central orb from anywhere.
+const NEVILLE_LINES = [
+  "I am the field, not the seeker.",
+  "What I notice grows. I notice my own light.",
+  "The frequency I carry today is already the answer.",
+  "I am the one I have been waiting for. I have already arrived.",
+  "What I want, wants me. We are moving toward each other.",
+  "I am not building. I am remembering.",
+  "The version of me I want to be is already here.",
+  "It is done. It was always done.",
+  "I am that, I am.",
+  "The world is myself pushed out — and I am at peace."
+];
+let _axTimers = []; let _axRaf = null;
+function _axClear() { _axTimers.forEach(t => clearTimeout(t)); _axTimers = []; if (_axRaf) cancelAnimationFrame(_axRaf); _axRaf = null; }
+function _axPickLines(n) {
+  const name = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name : 'soul';
+  // deterministic-per-day pick so each morning's Assumption feels like a single experience
+  let salt = 0; for (let i = 0; i < name.length; i++) salt = (salt * 31 + name.charCodeAt(i)) >>> 0;
+  if (typeof _dayHash === 'function') salt = (salt ^ _dayHash('assumption')) >>> 0;
+  const pool = NEVILLE_LINES.slice(); const out = [];
+  while (out.length < n && pool.length) { const i = salt % pool.length; out.push(pool.splice(i, 1)[0]); salt = (salt * 17 + 7) >>> 0; }
+  return out;
+}
+function openAssumption() {
+  const ov = document.getElementById('assumptionOverlay'); if (!ov) return;
+  _axClear();
+  ov.classList.add('show');
+  // Audio: soft drone on the user's current freq, low volume
+  let droneStarted = false;
+  try { if (typeof ensureAudio === 'function') ensureAudio().then(() => {
+    const hz = (typeof userFreq !== 'undefined') ? userFreq : 432;
+    if (typeof startTone === 'function' && typeof stopAllTones === 'function') {
+      try { stopAllTones(); } catch(e){}
+      try { startTone(hz, 'manual'); droneStarted = true;
+        const mp = document.getElementById('manualPlay'); if (mp){ mp.textContent='Stop Sync'; mp.classList.add('active'); }
+      } catch(e){}
+    }
+  }); } catch(e){}
+  const lineEl = document.getElementById('axLine');
+  const ring = document.getElementById('axRingFill');
+  const lines = _axPickLines(5); // 5 lines over 60 seconds = ~12s each
+  // Show the first line at 1.5s; cycle every 12s
+  const showLine = (text) => {
+    lineEl.classList.remove('show');
+    setTimeout(() => { lineEl.textContent = text; lineEl.classList.add('show'); if (typeof speakAsInnerSelf === 'function') { try { speakAsInnerSelf(text); } catch(e){} } }, 600);
+  };
+  _axTimers.push(setTimeout(() => showLine(lines[0]), 1500));
+  for (let i = 1; i < lines.length; i++) _axTimers.push(setTimeout(() => showLine(lines[i]), 1500 + i * 11500));
+  // Ring fill animation — drains over 60s
+  ring.style.transition = 'none'; ring.style.strokeDashoffset = '289';
+  requestAnimationFrame(() => { ring.style.transition = 'stroke-dashoffset 60s linear'; ring.style.strokeDashoffset = '0'; });
+  // End at 60s
+  _axTimers.push(setTimeout(() => {
+    lineEl.classList.remove('show');
+    setTimeout(() => { lineEl.textContent = 'Thank you. It is done.'; lineEl.classList.add('show'); if (typeof speakAsInnerSelf === 'function') { try { speakAsInnerSelf('Thank you. It is done.'); } catch(e){} } }, 800);
+    _axTimers.push(setTimeout(() => closeAssumption(droneStarted), 4000));
+  }, 60000));
+  // Tap-to-return on background
+  const onTap = (e) => { if (e.target.id === 'axExit' || e.target.closest('.ax-bg')) { closeAssumption(droneStarted); } };
+  ov._onTap = onTap; ov.addEventListener('click', onTap);
+}
+function closeAssumption(stopDrone) {
+  const ov = document.getElementById('assumptionOverlay'); if (!ov) return;
+  _axClear();
+  if (stopDrone && typeof stopAllTones === 'function') { try { stopAllTones(); } catch(e){} const mp = document.getElementById('manualPlay'); if (mp){ mp.textContent='Begin Sync'; mp.classList.remove('active'); } }
+  if (typeof speechSynthesis !== 'undefined') { try { speechSynthesis.cancel(); } catch(e){} }
+  if (ov._onTap) { ov.removeEventListener('click', ov._onTap); ov._onTap = null; }
+  ov.classList.remove('show');
+  const ring = document.getElementById('axRingFill'); if (ring) { ring.style.transition = 'none'; ring.style.strokeDashoffset = '289'; }
+}
+// Long-press detection on any orb element
+function _bindLongPressOrb(el) {
+  if (!el) return; let pressTimer = null; let didLong = false;
+  const cancel = () => { if (pressTimer) clearTimeout(pressTimer); pressTimer = null; };
+  el.addEventListener('pointerdown', (e) => {
+    didLong = false;
+    pressTimer = setTimeout(() => { didLong = true; e.preventDefault(); openAssumption(); }, 600);
+  });
+  el.addEventListener('pointerup', cancel);
+  el.addEventListener('pointerleave', cancel);
+  el.addEventListener('pointercancel', cancel);
+  // suppress click if a long-press just fired
+  el.addEventListener('click', (e) => { if (didLong) { e.preventDefault(); e.stopImmediatePropagation(); didLong = false; } }, true);
+}
+['lobbyOrb', 'mainOrb', 'soulFab'].forEach(id => { const e = document.getElementById(id); if (e) _bindLongPressOrb(e); });
+{ const x = document.getElementById('axExit'); if (x) x.addEventListener('click', () => closeAssumption(true)); }
+
 
 renderLadder();
 </script>
