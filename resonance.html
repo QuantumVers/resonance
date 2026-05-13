@@ -985,50 +985,77 @@ input[type="date"].signup-input {
 }
 
 /* VERDICT */
+/* ============ UX_AGENT · VERDICT (gate step 6) ============ */
 .verdict-glyph {
-  font-size: 96px;
+  position: relative;
+  font-size: 108px;
   font-weight: 100;
   letter-spacing: -0.06em;
   line-height: 1;
   margin-bottom: 8px;
-  animation: verdictIn 1s var(--pop);
+  animation: verdictIn 1.4s cubic-bezier(.18,.78,.22,1);
+}
+/* one-shot light-burst behind the verdict glyph */
+.verdict-glyph::before {
+  content: ''; position: absolute; inset: -50%;
+  background: radial-gradient(circle at 50% 50%, rgba(251,191,36,0.55), rgba(167,139,250,0.3) 40%, transparent 65%);
+  filter: blur(20px);
+  z-index: -1;
+  opacity: 0;
+  animation: verdictBurst 2s cubic-bezier(.2,.7,.2,1) 0.2s forwards;
 }
 .verdict-glyph.ascended {
   background: linear-gradient(135deg, var(--gold), var(--mint), var(--violet));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 40px rgba(251,191,36,0.4));
+  filter: drop-shadow(0 0 50px rgba(251,191,36,0.55));
+  animation: verdictIn 1.4s cubic-bezier(.18,.78,.22,1), verdictBreath 5s ease-in-out 1.4s infinite;
 }
 @keyframes verdictIn {
-  from { opacity: 0; transform: scale(0.7); }
-  to { opacity: 1; transform: scale(1); }
+  0%   { opacity: 0; transform: scale(0.55) translateY(8px); filter: blur(14px) drop-shadow(0 0 30px rgba(251,191,36,0.0)); }
+  60%  { opacity: 1; transform: scale(1.06); filter: blur(0) drop-shadow(0 0 80px rgba(251,191,36,0.8)); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0) drop-shadow(0 0 50px rgba(251,191,36,0.55)); }
+}
+@keyframes verdictBurst {
+  0%   { opacity: 0; transform: scale(0.4); }
+  40%  { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+@keyframes verdictBreath {
+  0%,100% { filter: drop-shadow(0 0 45px rgba(251,191,36,0.45)); }
+  50%     { filter: drop-shadow(0 0 70px rgba(110,231,183,0.65)); }
 }
 .verdict-label {
   font-size: 11px;
-  letter-spacing: 8px;
+  letter-spacing: 10px;
   color: var(--gold);
   text-transform: uppercase;
   margin-bottom: 28px;
   font-weight: 700;
+  filter: drop-shadow(0 0 10px rgba(251,191,36,0.3));
 }
 .verdict-score {
   display: inline-flex;
   align-items: center;
-  gap: 16px;
-  background: var(--card);
-  border: 1px solid var(--border-hi);
-  padding: 12px 20px;
+  gap: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  border: 1px solid rgba(251,191,36,0.25);
+  padding: 14px 24px;
   border-radius: 100px;
   margin-bottom: 28px;
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: 0 0 32px rgba(251,191,36,0.10), 0 8px 22px rgba(0,0,0,0.35);
 }
 .verdict-score-val {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 300;
   letter-spacing: -0.02em;
   color: var(--gold);
+  font-variant-numeric: tabular-nums;
 }
+.verdict-score-val.ticking { transition: color 0.12s ease; }
+/* ============ /UX_AGENT ============ */
 .verdict-score-lbl {
   font-size: 10px;
   letter-spacing: 2px;
@@ -7318,6 +7345,23 @@ function runCalculation() {
   }, 720);
 }
 
+// UX_AGENT — small count-up helper for the verdict numbers (and reusable elsewhere)
+function _verdictTickUp(el, from, to, dur, suffix) {
+  if (!el) return;
+  const t0 = performance.now();
+  const delta = (to - from);
+  el.classList.add('ticking');
+  el.textContent = from + (suffix || '');
+  function step(t) {
+    const p = Math.min(1, (t - t0) / dur);
+    const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+    const v = Math.round(from + delta * eased);
+    el.textContent = v + (suffix || '');
+    if (p < 1) requestAnimationFrame(step);
+    else el.classList.remove('ticking');
+  }
+  requestAnimationFrame(step);
+}
 function showVerdict() {
   // Alignment is derived — not random: coherence (how steady your voice held, a real measurement)
   // + the harmony of your name's number + a small daily wobble. Most people land in a good place.
@@ -7345,9 +7389,15 @@ function showVerdict() {
       '<span class="fb-item">→ <b>' + r.f + ' Hz</b>' + (r.snapped ? ' · on the ' + r.nearest + ' tone' : '') + '</span>';
   } catch(e){}
 
-  document.getElementById('finalScore').textContent = userAlignment;
-  document.getElementById('finalFreq').textContent = userFreq + ' Hz';
-  document.getElementById('finalTier').textContent = tier;
+  // UX_AGENT — verdict numbers tick up so the moment feels earned, not assigned
+  _verdictTickUp(document.getElementById('finalScore'), 0, userAlignment, 1400, '');
+  _verdictTickUp(document.getElementById('finalFreq'), Math.max(174, userFreq - 80), userFreq, 1700, ' Hz');
+  // Tier reveals only after the numbers settle
+  (function(_t){
+    const el = document.getElementById('finalTier'); if (!el) return;
+    el.textContent = '—'; el.style.opacity = '0.4';
+    setTimeout(() => { el.textContent = _t; el.style.opacity = '1'; el.style.transition = 'opacity 0.55s ease'; }, 1750);
+  })(tier);
 
   // If a friend sent them with "I heard X Hz in you", show the comparison on the verdict
   try {
