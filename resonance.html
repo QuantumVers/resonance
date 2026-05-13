@@ -4377,13 +4377,34 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 .converge-card .cv-actions { display: flex; gap: 10px; margin-top: 14px; position: relative; flex-wrap: wrap; }
 .converge-card .cv-record { font-family: Georgia, serif; font-style: italic; font-size: 12px; color: var(--text-faint); margin-top: 10px; position: relative; }
 
+/* ============ UX_AGENT · CONVERGENCE OVERLAY (portal entrance) ============ */
 .converge-overlay {
   position: fixed; inset: 0; height: 100vh; height: 100dvh;
   z-index: 530;
   display: none; flex-direction: column;
-  background: radial-gradient(circle at 50% 42%, var(--cvo-c, rgba(167,139,250,0.12)), transparent 60%), #010103;
+  background: radial-gradient(circle at 50% 42%, var(--cvo-c, rgba(167,139,250,0.18)), transparent 60%), radial-gradient(circle at 50% 100%, rgba(110,231,183,0.08), transparent 55%), #010103;
 }
-.converge-overlay.show { display: flex; animation: gateIn 0.6s var(--ease); }
+.converge-overlay.show { display: flex; animation: convergeOverlayIn 1.0s cubic-bezier(.16,.84,.32,1); }
+.converge-overlay.show::before {
+  content: ''; position: absolute; inset: -10%; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, var(--cvo-c, rgba(167,139,250,0.5)), transparent 55%);
+  opacity: 0; filter: blur(50px);
+  animation: convergePortal 2.4s ease-out forwards;
+}
+@keyframes convergeOverlayIn {
+  0%   { opacity: 0; transform: scale(1.04); filter: blur(12px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+@keyframes convergePortal {
+  0%   { opacity: 0; transform: scale(0.5); }
+  35%  { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .converge-overlay.show, .converge-overlay.show::before { animation: none; opacity: 1; }
+}
+/* ============ /UX_AGENT ============ */
 .converge-overlay .cvo-top { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 6px; }
 .converge-overlay .cvo-title { font-family: Georgia, serif; font-style: italic; font-size: 18px; }
 .converge-overlay .cvo-stage { flex: 1; position: relative; min-height: 0; }
