@@ -2247,6 +2247,21 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .personal-records-section .pr-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
 .personal-records-section .pr-value { font-size: 24px; font-weight: 200; color: var(--text); letter-spacing: -0.5px; margin-top: 4px; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .personal-records-section .pr-sub { font-size: 10px; color: var(--text-faint); margin-top: 3px; font-style: italic; font-family: Georgia, serif; }
+/* ============ DATA_AGENT · TIMELINE ============ */
+.timeline-section { padding-top: 14px; }
+.timeline-section summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 12px; justify-content: space-between; padding: 4px 0; }
+.timeline-section summary::-webkit-details-marker { display: none; }
+.timeline-section summary::after { content: '+'; font-weight: 200; font-size: 22px; color: var(--text-faint); margin-left: auto; transition: transform .3s; }
+.timeline-section[open] summary::after { transform: rotate(45deg); }
+.timeline-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; max-height: 480px; overflow-y: auto; }
+.tl-row { display: flex; gap: 12px; padding: 10px 12px; background: rgba(20,20,28,0.55); border: 1px solid var(--border); border-left: 3px solid var(--tl-c, var(--violet)); border-radius: 12px; }
+.tl-row .tl-dot { width: 22px; height: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--tl-c, var(--violet)); }
+.tl-row .tl-body { flex: 1; min-width: 0; }
+.tl-row .tl-meta { display: flex; gap: 8px; font-size: 9.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.tl-row .tl-meta .tl-freq { color: var(--tl-c, var(--violet)); }
+.tl-row .tl-label { font-size: 12px; color: var(--text-soft); font-style: italic; font-family: Georgia, serif; margin-top: 4px; }
+/* ============ /DATA_AGENT ============ */
+
 /* ============ /DATA_AGENT ============ */
 
 /* ============ /DATA_AGENT ============ */
@@ -4545,6 +4560,15 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="depth-section-sub">Numbers you've already beaten · kept forever</div>
         <div class="personal-records-list" id="personalRecordsList"></div>
       </div>
+
+      <!-- DATA_AGENT · TIMELINE -->
+      <details class="depth-section timeline-section" id="timelineWrap" style="display:none;">
+        <summary>
+          <span class="depth-section-h">Your timeline</span>
+          <span class="depth-section-sub">Every dated thing you've done · oldest at the bottom</span>
+        </summary>
+        <div class="timeline-list" id="timelineList"></div>
+      </details>
 
       <!-- DATA_AGENT · ON THIS DAY -->
       <div class="depth-section on-this-day-section" id="onThisDayWrap" style="display:none;">
@@ -13558,6 +13582,83 @@ function renderPersonalRecords() {
   }
 
   _trigger();
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · TIMELINE (merged moments) ===================
+// One chronological feed merging every dated event the app already records:
+//   - memories (saveMemory)
+//   - locker notes (lockerAddNote, per-frequency)
+//   - awakenings unlocked (we infer from the awakenings list + an unlock log
+//     we don't have today; use memory entries that match awakening criteria)
+//   - plates earned (plates.earned[] doesn't store dates today, so we skip)
+//   - risings (resonance_risings has timestamps)
+// Surfaces on Stats as a collapsible "Your timeline" footer.
+function buildTimeline(limit) {
+  const out = [];
+  // memories
+  try {
+    (typeof memories !== 'undefined' ? memories : []).forEach(m => {
+      if (m && m.time) out.push({ t: m.time, kind: 'memory', freq: m.freq, label: m.label || '', glyph: '◐' });
+    });
+  } catch (e) {}
+  // locker notes
+  try {
+    Object.values((typeof _freqLocker !== 'undefined' && _freqLocker) || {}).forEach(slot => {
+      (slot.notes || []).forEach(n => {
+        if (n && n.t) out.push({ t: n.t, kind: 'note', freq: slot.hz, label: (n.text || '').slice(0, 120), glyph: '✦' });
+      });
+    });
+  } catch (e) {}
+  // risings
+  try {
+    const r = window.RState ? RState.get('risings', []) : [];
+    (r || []).forEach(x => {
+      if (x && x.t) out.push({ t: x.t, kind: 'rising', label: 'The Field rose' + (x.pct ? ' · ' + Math.round(x.pct * 100) + '%' : '') + (x.lifted ? ' · lifted ' + x.lifted : ''), glyph: '↑' });
+    });
+  } catch (e) {}
+  // convergences
+  try {
+    const c = window.RState ? RState.get('convergences', []) : [];
+    (c || []).forEach(day => {
+      const t = Date.parse(day); if (!isNaN(t)) out.push({ t: t, kind: 'convergence', label: 'The Convergence · we held one tone', glyph: '◎' });
+    });
+  } catch (e) {}
+  out.sort((a, b) => b.t - a.t);
+  return limit ? out.slice(0, limit) : out;
+}
+
+function renderTimeline() {
+  const host = document.getElementById('timelineList'); if (!host) return;
+  const wrap = document.getElementById('timelineWrap'); if (!wrap) return;
+  const items = buildTimeline(40);
+  if (!items.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  const _esc = s => String(s || '').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+  host.innerHTML = items.map(it => {
+    const dt = new Date(it.t);
+    const ago = (function () {
+      const ms = Date.now() - it.t;
+      if (ms < 86400000) return Math.round(ms / 3600000) + 'h ago';
+      if (ms < 30 * 86400000) return Math.round(ms / 86400000) + 'd ago';
+      return dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    })();
+    const color = (it.freq && typeof hzToColor === 'function') ? hzToColor(it.freq)[2] : '#a78bfa';
+    const freqPart = it.freq ? '<span class="tl-freq">' + Math.round(it.freq) + ' Hz</span>' : '';
+    return '<div class="tl-row" style="--tl-c:' + color + '">'
+         +   '<div class="tl-dot">' + it.glyph + '</div>'
+         +   '<div class="tl-body">'
+         +     '<div class="tl-meta">' + ago + freqPart + '</div>'
+         +     '<div class="tl-label">' + _esc(it.label) + '</div>'
+         +   '</div>'
+         + '</div>';
+  }).join('');
+}
+(function () {
+  if (typeof renderStatsPage === 'function') {
+    const _r = renderStatsPage;
+    renderStatsPage = function () { _r.apply(this, arguments); try { renderTimeline(); } catch (e) {} };
+  }
+  try { renderTimeline(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
 
