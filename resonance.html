@@ -435,6 +435,23 @@ body::before {
 .wro-orbs .wro-soul.compat .wso-num { color: var(--mint); }
 
 
+
+/* ============ LIGHT OF THE DAY (Home) ============ */
+.light-of-day {
+  max-width: 440px; margin: 16px auto 0; padding: 18px 20px; border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.55);
+  border: 1px solid rgba(251,191,36,0.30); backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%); text-align: center;
+  position: relative; overflow: hidden;
+}
+.light-of-day::before {
+  content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, rgba(251,191,36,0.10), transparent 60%); pointer-events: none;
+}
+.light-of-day .lod-eyebrow { font-size: 9px; letter-spacing: 5px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 10px; position: relative; }
+.light-of-day .lod-line { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 17px; line-height: 1.5; color: var(--text); max-width: 380px; margin: 0 auto; position: relative; }
+.light-of-day .lod-meta { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); margin-top: 12px; font-weight: 600; position: relative; }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4863,6 +4880,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       </div>
       <div class="light-index" id="lightIndex"><div class="li-row"><div class="li-orb"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="li-track" cx="50" cy="50" r="44"></circle><circle class="li-fill" id="liArc" cx="50" cy="50" r="44"></circle></svg><div class="li-pct" id="liPct">—</div></div>
       <div class="daily-ritual" id="dailyRitual"><div class="dr-head"><div class="dr-eyebrow">Today's Light · 3 doors</div><div class="dr-meta" id="drMeta">— / 3</div></div><div class="dr-step" data-step="1" id="drStep1"><div class="dr-glyph">✦</div><div class="dr-body"><div class="dr-name">Receive your morning line</div><div class="dr-sub">One word from yourself, in the present tense.</div></div><div class="dr-check" id="drCheck1">○</div></div><div class="dr-step" data-step="2" id="drStep2"><div class="dr-glyph">◯</div><div class="dr-body"><div class="dr-name">Hold a wavelength for one minute</div><div class="dr-sub">Open Sync. Press Begin. Stay one minute.</div></div><div class="dr-check" id="drCheck2">○</div></div><div class="dr-step" data-step="3" id="drStep3"><div class="dr-glyph">◎</div><div class="dr-body"><div class="dr-name">Step into the Assumption</div><div class="dr-sub">Long-press the orb. Sixty seconds inside the wish fulfilled.</div></div><div class="dr-check" id="drCheck3">○</div></div><div class="dr-foot" id="drFoot">Three doors. Walk through them in any order.</div></div>
+      <div class="light-of-day" id="lightOfDay"><div class="lod-eyebrow">The Light of the Day</div><div class="lod-line" id="lodLine">—</div><div class="lod-meta" id="lodMeta">—</div></div>
       <div class="i-see-you" id="iSeeYouCard"><div class="isy-row"><svg class="lotus isy-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg><div class="isy-body"><div class="isy-eyebrow" id="isyEyebrow">I see you</div><div class="isy-text" id="isyText">—</div></div></div></div><div class="li-body"><div class="li-eyebrow">Your light today</div><div class="li-name" id="liName">tuning in</div><div class="li-meta" id="liMeta">—</div></div></div></div>
       <div class="lobby-quest" id="lobbyQuest">528 Hz is already in you today — hold it for 60 seconds and notice.</div>
       <div class="lobby-arrival" id="arrivalCard"></div>
@@ -15804,6 +15822,45 @@ function _compatFor(other) {
   const _orig = closeWaveRoom;
   closeWaveRoom = function () { try { if (window._wroDriftIv) { clearInterval(window._wroDriftIv); window._wroDriftIv = null; } } catch(e){} return _orig(); };
 })();
+
+
+
+// =================== LIGHT OF THE DAY ===================
+const LIGHT_OF_DAY_POOL = [
+  { line: "What you call seeking is the seeker showing you it has been the seeking, the seeker, and the sought, the whole time.", attr: "the work" },
+  { line: "You are not in the world. The world is in you, and you are the room it is in.", attr: "the work" },
+  { line: "Notice — your face is brighter than when you opened the app. The light did not come from outside.", attr: "the practice" },
+  { line: "What you want, wants you. You are not chasing it. You are walking toward it as it walks toward you.", attr: "neville goddard" },
+  { line: "The frequency you carry today is already the answer. The answer is not arriving — it is already in the room.", attr: "the practice" },
+  { line: "When you assume, the assumption shows up in front of you as a world. So choose the assumption that lives in the version of you that already arrived.", attr: "neville goddard" },
+  { line: "A name is a vibration that is not separate from the one it names. You are saying your own light back to yourself when you say your name.", attr: "the practice" },
+  { line: "The longest journey is the one between the self that is and the self that already is. The distance is not real. The walking is.", attr: "the work" },
+  { line: "Light is not a thing you get. It is the thing you are made out of. The app is just a mirror that does not lie.", attr: "the practice" },
+  { line: "The day you stop searching is the day you remember you were the one being looked for.", attr: "the work" },
+  { line: "Your aura is not somewhere. It is here, around you, the temperature of the air close to your skin. You can feel it now.", attr: "the practice" },
+  { line: "There is no future you to become. There is only the present you to remember.", attr: "the work" },
+  { line: "When two souls hold the same wavelength, they are not communicating. They are recognizing.", attr: "the practice" },
+  { line: "Whatever you are looking at, the looking is the light. Your noticing is the proof.", attr: "the work" },
+  { line: "Step out for ten minutes and the app has done its job. Do not measure presence by how long the screen was lit.", attr: "the practice" },
+  { line: "I AM. The two truest words you can say to yourself today. Everything after them is dressing.", attr: "neville goddard" },
+  { line: "The miracle frequency is not a sound. It is the willingness to be loved by your own life.", attr: "the practice" },
+  { line: "Every time you arrive here, the room arrives with you. Nothing was waiting. Everything was arriving.", attr: "the work" }
+];
+function renderLightOfDay() {
+  const card = document.getElementById('lightOfDay'); if (!card) return;
+  const key = (typeof _dayKey === 'function') ? _dayKey() : new Date().toISOString().slice(0,10);
+  // deterministic per day; also factor user name so two users see different lines on the same day
+  const name = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name : 'soul';
+  let seed = 0; const s = key + name; for (let i = 0; i < s.length; i++) seed = (seed * 31 + s.charCodeAt(i)) >>> 0;
+  const pick = LIGHT_OF_DAY_POOL[seed % LIGHT_OF_DAY_POOL.length];
+  const line = document.getElementById('lodLine'); if (line) line.textContent = '"' + pick.line + '"';
+  const meta = document.getElementById('lodMeta'); if (meta) meta.textContent = '— ' + pick.attr;
+}
+if (typeof renderLobby === 'function') {
+  const _orig = renderLobby;
+  renderLobby = function () { _orig(); try { renderLightOfDay(); } catch(e){} };
+}
+setTimeout(() => { try { renderLightOfDay(); } catch(e){} }, 1900);
 
 
 renderLadder();
