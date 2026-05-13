@@ -2191,6 +2191,13 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .council-header p { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13.5px; color: var(--text-dim); line-height: 1.55; max-width: 360px; margin: 0 auto 14px; }
 .council-current { display: inline-block; font-size: 11px; letter-spacing: 1px; color: var(--text-faint); padding: 6px 14px; border-radius: 100px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
 .council-current #councilCurrentTier { color: var(--mint); font-weight: 700; }
+/* ============ COORD · COUNCIL SIGIL ============ */
+.council-identity { display: inline-flex; flex-direction: column; align-items: center; gap: 8px; }
+.council-sigil { width: 56px; height: 56px; opacity: 0.85; filter: drop-shadow(0 0 14px var(--sigil-c, var(--violet))); }
+.council-sigil svg { width: 100%; height: 100%; display: block; color: var(--sigil-c, var(--violet)); }
+.council-sigil svg .sg-rotor-slow { transform-origin: 0 0; animation: sigilRotate 140s linear infinite; }
+.council-sigil svg .sg-rotor-fast { transform-origin: 0 0; animation: sigilRotateRev 95s linear infinite; }
+/* ============ /COORD ============ */
 .council-tier-grid { display: flex; flex-direction: column; gap: 14px; margin: 18px 0 22px; }
 .council-tier-card {
   position: relative; padding: 20px; border-radius: 22px; backdrop-filter: blur(20px);
@@ -4776,7 +4783,11 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="council-eyebrow">Resonance · membership</div>
         <h1>The Council</h1>
         <p>The practice is free, forever. Membership opens the tools, the deeper rooms, and a real circle.</p>
-        <div class="council-current" id="councilCurrent">You're on <span id="councilCurrentTier">Free</span> right now.</div>
+        <!-- COORD · the user's sigil on the monetization screen — personal mark beside the tier label -->
+        <div class="council-identity">
+          <div class="council-sigil" id="councilSigil" aria-hidden="true"></div>
+          <div class="council-current" id="councilCurrent">You're on <span id="councilCurrentTier">Free</span> right now.</div>
+        </div>
       </div>
 
       <div class="council-tier-grid">
@@ -13727,6 +13738,12 @@ function renderCouncil() {
     const a = JSON.parse(localStorage.getItem('resonance_council_application') || 'null');
     if (a && a.t) { document.getElementById('caForm').style.display = 'none'; document.getElementById('caThanks').style.display = 'block'; }
   } catch(e){}
+  // COORD: paint the user's sigil above the tier badge — personal mark on the money screen
+  const sigEl = document.getElementById('councilSigil');
+  if (sigEl && typeof _userSigil === 'function') {
+    const s = _userSigil();
+    sigEl.innerHTML = s.svg; sigEl.style.setProperty('--sigil-c', s.color);
+  }
 }
 { const b = document.getElementById('ctcProBtn'); if (b) b.addEventListener('click', () => { if (typeof openPaywall === 'function') openPaywall(); }); }
 { const b = document.getElementById('ctcProPlusBtn'); if (b) b.addEventListener('click', () => { if (typeof openPaywall === 'function') openPaywall(); }); }
