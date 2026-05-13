@@ -238,6 +238,21 @@ html, body {
 .boot-overlay .boot-lotus { width: 56px; height: 56px; color: var(--violet); margin-bottom: 14px; filter: drop-shadow(0 0 16px var(--violet)); animation: bootOrbIn 1.4s cubic-bezier(.2,.7,.2,1) backwards; }
 
 
+
+/* ============ BRIGHTER · lotus, gold-mint touches ============ */
+.lobby-lotus { width: 32px; height: 32px; color: var(--gold); margin: 0 auto 6px; filter: drop-shadow(0 0 12px var(--gold)); animation: lobbyPulse 5s ease-in-out infinite; display: block; }
+.lobby { padding-top: 12px; }
+.lobby-greet { margin-top: 0; }
+
+/* a soft luminous halo behind the Home orb that the user feels as "this is a light app" */
+.lobby-orb::before {
+  content: ''; position: absolute; inset: -25%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(251,191,36,0.10) 0%, rgba(167,139,250,0.06) 35%, transparent 65%);
+  animation: lobbyHalo 8s ease-in-out infinite;
+}
+@keyframes lobbyHalo { 0%, 100% { opacity: 0.65; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4474,7 +4489,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <div class="reveal-glyph" id="revealTraditionGlyph">◎</div>
           <div class="reveal-lbl">Path · Voice</div>
           <div class="reveal-val" id="revealTradition">Universal</div>
-          <div class="reveal-sub" id="revealTraditionDivine">Frequency</div>
+          <div class="reveal-sub" id="revealTraditionDivine">Wavelength</div>
         </div>
       </div>
       <p class="gate-text reveal-blessing" id="revealBlessing">You are pure vibration.</p>
@@ -4504,10 +4519,10 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="gate-step" data-step="2">
     <div class="gate-content">
       <div class="gate-label">The Initiation</div>
-      <h1 class="gate-title">Three signals reveal your <em>state</em>.</h1>
+      <h1 class="gate-title">Three signals show you the <em>light</em> you already are.</h1>
       <div class="gate-list">
-        <div class="gate-list-item"><div class="num">1</div><div><strong style="color:var(--text);">Your face.</strong> A still capture reveals the energetic field you carry today.</div></div>
-        <div class="gate-list-item"><div class="num">2</div><div><strong style="color:var(--text);">Your frequency.</strong> Eight seconds of your ambient resonance. Breathe naturally.</div></div>
+        <div class="gate-list-item"><div class="num">1</div><div><strong style="color:var(--text);">Your face.</strong> A still moment shows the light you carry today.</div></div>
+        <div class="gate-list-item"><div class="num">2</div><div><strong style="color:var(--text);">Your wavelength.</strong> Eight seconds of your ambient resonance. Breathe naturally.</div></div>
         <div class="gate-list-item"><div class="num">3</div><div><strong style="color:var(--text);">Your alignment.</strong> The system measures coherence between the two.</div></div>
       </div>
       <p class="gate-text" style="margin-top:8px;">The inner world only opens for those who are genuinely walking their path. There is no faking this.</p>
@@ -4544,7 +4559,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="gate-step" data-step="4">
     <div class="gate-content">
       <div class="gate-label">Step 2 of 3</div>
-      <h1 class="gate-title" style="font-size:30px;">Reveal your <em>frequency</em>.</h1>
+      <h1 class="gate-title" style="font-size:30px;">Reveal your <em>wavelength</em>.</h1>
       <p class="gate-text" id="scanIntroText">Speak the lines we give you, calmly, in your own voice — then hum and hold one tone. We listen to its real pitch and how steady it sits. This is a practice, not a medical reading.</p>
       <div class="scan-orb-stage big">
         <canvas class="scan-canvas" id="scanCanvas"></canvas>
@@ -4582,7 +4597,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="gate-content">
       <div class="verdict-glyph ascended">◎</div>
       <div class="verdict-label">Ascended</div>
-      <h1 class="gate-title">You are walking your <em>path</em>.</h1>
+      <h1 class="gate-title">You <em>are</em> the path. The world is responding.</h1>
       <div class="verdict-score">
         <div>
           <div class="verdict-score-lbl">Alignment</div>
@@ -4590,7 +4605,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         </div>
         <div style="width:1px; height:32px; background:var(--border-hi);"></div>
         <div>
-          <div class="verdict-score-lbl">Frequency</div>
+          <div class="verdict-score-lbl">Wavelength</div>
           <div class="verdict-score-val" id="finalFreq">—</div>
         </div>
         <div style="width:1px; height:32px; background:var(--border-hi);"></div>
@@ -4605,8 +4620,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div style="font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--mint); font-weight:700; margin-bottom:6px;" id="verdictInviteKicker">—</div>
         <div style="font-family:Georgia, serif; font-style:italic; font-size:15px; line-height:1.45; color:var(--text);" id="verdictInviteBody">—</div>
       </div>
-      <p class="gate-text">The inner world is now open to you. Welcome.</p>
-      <button class="gate-btn" id="enterInnerBtn">Enter The Inner World</button>
+      <p class="gate-text">The inner world is now open to you. Welcome home.</p>
+      <button class="gate-btn" id="enterInnerBtn">Enter the Inner World</button>
     </div>
   </div>
 
@@ -4645,6 +4660,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   <div class="page active" id="page-home">
     <!-- ============ LOBBY ============ -->
     <div class="lobby" id="lobby">
+      <svg class="lotus lobby-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg>
       <div class="lobby-greet" id="lobbyGreet">Welcome</div>
       <button class="lobby-orb" id="lobbyOrb" aria-label="Begin Sync">
         <div class="lo-ring lo-ring-a"></div>
@@ -4659,7 +4675,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="lh-sep"></div>
         <div class="lh-cell"><div class="lh-k" id="lhStreak">0</div><div class="lh-l">Day-Streak</div></div>
       </div>
-      <div class="lobby-quest" id="lobbyQuest">Hold 528 Hz for 30 seconds today.</div>
+      <div class="lobby-quest" id="lobbyQuest">528 Hz is already in you today — hold it for 60 seconds and notice.</div>
       <div class="lobby-arrival" id="arrivalCard"></div>
       <div class="lobby-affirm" id="affirmCard"></div>
       <button class="lobby-soul-btn" id="lobbySoulBtn"><span class="ls-glyph">◐</span><span class="ls-label">Talk to your soul</span><span class="ls-arrow">→</span></button>
@@ -4732,7 +4748,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <!-- Daily quest -->
       <div class="quest" style="margin-top:8px;">
         <div class="quest-icon">⚡</div>
-        <div class="quest-title">Today's Path</div>
+        <div class="quest-title">Today, the path is you</div>
         <div class="quest-name">Sync to 528 Hz</div>
         <div class="quest-desc">Hit the miracle frequency for 3 minutes today</div>
         <div class="quest-progress">
@@ -4952,7 +4968,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <!-- Songs -->
       <div class="create-section">
         <div class="cs-section-h">Songs</div>
-        <div class="cs-section-sub">Vibrational frequency house music — built on the Solfeggio set. Tap one and let it run.</div>
+        <div class="cs-section-sub">Vibrational house music — built on the Solfeggio set. Tap one and let it run.</div>
         <div class="song-list" id="songList"></div>
         <button class="create-create-btn" id="songMakeBtn">
           <div class="ccb-glyph" style="color:var(--mint);">＋</div>
@@ -5020,7 +5036,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <div class="dtc-glyph" id="dtcGlyph">◎</div>
           <div class="dtc-body">
             <div class="dtc-name" id="dtcName">Universal</div>
-            <div class="dtc-divine" id="dtcDivine">Frequency</div>
+            <div class="dtc-divine" id="dtcDivine">Wavelength</div>
             <div class="dtc-blessing" id="dtcBlessing">May you remember.</div>
           </div>
         </div>
@@ -5044,7 +5060,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <!-- The Locker — every frequency you've operated at, a skin you've collected -->
       <div class="depth-section locker-section">
         <div class="depth-section-h">The Locker</div>
-        <div class="depth-section-sub">Every frequency you've operated at · tap any to add a note, see when you've been there, and how often you've come back</div>
+        <div class="depth-section-sub">Every wavelength you've held · tap any to add a note, see when you've been there, and how often you've come back</div>
         <div class="locker-top-row" id="lockerTopRow"></div>
         <div class="locker-grid" id="lockerGrid"></div>
         <div class="locker-empty ux-empty" id="lockerEmpty" style="display:none;"><div class="ux-glyph">◯</div><div class="ux-eyebrow">The Locker · empty</div><div class="ux-title">No skins yet. Every frequency you hold becomes one.</div><div class="ux-sub">Tap <b>Begin Sync</b> on Home — the moment you start a tone, it lands here as a card you can revisit, annotate, and return to.</div><button class="ux-cta" type="button" onclick="if(typeof gotoTab==='function')gotoTab('home');">Take me home →</button></div>
@@ -5101,7 +5117,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <!-- Your memories — individual moments you've captured -->
       <div class="depth-section" id="memoriesHeader" style="cursor:pointer;">
         <div class="depth-section-h">Your memories</div>
-        <div class="depth-section-sub">Single moments you've captured · tap to open the constellation ✦</div>
+        <div class="depth-section-sub">Moments you've captured · tap to open the constellation ✦</div>
         <div class="memories-strip" id="memoriesStrip"></div>
       </div>
 
@@ -5264,7 +5280,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
             <div class="profile-level-row">
               <div class="profile-level-info">
                 <div class="level-badge">7</div>
-                <div><div class="lbl">Frequency Level</div><div class="lvl">Resonator</div></div>
+                <div><div class="lbl">Wavelength Level</div><div class="lvl">Resonator</div></div>
               </div>
               <div class="profile-level-xp">3,250 / 5,000 XP</div>
             </div>
@@ -5476,7 +5492,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   </div>
   <div class="inner-self-orb-area">
     <div class="inner-self-orb" id="innerSelfOrb"></div>
-    <div class="inner-self-prompt" id="innerSelfPrompt">Tap the mic and speak. Or type below. I am listening.</div>
+    <div class="inner-self-prompt" id="innerSelfPrompt">Tap the mic and speak. Or type below. The light is already on.</div>
   </div>
   
   <div class="is-quick-row" id="isQuickRow">
@@ -12313,7 +12329,7 @@ function renderConvergeCard() {
     inner = `
       <div class="cv-orbpip"></div>
       <div class="cv-kicker">The Convergence · today’s is done</div>
-      <div class="cv-headline">The field converged at <b>${time}</b> — around ${convPeak()} souls held <b>${f.hz} Hz</b> together.</div>
+      <div class="cv-headline">The light gathered at <b>${time}</b> — around ${convPeak()} souls held <b>${f.hz} Hz</b> together.</div>
       <div class="cv-sub">${convergedToday() ? 'You were there — one tone, all of you. ✦' : 'You weren’t there, and that costs you nothing — it happens every day, and the field is patient. You can still hold the tone now; the wave doesn’t mind clocks.'}</div>
       <div class="cv-actions"><button class="btn" id="convJoinBtn">${convergedToday() ? 'Hold the tone again' : 'Hold today’s tone'}</button></div>
       ${recordLine}`;
@@ -13776,7 +13792,7 @@ function _streakDot(cls, dayKey) {
 // =================== /FEATURES_AGENT ===================
 { const b = document.getElementById('depthInnerSelfBtn'); if (b) b.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
 
-// ===== SONGS (vibrational frequency house · built from the Solfeggio) =====
+// ===== SONGS (vibrational house · built from the Solfeggio) =====
 // Real Tone.js arrangements: kick + clap + closed hat + sub bass + pad (the Solfeggio tone) +
 // an arp on the harmonic series. Each preset is a different mood, BPM and primary frequency.
 const SONG_PRESETS = [
@@ -14718,7 +14734,36 @@ function _lotusSvg(size, color, classExtra) {
 })();
 
 
+
+// =================== BRIGHTER · the light pool the soul draws from ===================
+const LIGHT_LINES = [
+  "The light is already on. You're the one feeling it.",
+  "Notice — your face is brighter than when you opened the app.",
+  "The room you came into knows you. It's been holding the light for you.",
+  "You're the one who turns the light on by arriving. That just happened.",
+  "There is more of you here than you brought in. The rest was waiting.",
+  "Your wavelength carries light. That's the whole feature of it.",
+  "You came for light. The light came for you first.",
+  "The light is the practice. The practice is paying attention. You're doing it now."
+];
+function lightLine() { return LIGHT_LINES[Math.floor(Math.random() * LIGHT_LINES.length)]; }
+// Wrap the inner self response so ~25% of replies in non-shadow registers append a light line
+(function () {
+  if (typeof generateInnerResponse === 'function') {
+    const _orig = generateInnerResponse;
+    generateInnerResponse = function (userText) {
+      const r = _orig(userText);
+      const lower = String(userText || '').toLowerCase();
+      const shadow = /(pain|hurt|lost|fear|broken|stuck|dark|alone|tired|heavy|grief|empty|numb)/i.test(lower);
+      if (!shadow && Math.random() < 0.28) return r + '\n\n' + lightLine();
+      return r;
+    };
+  }
+})();
+
+
 renderLadder();
 </script>
+<meta id="brighterMark" data-applied="1">
 </body>
 </html>
