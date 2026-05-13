@@ -12661,6 +12661,64 @@ renderStatsPage();
   setInterval(_heartbeat, 30000);
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · AUTO-SNAPSHOT ROTATION ===================
+// snapshot() before destructive ops gives one recovery point. That's not enough —
+// what if a bug or a bad-state write corrupts data silently between exports?
+// Keep a rolling history of N snapshots, one per day automatically.
+(function () {
+  if (!window.RState) return;
+  const HISTORY_KEY = 'snapshot_history';
+  const KEEP = 3;
+  const MIN_INTERVAL_MS = 18 * 3600 * 1000; // at most one auto-snap per ~18 hours
+
+  function _today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+  function _readHistory() {
+    const v = RState.get(HISTORY_KEY);
+    return Array.isArray(v) ? v : [];
+  }
+  function _writeHistory(arr) { RState.set(HISTORY_KEY, arr); }
+
+  RState.takeAutoSnapshot = function (force) {
+    const hist = _readHistory();
+    const now = Date.now();
+    if (!force && hist.length && (now - (hist[0].t || 0)) < MIN_INTERVAL_MS) return null;
+    // Take a snapshot from the current state — but DON'T include snapshot_history
+    // itself in the snapshot data (would balloon into a recursive chain over time).
+    const data = RState.getAll();
+    delete data['resonance_' + HISTORY_KEY];
+    delete data['resonance__last_snapshot'];
+    const snap = { t: now, day: _today(), data: data };
+    hist.unshift(snap);
+    while (hist.length > KEEP) hist.pop();
+    _writeHistory(hist);
+    return snap;
+  };
+
+  RState.listAutoSnapshots = function () {
+    return _readHistory().map(s => ({ t: s.t, day: s.day, keyCount: s.data ? Object.keys(s.data).length : 0 }));
+  };
+
+  RState.restoreAutoSnapshot = function (idx) {
+    const hist = _readHistory();
+    const snap = hist[idx];
+    if (!snap || !snap.data) return false;
+    // Before restoring, take a one-shot manual snapshot so the user can still
+    // undo this restore if it was the wrong one.
+    try { RState.snapshot(); } catch (e) {}
+    // Clear existing resonance_* keys (except meta) and reapply.
+    RState.listKeys().forEach(k => { if (k.indexOf('resonance__') !== 0 && k !== 'resonance_' + HISTORY_KEY) RState._raw.removeRaw(k); });
+    Object.keys(snap.data).forEach(k => {
+      const v = snap.data[k];
+      RState._raw.setRaw(k, typeof v === 'string' ? v : JSON.stringify(v));
+    });
+    return true;
+  };
+
+  // Run on boot, gated by the 18h interval.
+  try { RState.takeAutoSnapshot(false); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
