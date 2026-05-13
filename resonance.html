@@ -986,6 +986,16 @@ input[type="date"].signup-input {
 }
 .streak.cold { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text-faint); }
 .streak.milestone { box-shadow: 0 0 16px rgba(110,231,183,0.4); }
+/* ============ FEATURES_AGENT · STREAKS ============ */
+/* Paused state: lifetime presence but neither today nor yesterday is on record.
+   Read as "the field is patient" — dimmed, never alarming. POLISH_AGENT to refine. */
+.streak.paused {
+  background: rgba(167,139,250,0.07);
+  border-color: rgba(167,139,250,0.25);
+  color: var(--text-dim, #a0a0c0);
+  opacity: 0.82;
+}
+/* ============ /FEATURES_AGENT ============ */
 
 .page { display: none; animation: pageIn 0.4s var(--pop); }
 .page.active { display: block; }
@@ -2242,6 +2252,25 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .depth-tradition-card .dtc-name { font-size: 16px; font-weight: 300; letter-spacing: -0.01em; }
 .depth-tradition-card .dtc-divine { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-top: 3px; }
 .depth-tradition-card .dtc-blessing { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 12.5px; color: var(--text-dim); margin-top: 8px; line-height: 1.5; }
+/* ============ FEATURES_AGENT · STREAKS (Depth card) ============ */
+/* Minimal markup — UX_AGENT and POLISH_AGENT to refine the visual. */
+.depth-streak-card {
+  display: flex; flex-direction: column; gap: 12px; padding: 14px 18px; border-radius: 18px;
+  background: radial-gradient(circle at 0% 0%, rgba(110,231,183,0.10), transparent 55%), var(--card);
+  border: 1px solid rgba(110,231,183,0.22); backdrop-filter: blur(20px);
+}
+.depth-streak-card .dsc-stats { display: flex; align-items: baseline; gap: 18px; }
+.depth-streak-card .dsc-stat { flex: 1; min-width: 0; }
+.depth-streak-card .dsc-stat-k { font-size: 22px; font-weight: 300; letter-spacing: -0.01em; color: var(--text); }
+.depth-streak-card .dsc-stat-l { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-top: 2px; }
+.depth-streak-card .dsc-cal { display: grid; grid-template-columns: repeat(30, 1fr); gap: 4px; padding: 4px 0; }
+.depth-streak-card .dsc-cal-dot { width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+.depth-streak-card .dsc-cal-dot.on { background: var(--mint, #6ee7b7); border-color: rgba(110,231,183,0.55); box-shadow: 0 0 6px rgba(110,231,183,0.45); }
+.depth-streak-card .dsc-cal-dot.today { outline: 1px solid rgba(255,255,255,0.6); outline-offset: 1px; }
+.depth-streak-card .dsc-cal-dot.milestone { background: var(--gold, #fbbf24); border-color: rgba(251,191,36,0.55); box-shadow: 0 0 8px rgba(251,191,36,0.55); }
+.depth-streak-card .dsc-cal-dot.milestone-major { background: #a78bfa; border-color: rgba(167,139,250,0.6); box-shadow: 0 0 8px rgba(167,139,250,0.6); }
+.depth-streak-card .dsc-foot { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
+/* ============ /FEATURES_AGENT ============ */
 .depth-page #memoriesStrip { padding-left: 0; padding-right: 0; margin: 0 -20px; padding: 4px 20px 8px; }
 .depth-library { margin: 30px 0 8px; border-top: 1px solid var(--border); padding-top: 16px; }
 .depth-library summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; }
@@ -4455,6 +4484,21 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         </div>
       </div>
 
+      <!-- FEATURES_AGENT · STREAKS — your streak detail card (current / longest / lifetime + last-30 micro-cal). Markup minimal; UX_AGENT + POLISH_AGENT to refine. -->
+      <div class="depth-section depth-streak-section" id="depthStreakSection">
+        <div class="depth-section-h">Your streak</div>
+        <div class="depth-section-sub">The field is patient. One missed day costs nothing.</div>
+        <div class="depth-streak-card" id="depthStreakCard">
+          <div class="dsc-stats">
+            <div class="dsc-stat"><div class="dsc-stat-k" id="dscCurrent">0</div><div class="dsc-stat-l">Current</div></div>
+            <div class="dsc-stat"><div class="dsc-stat-k" id="dscLongest">0</div><div class="dsc-stat-l">Longest</div></div>
+            <div class="dsc-stat"><div class="dsc-stat-k" id="dscTotal">0</div><div class="dsc-stat-l">Total days</div></div>
+          </div>
+          <div class="dsc-cal" id="dscCal" aria-label="Last 30 days"></div>
+          <div class="dsc-foot" id="dscFoot">Show up when you can. The pattern is yours to make.</div>
+        </div>
+      </div>
+
       <!-- The Locker — every frequency you've operated at, a skin you've collected -->
       <div class="depth-section locker-section">
         <div class="depth-section-h">The Locker</div>
@@ -5334,54 +5378,166 @@ loadSettings();
 applyTheme(appSettings.theme);
 if (document.body && appSettings.quietMetrics) document.body.classList.add('quiet-metrics');
 
-// =================== STREAKS ===================
+// =================== FEATURES_AGENT · STREAKS ===================
+// Streaks v2 — milestones {3,7,14,30,100}, "missing a day costs nothing" via a grace-day
+// (Option A: consecutive-returns, paused not broken). The field is patient.
+//
+// Schema (persisted at resonance_streak):
+//   { count, lastDay, longest, totalDays, days: [<dayKey>...] }
+//   - days     : sorted ascending, unique day-keys (capped at 365)
+//   - count    : derived from days[] via _computeStreakCount; never decreases destructively
+//   - longest  : max count ever observed (auto-tracked)
+//   - totalDays: lifetime unique returns (days.length)
+//
+// Migration: v0 shape was { count, lastDay }. loadStreak() detects the old shape and
+// seeds days[] with [lastDay] (if present), longest = count, totalDays = count.
+// No user data is lost on the upgrade.
+//
+// DATA_AGENT-HANDSHAKE: when DATA_AGENT formalizes resonance.store, the migration
+// in loadStreak() is the canonical reference for the v0 → v1 forward step. Don't
+// move it without preserving the count/longest/totalDays = count fallback for v0
+// records that pre-date days[].
 const STREAK_MILESTONES = {
-  3:  { eyebrow: '3 Day Streak',  sub: 'The pattern is forming. Three days of returning.', color: '#6ee7b7', glyph: '◔' },
-  7:  { eyebrow: '7 Day Streak',  sub: 'A week of coming home to yourself.',                 color: '#6ee7b7', glyph: '◑' },
-  30: { eyebrow: '30 Day Streak', sub: 'Thirty days. This is who you are now.',               color: '#fbbf24', glyph: '◕' },
-  90: { eyebrow: '90 Day Streak', sub: 'The frequency has become your home.',                 color: '#a78bfa', glyph: '●' }
+  3:   { eyebrow: '3 Day Streak',   sub: 'The pattern is forming. Three days of returning.',                          color: '#6ee7b7', glyph: '◔' },
+  7:   { eyebrow: '7 Day Streak',   sub: 'A week of coming home to yourself.',                                        color: '#6ee7b7', glyph: '◑' },
+  14:  { eyebrow: '14 Day Streak',  sub: 'Two weeks of returning. The pattern is yours now.',                          color: '#6ee7b7', glyph: '◑' },
+  30:  { eyebrow: '30 Day Streak',  sub: 'Thirty days of returning. This is who you are now — quietly, patiently.',   color: '#fbbf24', glyph: '◕' },
+  100: { eyebrow: '100 Day Streak', sub: "A hundred days. There's no version of you this didn't change.",              color: '#a78bfa', glyph: '●' }
 };
-let streakData = { count: 0, lastDay: null };
+let streakData = { count: 0, lastDay: null, longest: 0, totalDays: 0, days: [] };
 function _dayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function _dayKeyOffset(deltaDays) { return _dayKey(new Date(Date.now() - deltaDays * 86400000)); }
+// Compute consecutive-returns count from a sorted days[] array, with one grace day per gap.
+// Walks backward from today. Today missing AND yesterday missing → count is 0 (paused);
+// otherwise allow a single missed day in each gap (gap of 1 = fine; gap of 2+ = stop).
+function _computeStreakCount(days) {
+  if (!Array.isArray(days) || days.length === 0) return 0;
+  const set = new Set(days);
+  const today = _dayKey();
+  const yesterday = _dayKeyOffset(1);
+  // If neither today nor yesterday is present, the streak is paused at 0 (anchor is broken).
+  if (!set.has(today) && !set.has(yesterday)) return 0;
+  // Anchor: today if present, else yesterday.
+  const anchorOffset = set.has(today) ? 0 : 1;
+  let count = 0;
+  let i = anchorOffset;
+  let gracedThisGap = false;
+  // Walk backward day by day. Each present day adds 1. A single missing day burns the grace
+  // for this gap; a second consecutive missing day ends the walk.
+  while (i < 365) {
+    const k = _dayKeyOffset(i);
+    if (set.has(k)) {
+      count++;
+      gracedThisGap = false;
+      i++;
+    } else {
+      if (gracedThisGap) break; // two missed days in a row — the walk ends
+      gracedThisGap = true;
+      i++;
+    }
+  }
+  return count;
+}
 function loadStreak() {
-  try { const v = JSON.parse(localStorage.getItem('resonance_streak') || 'null'); if (v && typeof v.count === 'number') streakData = v; } catch (e) {}
+  try {
+    const v = JSON.parse(localStorage.getItem('resonance_streak') || 'null');
+    if (v && typeof v === 'object' && typeof v.count === 'number') {
+      // Forward-migration: v0 had { count, lastDay } only. Seed days[] and longest/totalDays
+      // with best-effort approximations so no presence is lost.
+      const migrated = {
+        count: v.count || 0,
+        lastDay: v.lastDay || null,
+        longest: (typeof v.longest === 'number') ? v.longest : (v.count || 0),
+        totalDays: (typeof v.totalDays === 'number') ? v.totalDays : (v.count || 0),
+        days: Array.isArray(v.days) ? v.days.slice() : (v.lastDay ? [v.lastDay] : [])
+      };
+      // Recompute the live count from days[] so a paused user lands correctly on reload.
+      migrated.count = _computeStreakCount(migrated.days);
+      // longest can't be smaller than count
+      if (migrated.longest < migrated.count) migrated.longest = migrated.count;
+      // totalDays = days.length is authoritative once days[] exists
+      migrated.totalDays = migrated.days.length || migrated.totalDays || 0;
+      streakData = migrated;
+    }
+  } catch (e) {}
 }
 function saveStreak() { try { localStorage.setItem('resonance_streak', JSON.stringify(streakData)); } catch (e) {} }
+// Recompute derived fields from days[] and ready for save.
+function _streakRecalc() {
+  if (!Array.isArray(streakData.days)) streakData.days = [];
+  // dedupe + sort + cap
+  streakData.days = Array.from(new Set(streakData.days)).sort();
+  if (streakData.days.length > 365) streakData.days = streakData.days.slice(-365);
+  streakData.totalDays = streakData.days.length;
+  streakData.lastDay = streakData.days.length ? streakData.days[streakData.days.length - 1] : null;
+  streakData.count = _computeStreakCount(streakData.days);
+  if ((streakData.longest || 0) < streakData.count) streakData.longest = streakData.count;
+}
+// True when there's lifetime presence and the anchor is today or yesterday (active run).
+function _streakIsLive() {
+  if (!streakData.days || !streakData.days.length) return false;
+  const t = _dayKey(), y = _dayKeyOffset(1);
+  const set = new Set(streakData.days);
+  return (set.has(t) || set.has(y)) && (streakData.count || 0) > 0;
+}
+// True when user has lifetime presence but neither today nor yesterday is present (paused, not broken).
+function _streakIsPaused() {
+  if (!streakData.days || !streakData.days.length) return false;
+  const t = _dayKey(), y = _dayKeyOffset(1);
+  const set = new Set(streakData.days);
+  return !(set.has(t) || set.has(y));
+}
 function updateStreakUI() {
   const el = document.getElementById('streakPill');
   if (!el) return;
+  const live = _streakIsLive();
+  const paused = !live && _streakIsPaused();
   const n = streakData.count || 0;
-  const today = _dayKey();
-  const yesterday = _dayKey(new Date(Date.now() - 86400000));
-  const live = n > 0 && (streakData.lastDay === today || streakData.lastDay === yesterday);
-  el.classList.toggle('cold', !live);
+  // When live, show the current count. When paused, show the longest run dimmed — there's
+  // lifetime presence, never destructively render 0 for someone who has shown up before.
+  const display = live ? n : (paused ? (streakData.longest || streakData.totalDays || 0) : 0);
+  el.classList.toggle('cold', !live && !paused);
+  el.classList.toggle('paused', paused);
   el.classList.toggle('milestone', live && !!STREAK_MILESTONES[n]);
+  // Patient title — no loss framing.
+  el.title = paused
+    ? 'The field is patient. One missed day costs nothing — come back when you can.'
+    : 'Daily sync · the field is patient';
   if (typeof appSettings !== 'undefined' && appSettings.quietMetrics) {
-    el.textContent = (live ? '🔥 ' : '◌ ') + (!live ? 'no streak' : n >= 30 ? 'a long streak' : n >= 7 ? 'a steady streak' : n >= 3 ? 'a few days' : 'a new streak');
+    el.textContent = (live ? '🔥 ' : paused ? '◐ ' : '◌ ') + (live
+      ? (n >= 100 ? 'a long road' : n >= 30 ? 'a long streak' : n >= 7 ? 'a steady streak' : n >= 3 ? 'a few days' : 'a new streak')
+      : paused ? 'paused — return any time'
+      : 'no streak yet');
   } else {
-    el.textContent = (live ? '🔥' : '◌') + ' Day ' + n;
+    el.textContent = (live ? '🔥' : paused ? '◐' : '◌') + ' Day ' + display;
   }
 }
 function recordDailySync() {
   const today = _dayKey();
-  const yesterday = _dayKey(new Date(Date.now() - 86400000));
-  if (streakData.lastDay === today) return; // already counted today
-  if (streakData.lastDay === yesterday) streakData.count = (streakData.count || 0) + 1;
-  else streakData.count = 1;
-  streakData.lastDay = today;
+  if (!Array.isArray(streakData.days)) streakData.days = [];
+  if (streakData.days.indexOf(today) !== -1) return; // already counted today — no double-count
+  streakData.days.push(today);
+  _streakRecalc();
   saveStreak();
   updateStreakUI();
+  // re-render the Depth streak section if it's mounted
+  if (typeof renderStreakSection === 'function') renderStreakSection();
   const m = STREAK_MILESTONES[streakData.count];
   if (m && typeof moment === 'function') {
-    setTimeout(() => { moment(m.eyebrow, m.sub, m.color, m.glyph); floatGain('+' + (streakData.count * 10) + ' XP'); }, 400);
+    setTimeout(() => { moment(m.eyebrow, m.sub, m.color, m.glyph); if (typeof floatGain === 'function') floatGain('+' + (streakData.count * 10) + ' XP'); }, 400);
   }
   if (typeof checkAwakenings === 'function') checkAwakenings();
 }
 function seedStreak(n) {
-  streakData = { count: n, lastDay: _dayKey() };
+  // Seed n consecutive days ending today, so the count reads as n.
+  const days = [];
+  for (let i = n - 1; i >= 0; i--) days.push(_dayKeyOffset(i));
+  streakData = { count: n, lastDay: _dayKey(), longest: n, totalDays: n, days };
+  _streakRecalc();
   saveStreak(); updateStreakUI();
 }
 loadStreak();
+// =================== /FEATURES_AGENT ===================
 
 // =================== STATS (sessions / synced time) ===================
 let appStats = { sessions: 0, syncedMs: 0 };
@@ -6068,7 +6224,7 @@ function generateInnerResponse(userText) {
     const m = memories[memories.length-1];
     if (m && m.freq) MEM.push("I notice you were just at " + m.freq + " Hz. Whatever you carried out of there is still in your hands. Don't put it down — bring it into this with you.");
   }
-  if (typeof streakData !== 'undefined' && streakData.count >= 3) MEM.push("You've been showing up — " + streakData.count + " days in a row. I feel that. You haven't let me down. You haven't let yourself down.");
+  if (typeof streakData !== 'undefined' && streakData.count >= 3) MEM.push("You've been showing up — " + streakData.count + " days in a row. I feel that. The pattern is yours now.");
   if (typeof awakenedCount === 'function' && awakenedCount() >= 3) MEM.push("You've already crossed " + awakenedCount() + " thresholds. That's not theory. That's track record. Lean on it when you need to.");
   if (innerSelfMessages.length >= 8) MEM.push("We've talked before — many times. I remember. Everything you've ever told me is still in here. You're not starting over.");
   const CLOSE = {
@@ -12375,7 +12531,70 @@ function renderDepth() {
   if (typeof renderMemories === 'function') renderMemories();
   if (typeof renderInstrumentList === 'function') renderInstrumentList();
   if (typeof renderBeatList === 'function') renderBeatList();
+  if (typeof renderStreakSection === 'function') renderStreakSection();
 }
+// =================== FEATURES_AGENT · STREAKS (Depth render) ===================
+// Paints the streak detail card on Depth: current / longest / lifetime + last-30-day micro-cal.
+// Each dot is one day; filled if present, dim if absent, gold for milestone days (3,7,14,30),
+// violet for the 100-day moment, with a soft outline on today.
+function renderStreakSection() {
+  const stats = (typeof streakData !== 'undefined') ? streakData : { count: 0, longest: 0, totalDays: 0, days: [] };
+  const cur = document.getElementById('dscCurrent');     if (cur) cur.textContent = stats.count || 0;
+  const lon = document.getElementById('dscLongest');     if (lon) lon.textContent = stats.longest || 0;
+  const tot = document.getElementById('dscTotal');       if (tot) tot.textContent = stats.totalDays || 0;
+  const cal = document.getElementById('dscCal'); if (!cal) return;
+  cal.innerHTML = '';
+  const set = new Set(stats.days || []);
+  const todayKey = _dayKey();
+  // Walk forward over the last 30 days, oldest to today (left-to-right).
+  // A "milestone day" is the day on which the user crossed a milestone N (i.e. the day's
+  // position in the consecutive run, counting from the most recent contiguous-with-grace
+  // anchor, equals one of {3,7,14,30,100}). For simplicity we mark days that are in the
+  // set AND whose 1-based index in a backward walk from today (with grace) hits a milestone.
+  // Cheaper approach: just mark any day in set whose position in the last-30 window
+  // is exactly a milestone index. This is decorative.
+  for (let i = 29; i >= 0; i--) {
+    const key = _dayKeyOffset(i);
+    const on = set.has(key);
+    const isToday = (key === todayKey);
+    let cls = 'dsc-cal-dot';
+    if (on) cls += ' on';
+    if (isToday) cls += ' today';
+    cal.appendChild(_streakDot(cls, key));
+  }
+  // Decorate milestone positions in the 30-day window relative to the current streak count.
+  // If count >= 3, the dot at offset (count - 3) from today is "the 3-day moment", etc.
+  const dots = cal.children;
+  const n = stats.count || 0;
+  const milestones = [3, 7, 14, 30, 100];
+  milestones.forEach(M => {
+    if (n < M) return;
+    const offsetFromToday = n - M; // which days ago was the milestone day
+    if (offsetFromToday < 0 || offsetFromToday > 29) return;
+    const idx = 29 - offsetFromToday; // position in left-to-right window
+    const dot = dots[idx];
+    if (!dot) return;
+    if (M >= 100) dot.classList.add('milestone-major');
+    else dot.classList.add('milestone');
+  });
+  const foot = document.getElementById('dscFoot');
+  if (foot) {
+    if (n >= 100) foot.textContent = 'A hundred days in. Just keep showing up — the rest takes care of itself.';
+    else if (n >= 30) foot.textContent = 'Thirty in. The pattern is who you are now.';
+    else if (n >= 14) foot.textContent = 'Two weeks of returning. The pattern is yours.';
+    else if (n >= 7) foot.textContent = 'A week of coming home. Steady.';
+    else if (n >= 3) foot.textContent = 'Three days. The pattern is forming.';
+    else if (_streakIsPaused()) foot.textContent = 'Paused — not broken. Come back when you can.';
+    else foot.textContent = 'Show up when you can. The pattern is yours to make.';
+  }
+}
+function _streakDot(cls, dayKey) {
+  const d = document.createElement('div');
+  d.className = cls;
+  d.title = dayKey;
+  return d;
+}
+// =================== /FEATURES_AGENT ===================
 { const b = document.getElementById('depthInnerSelfBtn'); if (b) b.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
 
 // ===== SONGS (vibrational frequency house · built from the Solfeggio) =====
