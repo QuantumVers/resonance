@@ -1967,6 +1967,61 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .mode-toggles { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
 .toggle { background: var(--card); border: 1px solid var(--border); color: var(--text-dim); padding: 8px 14px; border-radius: 100px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; transition: all 0.2s var(--ease); backdrop-filter: blur(20px); }
 .toggle.active { background: rgba(110,231,183,0.15); border-color: rgba(110,231,183,0.45); color: var(--mint); }
+
+/* ============ AUDIO_AGENT · SOUNDSCAPE SELECTOR ============ */
+.soundscape-row {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ss-label {
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 700;
+}
+.ss-chips {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 420px;
+}
+.ss-chip {
+  --ss-accent: rgba(255,255,255,0.55);
+  position: relative;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--text-dim);
+  padding: 7px 13px;
+  border-radius: 100px;
+  font-size: 10.5px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.22s var(--ease), border-color 0.22s var(--ease), color 0.22s var(--ease), box-shadow 0.28s var(--ease), transform 0.18s var(--pop);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  backdrop-filter: blur(40px) saturate(180%);
+}
+.ss-chip:hover {
+  background: rgba(255,255,255,0.075);
+  border-color: var(--ss-accent);
+  color: var(--text);
+  box-shadow: 0 0 18px -4px var(--ss-accent);
+}
+.ss-chip:active { transform: scale(0.96); }
+.ss-chip.active {
+  background: color-mix(in srgb, var(--ss-accent) 18%, rgba(255,255,255,0.04));
+  border-color: var(--ss-accent);
+  color: #fff;
+  box-shadow: 0 0 22px -2px var(--ss-accent), inset 0 0 14px rgba(255,255,255,0.04);
+}
+.ss-chip.ss-none { --ss-accent: rgba(180,180,200,0.55); }
+/* ============ /AUDIO_AGENT ============ */
 .breathing-guide { text-align: center; margin-top: 28px; display: none; }
 .breathing-guide.active { display: block; }
 .breath-circle { width: 90px; height: 90px; border-radius: 50%; border: 2px solid rgba(110,231,183,0.45); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 10px; letter-spacing: 2px; color: var(--mint); animation: breathe 8s ease-in-out infinite; font-weight: 600; }
@@ -4296,6 +4351,12 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <button class="toggle" id="harmonicToggle">Harmonics</button>
         <button class="toggle" id="breathToggle">Breath</button>
       </div>
+      <!-- ============ AUDIO_AGENT · SOUNDSCAPE SELECTOR ============ -->
+      <div class="soundscape-row" id="soundscapeRow">
+        <div class="ss-label">Soundscape</div>
+        <div class="ss-chips" id="ssChips"></div>
+      </div>
+      <!-- ============ /AUDIO_AGENT ============ -->
       <div class="mic-row"><div class="mic-indicator" id="micBtn"><div class="mic-dot"></div><span id="micLabel">Activate sensor</span></div></div>
       <div class="breathing-guide" id="breathGuide">
         <div class="breath-circle">BREATHE</div>
@@ -6934,6 +6995,528 @@ function saveModeToggles() {
   if (m.mirror) { mirrorMode = true; document.getElementById('mirrorToggle').classList.add('active'); }
   if (m.breath) { document.getElementById('breathToggle').classList.add('active'); document.getElementById('breathGuide').classList.add('active'); }
 })();
+
+// =================== AUDIO_AGENT · SOUNDSCAPES ===================
+// Five generative ambient beds. Pure Tone.js — no samples. Each builds its own
+// node graph routed through a master Gain (~0.20 → -14 dB) and a Limiter(-1).
+// Layered UNDERNEATH whatever main tone is playing; both can run independently.
+
+// --- localStorage helpers (banner for DATA_AGENT) ---
+// DATA_AGENT: key is 'resonance_soundscape', value is id-string or 'none'.
+function _loadScape() {
+  try { return localStorage.getItem('resonance_soundscape') || null; } catch (e) { return null; }
+}
+function _saveScape(id) {
+  try { localStorage.setItem('resonance_soundscape', id || 'none'); } catch (e) {}
+}
+
+// Deterministic-ish RNG seeded per-scape so events feel musical, not chaotic.
+function _rng(seed) {
+  let s = seed >>> 0;
+  return function() {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0xffffffff;
+  };
+}
+function _pick(arr, rand) { return arr[Math.floor(rand() * arr.length)]; }
+
+const SOUNDSCAPES = [
+  // ─────────── FOREST · Root (tiers 1–2) ───────────
+  {
+    id: 'forest',
+    name: 'Forest',
+    tierFeel: 'root',
+    color: 'rgba(110, 180, 120, 0.65)',
+    build() {
+      const nodes = [];
+      const loops = [];
+      const limiter = new Tone.Limiter(-1);
+      const master = new Tone.Gain(0.20).connect(limiter);
+      limiter.toDestination();
+      const reverb = new Tone.Reverb({ decay: 3.2, wet: 0.55 }).connect(master);
+      nodes.push(limiter, master, reverb);
+
+      // Low drone: 80 Hz sine + brown noise bed
+      const droneOsc = new Tone.Oscillator(80, 'sine');
+      const droneGain = new Tone.Gain(0.22).connect(reverb);
+      droneOsc.connect(droneGain); droneOsc.start();
+      const droneLFO = new Tone.LFO({ frequency: 0.07, min: 0.14, max: 0.26 });
+      droneLFO.connect(droneGain.gain); droneLFO.start();
+      nodes.push(droneOsc, droneGain, droneLFO);
+
+      const brown = new Tone.Noise('brown');
+      const brownFilter = new Tone.Filter({ frequency: 220, type: 'lowpass', Q: 0.8 }).connect(reverb);
+      const brownGain = new Tone.Gain(0.18).connect(brownFilter);
+      brown.connect(brownGain); brown.start();
+      nodes.push(brown, brownFilter, brownGain);
+
+      // Wind: filtered noise with slow LFO on cutoff
+      const wind = new Tone.Noise('pink');
+      const windFilter = new Tone.Filter({ frequency: 700, type: 'bandpass', Q: 1.4 }).connect(reverb);
+      const windGain = new Tone.Gain(0.10).connect(windFilter);
+      wind.connect(windGain); wind.start();
+      const windLFO = new Tone.LFO({ frequency: 0.05, min: 320, max: 1400 });
+      windLFO.connect(windFilter.frequency); windLFO.start();
+      const windAmpLFO = new Tone.LFO({ frequency: 0.03, min: 0.04, max: 0.13 });
+      windAmpLFO.connect(windGain.gain); windAmpLFO.start();
+      nodes.push(wind, windFilter, windGain, windLFO, windAmpLFO);
+
+      // Bird-like pings (high triangle, rare) — C major pentatonic
+      const birdScale = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+      const rand = _rng(0xF0FE57);
+      const birdLoop = new Tone.Loop((time) => {
+        if (rand() < 0.42) {
+          const f = _pick(birdScale, rand);
+          const osc = new Tone.Oscillator(f, 'triangle');
+          const g = new Tone.Gain(0).connect(reverb);
+          osc.connect(g);
+          osc.start(time);
+          g.gain.setValueAtTime(0, time);
+          g.gain.linearRampToValueAtTime(0.08, time + 0.03);
+          g.gain.exponentialRampToValueAtTime(0.0001, time + 0.55);
+          osc.stop(time + 0.6);
+          setTimeout(() => { try { osc.dispose(); g.dispose(); } catch(e){} }, 1000);
+        }
+      }, 4.5).start(0);
+      loops.push(birdLoop);
+
+      // Creaks: very low filtered noise burst, rare
+      const creakLoop = new Tone.Loop((time) => {
+        if (rand() < 0.25) {
+          const n = new Tone.Noise('brown');
+          const f = new Tone.Filter({ frequency: 180 + rand() * 120, type: 'bandpass', Q: 6 }).connect(reverb);
+          const g = new Tone.Gain(0).connect(f);
+          n.connect(g); n.start(time);
+          g.gain.setValueAtTime(0, time);
+          g.gain.linearRampToValueAtTime(0.12, time + 0.04);
+          g.gain.exponentialRampToValueAtTime(0.0001, time + 0.35);
+          n.stop(time + 0.4);
+          setTimeout(() => { try { n.dispose(); f.dispose(); g.dispose(); } catch(e){} }, 800);
+        }
+      }, 7).start(0);
+      loops.push(creakLoop);
+
+      Tone.Transport.start();
+      return {
+        start() {},
+        stop() {
+          loops.forEach(l => { try { l.stop(0); l.dispose(); } catch(e){} });
+          nodes.forEach(n => { try { n.stop && n.stop(); } catch(e){} try { n.dispose(); } catch(e){} });
+        }
+      };
+    }
+  },
+
+  // ─────────── OCEAN · Sacral (tiers 2–3) ───────────
+  {
+    id: 'ocean',
+    name: 'Ocean',
+    tierFeel: 'sacral',
+    color: 'rgba(110, 165, 230, 0.7)',
+    build() {
+      const nodes = [];
+      const loops = [];
+      const limiter = new Tone.Limiter(-1);
+      const master = new Tone.Gain(0.20).connect(limiter);
+      limiter.toDestination();
+      const reverb = new Tone.Reverb({ decay: 4.5, wet: 0.6 }).connect(master);
+      nodes.push(limiter, master, reverb);
+
+      // Waves: white noise → modulated bandpass
+      const noise = new Tone.Noise('white');
+      const wavesFilter = new Tone.Filter({ frequency: 600, type: 'bandpass', Q: 1.6 }).connect(reverb);
+      const wavesGain = new Tone.Gain(0.32).connect(wavesFilter);
+      noise.connect(wavesGain); noise.start();
+      const wavesLFO = new Tone.LFO({ frequency: 0.12, min: 280, max: 1600 });
+      wavesLFO.connect(wavesFilter.frequency); wavesLFO.start();
+      const wavesAmpLFO = new Tone.LFO({ frequency: 0.10, min: 0.18, max: 0.42 });
+      wavesAmpLFO.connect(wavesGain.gain); wavesAmpLFO.start();
+      nodes.push(noise, wavesFilter, wavesGain, wavesLFO, wavesAmpLFO);
+
+      // Pink-noise foam layer
+      const pink = new Tone.Noise('pink');
+      const pinkFilter = new Tone.Filter({ frequency: 3000, type: 'highpass', Q: 0.7 }).connect(reverb);
+      const pinkGain = new Tone.Gain(0.06).connect(pinkFilter);
+      pink.connect(pinkGain); pink.start();
+      const pinkLFO = new Tone.LFO({ frequency: 0.08, min: 0.02, max: 0.10 });
+      pinkLFO.connect(pinkGain.gain); pinkLFO.start();
+      nodes.push(pink, pinkFilter, pinkGain, pinkLFO);
+
+      // Deep ~50 Hz rumble swell — 12s amplitude LFO
+      const rumble = new Tone.Oscillator(50, 'sine');
+      const rumbleGain = new Tone.Gain(0).connect(reverb);
+      rumble.connect(rumbleGain); rumble.start();
+      const rumbleLFO = new Tone.LFO({ frequency: 1 / 12, min: 0.05, max: 0.28 });
+      rumbleLFO.connect(rumbleGain.gain); rumbleLFO.start();
+      nodes.push(rumble, rumbleGain, rumbleLFO);
+
+      // Occasional 285 Hz harmonic bell (sacral solfeggio)
+      const rand = _rng(0x0CEA17);
+      const bellLoop = new Tone.Loop((time) => {
+        if (rand() < 0.32) {
+          const osc = new Tone.Oscillator(285, 'sine');
+          const g = new Tone.Gain(0).connect(reverb);
+          osc.connect(g); osc.start(time);
+          g.gain.setValueAtTime(0, time);
+          g.gain.linearRampToValueAtTime(0.10, time + 0.4);
+          g.gain.exponentialRampToValueAtTime(0.0001, time + 5.5);
+          osc.stop(time + 5.7);
+          setTimeout(() => { try { osc.dispose(); g.dispose(); } catch(e){} }, 6500);
+        }
+      }, 14).start(0);
+      loops.push(bellLoop);
+
+      Tone.Transport.start();
+      return {
+        start() {},
+        stop() {
+          loops.forEach(l => { try { l.stop(0); l.dispose(); } catch(e){} });
+          nodes.forEach(n => { try { n.stop && n.stop(); } catch(e){} try { n.dispose(); } catch(e){} });
+        }
+      };
+    }
+  },
+
+  // ─────────── STORM · Solar (tiers 3–4) ───────────
+  {
+    id: 'storm',
+    name: 'Storm',
+    tierFeel: 'solar',
+    color: 'rgba(240, 180, 90, 0.7)',
+    build() {
+      const nodes = [];
+      const loops = [];
+      const thunderTimers = [];
+      const limiter = new Tone.Limiter(-1);
+      const master = new Tone.Gain(0.20).connect(limiter);
+      limiter.toDestination();
+      const reverb = new Tone.Reverb({ decay: 3.5, wet: 0.5 }).connect(master);
+      nodes.push(limiter, master, reverb);
+
+      // Brown noise rumble + tremolo
+      const brown = new Tone.Noise('brown');
+      const brownFilter = new Tone.Filter({ frequency: 300, type: 'lowpass', Q: 0.9 }).connect(reverb);
+      const tremolo = new Tone.Tremolo({ frequency: 0.6, depth: 0.45 }).connect(brownFilter).start();
+      const brownGain = new Tone.Gain(0.42).connect(tremolo);
+      brown.connect(brownGain); brown.start();
+      nodes.push(brown, brownFilter, tremolo, brownGain);
+
+      // Bright rain hiss layer
+      const rain = new Tone.Noise('white');
+      const rainFilter = new Tone.Filter({ frequency: 4500, type: 'highpass', Q: 0.7 }).connect(reverb);
+      const rainGain = new Tone.Gain(0.11).connect(rainFilter);
+      rain.connect(rainGain); rain.start();
+      const rainLFO = new Tone.LFO({ frequency: 0.07, min: 0.07, max: 0.16 });
+      rainLFO.connect(rainGain.gain); rainLFO.start();
+      nodes.push(rain, rainFilter, rainGain, rainLFO);
+
+      // Random short noise crackles
+      const rand = _rng(0x570791);
+      const crackleLoop = new Tone.Loop((time) => {
+        if (rand() < 0.55) {
+          const n = new Tone.Noise('white');
+          const f = new Tone.Filter({ frequency: 1800 + rand() * 3500, type: 'bandpass', Q: 4 }).connect(reverb);
+          const g = new Tone.Gain(0).connect(f);
+          n.connect(g); n.start(time);
+          const dur = 0.05 + rand() * 0.12;
+          g.gain.setValueAtTime(0, time);
+          g.gain.linearRampToValueAtTime(0.18, time + 0.005);
+          g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+          n.stop(time + dur + 0.02);
+          setTimeout(() => { try { n.dispose(); f.dispose(); g.dispose(); } catch(e){} }, 600);
+        }
+      }, 0.9).start(0);
+      loops.push(crackleLoop);
+
+      // Distant thunder: low oscillator slow env sweep, every 20–40 s
+      let stopped = false;
+      function scheduleThunder() {
+        if (stopped) return;
+        const wait = 18 + rand() * 22;
+        const id = setTimeout(() => {
+          if (stopped) return;
+          const f = 38 + rand() * 18;
+          const osc = new Tone.Oscillator(f, 'sine');
+          const sweepFilter = new Tone.Filter({ frequency: 80, type: 'lowpass', Q: 1.2 }).connect(reverb);
+          const g = new Tone.Gain(0).connect(sweepFilter);
+          osc.connect(g); osc.start();
+          const now = Tone.now();
+          g.gain.setValueAtTime(0, now);
+          g.gain.linearRampToValueAtTime(0.45, now + 0.8);
+          g.gain.linearRampToValueAtTime(0.32, now + 2.5);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + 6.5);
+          sweepFilter.frequency.setValueAtTime(50, now);
+          sweepFilter.frequency.linearRampToValueAtTime(160, now + 1.2);
+          sweepFilter.frequency.exponentialRampToValueAtTime(40, now + 6);
+          osc.stop(now + 6.8);
+          setTimeout(() => { try { osc.dispose(); sweepFilter.dispose(); g.dispose(); } catch(e){} }, 7500);
+          scheduleThunder();
+        }, wait * 1000);
+        thunderTimers.push(id);
+      }
+      scheduleThunder();
+
+      Tone.Transport.start();
+      return {
+        start() {},
+        stop() {
+          stopped = true;
+          thunderTimers.forEach(id => clearTimeout(id));
+          loops.forEach(l => { try { l.stop(0); l.dispose(); } catch(e){} });
+          nodes.forEach(n => { try { n.stop && n.stop(); } catch(e){} try { n.dispose(); } catch(e){} });
+        }
+      };
+    }
+  },
+
+  // ─────────── CATHEDRAL · Heart (tiers 4–6) ───────────
+  {
+    id: 'cathedral',
+    name: 'Cathedral',
+    tierFeel: 'heart',
+    color: 'rgba(230, 180, 240, 0.7)',
+    build() {
+      const nodes = [];
+      const loops = [];
+      const limiter = new Tone.Limiter(-1);
+      const master = new Tone.Gain(0.18).connect(limiter);
+      limiter.toDestination();
+      const reverb = new Tone.Reverb({ decay: 6, wet: 0.78 }).connect(master);
+      nodes.push(limiter, master, reverb);
+
+      // Pad: two detuned oscillator pairs a perfect fifth apart (C3 + G3)
+      const root = 130.81; // C3
+      const fifth = root * 1.5;
+      const oscA = new Tone.Oscillator(root, 'sawtooth'); oscA.detune.value = -5;
+      const oscB = new Tone.Oscillator(root, 'triangle'); oscB.detune.value = +6;
+      const oscC = new Tone.Oscillator(fifth, 'sawtooth'); oscC.detune.value = -4;
+      const oscD = new Tone.Oscillator(fifth, 'triangle'); oscD.detune.value = +5;
+      const padFilter = new Tone.Filter({ frequency: 1400, type: 'lowpass', Q: 0.6 }).connect(reverb);
+      const padGain = new Tone.Gain(0.12).connect(padFilter);
+      oscA.connect(padGain); oscB.connect(padGain); oscC.connect(padGain); oscD.connect(padGain);
+      oscA.start(); oscB.start(); oscC.start(); oscD.start();
+      const padLFO = new Tone.LFO({ frequency: 0.05, min: 0.07, max: 0.18 });
+      padLFO.connect(padGain.gain); padLFO.start();
+      const padFilterLFO = new Tone.LFO({ frequency: 0.04, min: 800, max: 2200 });
+      padFilterLFO.connect(padFilter.frequency); padFilterLFO.start();
+      nodes.push(oscA, oscB, oscC, oscD, padFilter, padGain, padLFO, padFilterLFO);
+
+      // Distant choir: filtered noise pad
+      const choir = new Tone.Noise('pink');
+      const choirFilter = new Tone.Filter({ frequency: 900, type: 'bandpass', Q: 2.2 }).connect(reverb);
+      const choirGain = new Tone.Gain(0.07).connect(choirFilter);
+      choir.connect(choirGain); choir.start();
+      const choirLFO = new Tone.LFO({ frequency: 0.06, min: 600, max: 1400 });
+      choirLFO.connect(choirFilter.frequency); choirLFO.start();
+      const choirAmpLFO = new Tone.LFO({ frequency: 0.045, min: 0.02, max: 0.10 });
+      choirAmpLFO.connect(choirGain.gain); choirAmpLFO.start();
+      nodes.push(choir, choirFilter, choirGain, choirLFO, choirAmpLFO);
+
+      // Occasional 432 Hz bell with long decay (root + fifth + octave)
+      const rand = _rng(0xCA77ED);
+      const bellLoop = new Tone.Loop((time) => {
+        if (rand() < 0.45) {
+          const f = _pick([432, 432 * 1.5, 432 * 2], rand);
+          const osc = new Tone.Oscillator(f, 'sine');
+          const harm = new Tone.Oscillator(f * 2, 'sine');
+          const g = new Tone.Gain(0).connect(reverb);
+          const hg = new Tone.Gain(0).connect(reverb);
+          osc.connect(g); harm.connect(hg);
+          osc.start(time); harm.start(time);
+          g.gain.setValueAtTime(0, time);
+          g.gain.linearRampToValueAtTime(0.13, time + 0.05);
+          g.gain.exponentialRampToValueAtTime(0.0001, time + 7.5);
+          hg.gain.setValueAtTime(0, time);
+          hg.gain.linearRampToValueAtTime(0.04, time + 0.05);
+          hg.gain.exponentialRampToValueAtTime(0.0001, time + 6.0);
+          osc.stop(time + 7.8); harm.stop(time + 6.3);
+          setTimeout(() => { try { osc.dispose(); harm.dispose(); g.dispose(); hg.dispose(); } catch(e){} }, 8500);
+        }
+      }, 11).start(0);
+      loops.push(bellLoop);
+
+      Tone.Transport.start();
+      return {
+        start() {},
+        stop() {
+          loops.forEach(l => { try { l.stop(0); l.dispose(); } catch(e){} });
+          nodes.forEach(n => { try { n.stop && n.stop(); } catch(e){} try { n.dispose(); } catch(e){} });
+        }
+      };
+    }
+  },
+
+  // ─────────── VOID · Crown (tiers 7–9) ───────────
+  {
+    id: 'void',
+    name: 'Void',
+    tierFeel: 'crown',
+    color: 'rgba(200, 195, 255, 0.75)',
+    build() {
+      const nodes = [];
+      const loops = [];
+      const timers = [];
+      const limiter = new Tone.Limiter(-1);
+      const master = new Tone.Gain(0.18).connect(limiter);
+      limiter.toDestination();
+      const reverb = new Tone.Reverb({ decay: 8, wet: 0.85 }).connect(master);
+      nodes.push(limiter, master, reverb);
+
+      // Pure 963 Hz sine fading in/out over 30 s
+      const crown = new Tone.Oscillator(963, 'sine');
+      const crownGain = new Tone.Gain(0).connect(reverb);
+      crown.connect(crownGain); crown.start();
+      const crownLFO = new Tone.LFO({ frequency: 1 / 30, min: 0.001, max: 0.085 });
+      crownLFO.connect(crownGain.gain); crownLFO.start();
+      nodes.push(crown, crownGain, crownLFO);
+
+      // Deep sub-bass occasional swells
+      const sub = new Tone.Oscillator(60.19, 'sine');
+      const subGain = new Tone.Gain(0).connect(reverb);
+      sub.connect(subGain); sub.start();
+      const subLFO = new Tone.LFO({ frequency: 1 / 47, min: 0.0001, max: 0.13 });
+      subLFO.connect(subGain.gain); subLFO.start();
+      nodes.push(sub, subGain, subLFO);
+
+      // High overtone pings at long intervals (30–60s apart) — crown harmonics
+      const overtones = [963 * 1.5, 963 * 2, 963 * 3];
+      const rand = _rng(0xA1FE7E5);
+      let stopped = false;
+      function schedulePing() {
+        if (stopped) return;
+        const wait = 28 + rand() * 32;
+        const id = setTimeout(() => {
+          if (stopped) return;
+          const f = _pick(overtones, rand);
+          const osc = new Tone.Oscillator(f, 'sine');
+          const g = new Tone.Gain(0).connect(reverb);
+          osc.connect(g); osc.start();
+          const now = Tone.now();
+          g.gain.setValueAtTime(0, now);
+          g.gain.linearRampToValueAtTime(0.045, now + 1.8);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + 9);
+          osc.stop(now + 9.5);
+          setTimeout(() => { try { osc.dispose(); g.dispose(); } catch(e){} }, 10500);
+          schedulePing();
+        }, wait * 1000);
+        timers.push(id);
+      }
+      schedulePing();
+
+      Tone.Transport.start();
+      return {
+        start() {},
+        stop() {
+          stopped = true;
+          timers.forEach(id => clearTimeout(id));
+          loops.forEach(l => { try { l.stop(0); l.dispose(); } catch(e){} });
+          nodes.forEach(n => { try { n.stop && n.stop(); } catch(e){} try { n.dispose(); } catch(e){} });
+        }
+      };
+    }
+  }
+];
+
+// --- Active soundscape state ---
+let _scape = null; // { id, controller } or { id, controller: null, _pending: true }
+
+async function startSoundscape(id) {
+  if (_scape && _scape.id === id && _scape.controller) return;
+  stopSoundscape();
+  const def = SOUNDSCAPES.find(s => s.id === id);
+  if (!def) return;
+  await ensureAudio();
+  const controller = def.build();
+  controller.start && controller.start();
+  _scape = { id, controller };
+  _saveScape(id);
+}
+
+function stopSoundscape() {
+  if (!_scape) return;
+  if (_scape.controller) {
+    try { _scape.controller.stop(); } catch (e) { console.warn('soundscape stop failed', e); }
+  }
+  _scape = null;
+  _saveScape('none');
+}
+
+function getSoundscape() {
+  return _scape && _scape.controller ? _scape.id : null;
+}
+
+// --- Chip selector UI ---
+(function renderSoundscapeChips() {
+  const host = document.getElementById('ssChips');
+  if (!host) return;
+  host.innerHTML = '';
+  const none = document.createElement('button');
+  none.className = 'ss-chip ss-none';
+  none.dataset.id = 'none';
+  none.textContent = 'None';
+  host.appendChild(none);
+  SOUNDSCAPES.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'ss-chip';
+    b.dataset.id = s.id;
+    b.dataset.tier = s.tierFeel;
+    b.style.setProperty('--ss-accent', s.color);
+    b.textContent = s.name;
+    host.appendChild(b);
+  });
+
+  function setActive(id) {
+    host.querySelectorAll('.ss-chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.id === (id || 'none'));
+    });
+  }
+
+  host.addEventListener('click', async (e) => {
+    const chip = e.target.closest('.ss-chip');
+    if (!chip) return;
+    const id = chip.dataset.id;
+    if (id === 'none') {
+      stopSoundscape();
+      setActive('none');
+      return;
+    }
+    if (_scape && _scape.id === id && _scape.controller) {
+      stopSoundscape();
+      setActive('none');
+      return;
+    }
+    await startSoundscape(id);
+    setActive(id);
+  });
+
+  // Restore saved selection — visual only; do NOT auto-start (needs user gesture).
+  const saved = _loadScape();
+  if (saved && saved !== 'none' && SOUNDSCAPES.some(s => s.id === saved)) {
+    setActive(saved);
+    _scape = { id: saved, controller: null, _pending: true };
+  } else {
+    setActive('none');
+  }
+})();
+
+// Promote a pending soundscape (restored from storage) the next time the user
+// taps Begin Sync (a guaranteed user gesture).
+(function wireSoundscapePromote() {
+  const play = document.getElementById('manualPlay');
+  if (!play) return;
+  play.addEventListener('click', async () => {
+    if (_scape && _scape._pending) {
+      const id = _scape.id;
+      _scape = null;
+      await startSoundscape(id);
+      const host = document.getElementById('ssChips');
+      if (host) host.querySelectorAll('.ss-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.id === id);
+      });
+    }
+  }, true);
+})();
+// =================== /AUDIO_AGENT ===================
 
 document.querySelectorAll('.sync-mode-toggle button').forEach(btn => {
   btn.addEventListener('click', () => {
