@@ -2678,16 +2678,82 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .council-tier-card.proplus .ctc-cta { background: linear-gradient(135deg, var(--gold), var(--mint)); color: #050507; border: 0; }
 .council-tier-card .ctc-cta:disabled { opacity: 0.45; }
 
-.council-apply { margin: 22px 0 14px; padding: 22px; border-radius: 22px; background: radial-gradient(circle at 50% 0%, rgba(251,191,36,0.10), transparent 65%), var(--card); border: 1px solid rgba(251,191,36,0.28); backdrop-filter: blur(20px); }
-.council-apply .ca-flag { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; font-weight: 700; color: var(--gold); margin-bottom: 6px; }
-.council-apply h2 { font-size: 24px; font-weight: 200; letter-spacing: -0.01em; margin: 0 0 10px; }
-.council-apply p { font-size: 12.5px; color: var(--text-dim); line-height: 1.6; margin: 0 0 14px; }
-.council-apply .ca-form { display: flex; flex-direction: column; gap: 9px; }
-.council-apply .ca-input { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 13px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
-.council-apply .ca-input:focus { border-color: var(--gold); }
-.council-apply .ca-textarea { min-height: 70px; resize: vertical; }
-.council-apply .ca-thanks { text-align: center; padding: 8px 0; }
-.council-apply .ca-thanks-glyph { font-size: 50px; color: var(--gold); filter: drop-shadow(0 0 16px var(--gold)); animation: glyphBreathe 3s ease-in-out infinite; }
+/* ============ UX_AGENT · COUNCIL APPLY (the 50-seat oath) ============ */
+.council-apply {
+  position: relative; overflow: hidden;
+  margin: 28px 0 18px; padding: 28px 26px 26px;
+  border-radius: 26px;
+  background: radial-gradient(circle at 50% 0%, rgba(251,191,36,0.16), transparent 60%), radial-gradient(circle at 0% 100%, rgba(110,231,183,0.08), transparent 55%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  border: 1px solid rgba(251,191,36,0.32);
+  backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 56px rgba(251,191,36,0.10);
+}
+.council-apply::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(115deg, transparent 40%, rgba(251,191,36,0.10) 50%, transparent 60%);
+  transform: translateX(-100%);
+  animation: caGlimmer 7s ease-in-out infinite;
+}
+@keyframes caGlimmer { 0%,100% { transform: translateX(-100%); } 50% { transform: translateX(100%); } }
+.council-apply .ca-flag {
+  font-size: 9px; letter-spacing: 5px; text-transform: uppercase; font-weight: 700; color: var(--gold);
+  margin-bottom: 8px; filter: drop-shadow(0 0 8px rgba(251,191,36,0.45));
+}
+.council-apply h2 {
+  font-family: Georgia, "Times New Roman", serif; font-style: italic;
+  font-size: 30px; font-weight: 300; letter-spacing: -0.01em;
+  margin: 0 0 12px; line-height: 1.2;
+  background: linear-gradient(135deg, var(--text) 0%, rgba(251,191,36,0.92) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.council-apply p {
+  font-size: 13px; color: var(--text-dim); line-height: 1.65; margin: 0 0 18px;
+  font-family: Georgia, serif; font-style: italic;
+}
+.council-apply .ca-form { display: flex; flex-direction: column; gap: 11px; position: relative; z-index: 1; }
+.council-apply .ca-input {
+  background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.10); border-radius: 14px;
+  padding: 13px 16px; color: var(--text); font-size: 14px; font-family: inherit; outline: none;
+  transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease), background 0.25s var(--ease);
+}
+.council-apply .ca-input::placeholder { color: var(--text-faint); font-style: italic; opacity: 0.7; }
+.council-apply .ca-input:focus {
+  border-color: var(--gold);
+  background: rgba(251,191,36,0.04);
+  box-shadow: 0 0 0 3px rgba(251,191,36,0.10), 0 0 28px rgba(251,191,36,0.18);
+}
+.council-apply .ca-textarea { min-height: 88px; resize: vertical; line-height: 1.5; }
+.council-apply #caSubmit {
+  margin-top: 4px; padding: 14px 20px; font-size: 12px; letter-spacing: 3px;
+  background: linear-gradient(135deg, var(--gold) 0%, #fff 50%, var(--mint) 100%);
+  color: #050507;
+  border: 0;
+  box-shadow: 0 12px 36px rgba(251,191,36,0.20), 0 0 32px rgba(251,191,36,0.12);
+  animation: caSubmitBreath 4.5s ease-in-out infinite;
+}
+@keyframes caSubmitBreath {
+  0%,100% { box-shadow: 0 12px 36px rgba(251,191,36,0.20), 0 0 28px rgba(251,191,36,0.12); }
+  50%     { box-shadow: 0 16px 44px rgba(251,191,36,0.28), 0 0 44px rgba(110,231,183,0.18); }
+}
+.council-apply .ca-thanks { text-align: center; padding: 18px 0 8px; animation: caThanksIn 0.9s cubic-bezier(.16,.84,.32,1); }
+.council-apply .ca-thanks-glyph {
+  font-size: 64px; color: var(--gold);
+  filter: drop-shadow(0 0 26px rgba(251,191,36,0.65));
+  animation: caGlyphBreath 3.5s ease-in-out infinite;
+}
+@keyframes caGlyphBreath {
+  0%,100% { filter: drop-shadow(0 0 22px rgba(251,191,36,0.5)); transform: scale(1); }
+  50%     { filter: drop-shadow(0 0 38px rgba(110,231,183,0.7)); transform: scale(1.07); }
+}
+@keyframes caThanksIn {
+  0%   { opacity: 0; transform: translateY(12px) scale(0.96); filter: blur(8px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .council-apply::before, .council-apply #caSubmit, .council-apply .ca-thanks-glyph, .council-apply .ca-thanks { animation: none; }
+}
+/* ============ /UX_AGENT ============ */
 .council-honesty { font-size: 10.5px; line-height: 1.6; color: var(--text-faint); text-align: center; max-width: 360px; margin: 12px auto 0; font-style: italic; }
 .council-you-details { margin: 30px 0 16px; border-top: 1px solid var(--border); padding-top: 16px; }
 .council-you-details summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
