@@ -306,6 +306,20 @@ html, body {
 .light-index .li-meta { font-size: 11px; color: var(--text-faint); margin-top: 6px; line-height: 1.5; }
 
 
+
+/* ============ SOUND SPHERE · Pretty mode toggles ============ */
+.ss-pretty-row { display: flex; gap: 8px; justify-content: center; padding: 6px 16px 10px; }
+.ss-pretty-btn {
+  padding: 7px 14px; border-radius: 100px; font-size: 11px; letter-spacing: 0.5px; font-weight: 600;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.55);
+  border: 1px solid rgba(255,255,255,0.14); color: var(--text-dim);
+  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+  transition: transform .2s var(--ease), background .2s var(--ease);
+}
+.ss-pretty-btn:active { transform: scale(0.96); }
+.ss-pretty-btn.on { background: var(--gold); color: #050507; border-color: var(--gold); }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -5413,6 +5427,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   </div>
   <div class="ss-stage">
     <div class="ss-canvas-wrap">
+      <div class="ss-pretty-row"><button class="ss-pretty-btn" id="ssPrettyToggle">☼ Pretty mode</button><button class="ss-pretty-btn" id="ssScaleToggle">♪ Snap to scale</button></div>
       <canvas id="ssCanvas"></canvas>
       <div class="ss-readout" id="ssReadout">— Hz · — filter · sine</div>
     </div>
@@ -15305,6 +15320,96 @@ if (typeof renderLobby === 'function') {
   renderLobby = function () { _orig(); try { renderLightIndex(); } catch(e){} };
 }
 setTimeout(() => { try { renderLightIndex(); } catch(e){} }, 1500);
+
+
+
+// =================== SOUND SPHERE · PRETTY MODE + SCALE SNAP ===================
+let _ssPretty = false; let _ssSnap = false;
+let _ssPrettyDelay = null; let _ssPrettyReverb = null;
+function _ssPrettyEnable() {
+  if (!ssNodes) return;
+  try {
+    // Bigger reverb + a delay routed in front of the existing chain
+    if (!_ssPrettyReverb) {
+      _ssPrettyReverb = new Tone.Reverb({ decay: 12, wet: 0.55 }).toDestination();
+      _ssPrettyDelay = new Tone.FeedbackDelay({ delayTime: '8n.', feedback: 0.45, wet: 0.35 }).connect(_ssPrettyReverb);
+      try { ssNodes.filter.connect(_ssPrettyDelay); } catch(e){}
+      try { ssNodes.reverbS.wet.value = 0.2; } catch(e){} // soften the original so the new chain dominates
+    }
+  } catch(e){}
+}
+function _ssPrettyDisable() {
+  try { if (_ssPrettyReverb) { _ssPrettyReverb.dispose(); _ssPrettyReverb = null; } } catch(e){}
+  try { if (_ssPrettyDelay) { _ssPrettyDelay.dispose(); _ssPrettyDelay = null; } } catch(e){}
+  try { if (ssNodes && ssNodes.reverbS) ssNodes.reverbS.wet.value = 0.4; } catch(e){}
+}
+// Major pentatonic relative to a root. Root chosen from the user's current wavelength.
+function _ssScaleRoot() {
+  const hz = (typeof userFreq !== 'undefined') ? userFreq : 432;
+  // bring hz into 80-160 by halving until in range
+  let f = hz; while (f > 160) f /= 2; while (f < 80) f *= 2;
+  return f;
+}
+function _ssQuantize(hz) {
+  if (!_ssSnap) return hz;
+  const root = _ssScaleRoot();
+  // Major pentatonic: 0, 2, 4, 7, 9 semitones (also wrap up by octaves)
+  const semis = [0,2,4,7,9, 12,14,16,19,21, 24,26,28,31,33, 36,38,40,43,45, 48,50,52,55,57];
+  let best = root, bd = 1e9;
+  for (const s of semis) {
+    const candidate = root * Math.pow(2, s/12);
+    const d = Math.abs(Math.log2(candidate / hz));
+    if (d < bd) { bd = d; best = candidate; }
+  }
+  return best;
+}
+// Wrap ssUpdateTone if it exists — only quantize pitch, leave everything else
+(function () {
+  if (typeof ssUpdateTone !== 'function') return;
+  const _orig = ssUpdateTone;
+  ssUpdateTone = function (nx, ny) {
+    if (_ssSnap && ssNodes) {
+      // We need to quantize the hz the original maps to. Easiest: call the original then re-quantize.
+      _orig(nx, ny);
+      // Re-quantize the oscillator pitches
+      try {
+        const dist = Math.min(1, Math.hypot(nx, ny));
+        const t = (nx + 1) / 2;
+        const rawHz = 80 * Math.pow(25, t);
+        const q = _ssQuantize(rawHz);
+        ssNodes.oscSine.frequency.rampTo(q, 0.03);
+        ssNodes.oscTri.frequency.rampTo(q, 0.03);
+        ssNodes.oscSaw.frequency.rampTo(q, 0.03);
+        ssNodes.oscSq.frequency.rampTo(q, 0.03);
+        ssNodes.oscSub.frequency.rampTo(q / 2, 0.03);
+        ssNodes.oscOct.frequency.rampTo(q * 2, 0.03);
+        ssNodes.oscOct2.frequency.rampTo(q * 4, 0.03);
+        const ro = document.getElementById('ssReadout'); if (ro) ro.textContent = Math.round(q) + ' Hz · scale-snapped · pretty';
+      } catch(e){}
+      return;
+    }
+    return _orig(nx, ny);
+  };
+})();
+// Wrap ssStartTone to enable pretty chain on start if user has it on
+(function () {
+  if (typeof ssStartTone !== 'function') return;
+  const _orig = ssStartTone;
+  ssStartTone = async function () {
+    await _orig();
+    if (_ssPretty) _ssPrettyEnable();
+  };
+})();
+// Wire toggles
+{ const b = document.getElementById('ssPrettyToggle'); if (b) b.addEventListener('click', () => {
+    _ssPretty = !_ssPretty; b.classList.toggle('on', _ssPretty);
+    if (_ssPretty) { _ssPrettyEnable(); if (typeof notify === 'function') notify('Pretty mode on', 'longer reverb · delay tail · everything sounds like music', '☼', '#fbbf24'); }
+    else { _ssPrettyDisable(); }
+  }); }
+{ const b = document.getElementById('ssScaleToggle'); if (b) b.addEventListener('click', () => {
+    _ssSnap = !_ssSnap; b.classList.toggle('on', _ssSnap);
+    if (_ssSnap && typeof notify === 'function') notify('Snap to scale', 'major pentatonic on your wavelength — every note lands musically', '♪', '#6ee7b7');
+  }); }
 
 
 renderLadder();
