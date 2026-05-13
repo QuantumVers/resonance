@@ -373,6 +373,28 @@ html, body {
 @keyframes lobbyAuraSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 
+
+/* ============ TIME-OF-DAY AMBIENT ============ */
+:root {
+  --hr-a: rgba(251,191,36,0.06); /* top-left */
+  --hr-b: rgba(167,139,250,0.06); /* bottom-right */
+  --hr-c: rgba(110,231,183,0.03); /* center */
+  --hr-edge: rgba(251,191,36,0.05); /* page edge glow */
+}
+.page.active::after {
+  background:
+    radial-gradient(circle at 18% 12%, var(--hr-a), transparent 45%),
+    radial-gradient(circle at 82% 88%, var(--hr-b), transparent 45%),
+    radial-gradient(circle at 50% 50%, var(--hr-c), transparent 60%);
+}
+/* a soft edge halo at the very top of the screen, reads as "the light is from a window above" */
+body::before {
+  content: ''; position: fixed; top: 0; left: 0; right: 0; height: 130px; pointer-events: none; z-index: 1;
+  background: linear-gradient(180deg, var(--hr-edge), transparent);
+  transition: background 4s ease;
+}
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -15588,10 +15610,33 @@ function _playChime(color) {
 })();
 
 
+
+// =================== TIME-OF-DAY AMBIENT ===================
+function _applyHourAmbient() {
+  const h = new Date().getHours();
+  // Five phases — chosen so each one has a distinct ambient color
+  let preset;
+  if (h < 5)       preset = { a:'rgba(96,165,250,0.08)',  b:'rgba(167,139,250,0.10)', c:'rgba(167,139,250,0.04)', edge:'rgba(96,165,250,0.07)' }; // pre-dawn — indigo
+  else if (h < 9)  preset = { a:'rgba(253,230,138,0.10)', b:'rgba(251,191,36,0.08)',  c:'rgba(251,191,36,0.04)',  edge:'rgba(251,191,36,0.10)' }; // morning — gold
+  else if (h < 13) preset = { a:'rgba(110,231,183,0.07)', b:'rgba(167,139,250,0.05)', c:'rgba(110,231,183,0.04)', edge:'rgba(110,231,183,0.06)' }; // late morning — mint
+  else if (h < 17) preset = { a:'rgba(251,191,36,0.06)',  b:'rgba(110,231,183,0.06)', c:'rgba(167,139,250,0.03)', edge:'rgba(251,191,36,0.05)' }; // afternoon — warm
+  else if (h < 21) preset = { a:'rgba(251,113,133,0.08)', b:'rgba(167,139,250,0.10)', c:'rgba(167,139,250,0.04)', edge:'rgba(251,113,133,0.07)' }; // dusk — rose violet
+  else             preset = { a:'rgba(167,139,250,0.10)', b:'rgba(96,165,250,0.08)',  c:'rgba(167,139,250,0.04)', edge:'rgba(167,139,250,0.08)' }; // late night — violet/indigo
+  const r = document.documentElement;
+  r.style.setProperty('--hr-a', preset.a);
+  r.style.setProperty('--hr-b', preset.b);
+  r.style.setProperty('--hr-c', preset.c);
+  r.style.setProperty('--hr-edge', preset.edge);
+}
+_applyHourAmbient();
+setInterval(_applyHourAmbient, 5 * 60 * 1000);
+
+
 renderLadder();
 </script>
 <meta id="brighterMark" data-applied="1">
 <meta id="polishMark" data-applied="POLISH_SWEEP_v1">
 <meta id="chimeMark" data-applied="NOTIFY_CHIME_v1">
+<meta id="hourMark" data-applied="HOUR_AMBIENT_v1">
 </body>
 </html>
