@@ -1950,6 +1950,79 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .mic-indicator.active .mic-dot { background: var(--mint); animation: dotPulse 1.5s ease-in-out infinite; }
 @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
 
+/* ============ LOCKER (per-frequency, "collector's gift") ============ */
+.locker-section { margin-top: 24px; }
+.locker-top-row { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; margin-bottom: 14px; padding: 2px 0; }
+.locker-top-row::-webkit-scrollbar { display: none; }
+.locker-top-row .locker-top-card {
+  flex-shrink: 0; width: 200px; padding: 14px 16px; border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.6);
+  border: 1px solid var(--lc-c, rgba(255,255,255,0.12)); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 0 24px var(--lc-c, rgba(255,255,255,0.06));
+  cursor: pointer; transition: transform .25s var(--ease);
+}
+.locker-top-row .locker-top-card:active { transform: scale(0.98); }
+.locker-top-row .locker-top-card .ltc-eyebrow { font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--lc-c, var(--mint)); font-weight: 700; }
+.locker-top-row .locker-top-card .ltc-hz { font-size: 28px; font-weight: 200; letter-spacing: -0.02em; line-height: 1; margin-top: 4px; }
+.locker-top-row .locker-top-card .ltc-hz .lc-unit { font-size: 11px; color: var(--text-faint); margin-left: 4px; letter-spacing: 1px; }
+.locker-top-row .locker-top-card .ltc-name { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.locker-top-row .locker-top-card .ltc-count { font-family: ui-monospace, monospace; font-size: 10px; color: var(--lc-c, var(--mint)); margin-top: 8px; letter-spacing: 0.5px; }
+.locker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.locker-card {
+  position: relative; aspect-ratio: 1; border-radius: 16px; cursor: pointer;
+  background: radial-gradient(circle at 30% 28%, rgba(255,255,255,0.20), var(--lc-c, var(--violet)) 38%, rgba(8,4,20,0.98) 100%);
+  box-shadow: 0 0 18px var(--lc-c, var(--violet)), inset 0 0 18px rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.08);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  overflow: hidden; transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+.locker-card:active { transform: scale(0.96); }
+.locker-card.most { box-shadow: 0 0 32px var(--lc-c, var(--mint)), inset 0 0 22px rgba(255,255,255,0.08), 0 0 0 1px var(--lc-c, var(--mint)); }
+.locker-card .lc-hz { font-size: 19px; font-weight: 300; color: rgba(255,255,255,0.96); letter-spacing: -0.01em; }
+.locker-card .lc-name { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-top: 2px; }
+.locker-card .lc-count { position: absolute; top: 8px; right: 9px; font-family: ui-monospace, monospace; font-size: 10px; color: rgba(255,255,255,0.7); background: rgba(0,0,0,0.35); padding: 2px 6px; border-radius: 100px; backdrop-filter: blur(8px); }
+.locker-card .lc-crown { position: absolute; top: 7px; left: 8px; font-size: 11px; color: var(--gold); filter: drop-shadow(0 0 6px var(--gold)); }
+.locker-empty { font-size: 12.5px; color: var(--text-faint); line-height: 1.55; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); }
+.locker-empty b { color: var(--text); font-weight: 600; }
+
+/* Locker detail modal */
+.locker-modal { position: fixed; inset: 0; z-index: 560; display: none; align-items: flex-end; justify-content: center; }
+.locker-modal.show { display: flex; animation: gateIn 0.35s var(--ease); }
+.locker-modal-bg { position: absolute; inset: 0; background: rgba(2,2,3,0.78); backdrop-filter: blur(12px); }
+.locker-modal-card {
+  position: relative; width: 100%; max-width: 520px; max-height: 92dvh; overflow-y: auto;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%), rgba(14,14,22,0.85);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 28px 28px 0 0;
+  padding: 24px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+  backdrop-filter: blur(48px) saturate(180%); -webkit-backdrop-filter: blur(48px) saturate(180%);
+  box-shadow: 0 -24px 60px rgba(0,0,0,0.5);
+}
+.locker-modal-card .lm-skin {
+  width: 110px; height: 110px; border-radius: 50%; margin: 8px auto 14px;
+  background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.5), var(--lm-c, var(--violet)) 40%, rgba(15,5,40,0.95) 100%);
+  box-shadow: 0 0 60px var(--lm-c, var(--violet)), inset 0 0 30px rgba(255,255,255,0.10);
+  animation: lobbyPulse 3.2s ease-in-out infinite;
+}
+.locker-modal-card .lm-hz { text-align: center; font-size: 44px; font-weight: 200; letter-spacing: -0.02em; line-height: 1; }
+.locker-modal-card .lm-hz .lm-unit { font-size: 14px; color: var(--text-faint); margin-left: 6px; letter-spacing: 2px; }
+.locker-modal-card .lm-name { text-align: center; font-family: Georgia, serif; font-style: italic; color: var(--text-dim); margin: 6px 0 18px; }
+.locker-modal-card .lm-stats { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); margin-bottom: 16px; }
+.locker-modal-card .lm-stat { text-align: center; flex: 1; }
+.locker-modal-card .lm-stat-v { font-size: 18px; font-weight: 300; color: var(--text); letter-spacing: -0.01em; }
+.locker-modal-card .lm-stat-l { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-top: 4px; }
+.locker-modal-card .lm-stat-sep { width: 1px; height: 26px; background: rgba(255,255,255,0.1); }
+.locker-modal-card .lm-actions { text-align: center; margin-bottom: 20px; }
+.locker-modal-card .lm-actions .btn { padding: 11px 24px; }
+.locker-modal-card .lm-note-input { padding: 14px; border-radius: 14px; background: rgba(157,92,255,0.06); border: 1px solid rgba(157,92,255,0.18); margin-bottom: 18px; }
+.locker-modal-card .lm-section-h { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text); font-weight: 700; margin-bottom: 5px; }
+.locker-modal-card .lm-section-sub { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; margin-bottom: 10px; }
+.locker-modal-card .lm-note-textarea { width: 100%; min-height: 80px; resize: vertical; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px 13px; color: var(--text); font-size: 13px; font-family: inherit; outline: none; margin-bottom: 8px; }
+.locker-modal-card .lm-note-textarea:focus { border-color: var(--violet); }
+.locker-modal-card .lm-visits { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.locker-modal-card .lm-visit-chip { font-family: ui-monospace, monospace; font-size: 10px; padding: 5px 10px; border-radius: 100px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: var(--text-faint); }
+.locker-modal-card .lm-notes-list .lm-note { padding: 10px 13px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; }
+.locker-modal-card .lm-notes-list .lm-note .lmn-time { font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: 0.5px; color: var(--text-faint); margin-bottom: 4px; }
+.locker-modal-card .lm-notes-list .lm-note .lmn-text { font-size: 13px; color: var(--text); line-height: 1.55; font-family: Georgia, serif; font-style: italic; white-space: pre-wrap; }
+
 /* ============ COUNCIL (the Store) ============ */
 .council-page { padding: 16px 20px 28px; }
 .council-header { padding: 4px 0 16px; text-align: center; }
@@ -4184,10 +4257,19 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         </div>
       </div>
 
-      <!-- Your memories -->
+      <!-- The Locker — every frequency you've operated at, a skin you've collected -->
+      <div class="depth-section locker-section">
+        <div class="depth-section-h">The Locker</div>
+        <div class="depth-section-sub">Every frequency you've operated at · tap any to add a note, see when you've been there, and how often you've come back</div>
+        <div class="locker-top-row" id="lockerTopRow"></div>
+        <div class="locker-grid" id="lockerGrid"></div>
+        <div class="locker-empty" id="lockerEmpty" style="display:none;">No skins collected yet. Hold a tone in Sync — the moment you press <b>Begin Sync</b>, that frequency lands in your Locker.</div>
+      </div>
+
+      <!-- Your memories — individual moments you've captured -->
       <div class="depth-section" id="memoriesHeader" style="cursor:pointer;">
         <div class="depth-section-h">Your memories</div>
-        <div class="depth-section-sub">Frequencies you've held · tap to open the constellation ✦</div>
+        <div class="depth-section-sub">Single moments you've captured · tap to open the constellation ✦</div>
         <div class="memories-strip" id="memoriesStrip"></div>
       </div>
 
@@ -4819,6 +4901,37 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
 
     <div class="about-foot">Resonance · The Inner World<br>Built by Elliot · est. 2026</div>
+  </div>
+</div>
+
+<!-- ================= LOCKER · per-frequency detail + note input ================= -->
+<div class="locker-modal" id="lockerModal">
+  <div class="locker-modal-bg" id="lockerModalBg"></div>
+  <div class="locker-modal-card">
+    <button class="inner-self-close" id="lockerModalClose">✕</button>
+    <div class="lm-skin" id="lmSkin"></div>
+    <div class="lm-hz"><span id="lmHz">—</span><span class="lm-unit">Hz</span></div>
+    <div class="lm-name" id="lmName">—</div>
+    <div class="lm-stats">
+      <div class="lm-stat"><div class="lm-stat-v" id="lmCount">0</div><div class="lm-stat-l">Visits</div></div>
+      <div class="lm-stat-sep"></div>
+      <div class="lm-stat"><div class="lm-stat-v" id="lmLast">—</div><div class="lm-stat-l">Last here</div></div>
+      <div class="lm-stat-sep"></div>
+      <div class="lm-stat"><div class="lm-stat-v" id="lmNotes">0</div><div class="lm-stat-l">Notes</div></div>
+    </div>
+    <div class="lm-actions">
+      <button class="btn primary" id="lmPlayBtn">Hold this tone</button>
+    </div>
+    <div class="lm-note-input">
+      <div class="lm-section-h">Add a note</div>
+      <div class="lm-section-sub">What are you feeling right now? Why? The Locker keeps it — so you can understand the pattern of why you feel what you feel.</div>
+      <textarea class="lm-note-textarea" id="lmNoteText" placeholder="I am feeling… because…" maxlength="500"></textarea>
+      <button class="btn" id="lmNoteSave">Save note</button>
+    </div>
+    <div class="lm-section-h">Your visits here</div>
+    <div class="lm-visits" id="lmVisits"></div>
+    <div class="lm-section-h" id="lmNotesH" style="display:none;">Notes from here</div>
+    <div class="lm-notes-list" id="lmNotesList"></div>
   </div>
 </div>
 
@@ -11445,11 +11558,143 @@ function renderDepth() {
     const bs = document.getElementById('dtcBlessing'); if (bs) bs.textContent = t.blessing || 'May you remember.';
   }
   // ensure the user's data is freshly rendered each visit
+  if (typeof renderLocker === 'function') renderLocker();
   if (typeof renderMemories === 'function') renderMemories();
   if (typeof renderInstrumentList === 'function') renderInstrumentList();
   if (typeof renderBeatList === 'function') renderBeatList();
 }
 { const b = document.getElementById('depthInnerSelfBtn'); if (b) b.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
+
+// ===== THE LOCKER (per-frequency "skin" collection · notes · visit history) =====
+// Every time the user holds a tone, a slot lands in their Locker. The slot tracks how many
+// times they've operated at that frequency, when, and any notes they've left. The goal is for
+// the founder's stated use: regulate and understand why they feel the way they feel.
+var _freqLocker = {};
+try { const v = JSON.parse(localStorage.getItem('resonance_freq_locker') || '{}'); if (v && typeof v === 'object') _freqLocker = v; } catch(e){}
+function _saveLocker() { try { localStorage.setItem('resonance_freq_locker', JSON.stringify(_freqLocker)); } catch(e){} }
+function _lockerSlotFor(hz) { hz = Math.round(hz); if (!_freqLocker[hz]) _freqLocker[hz] = { hz: hz, count: 0, firstVisit: null, lastVisit: null, visits: [], notes: [] }; return _freqLocker[hz]; }
+let _lastLockerHz = null;
+function lockerLog(hz) {
+  hz = Math.round(hz); if (!hz || hz < 20) return;
+  // debounce: ignore if the same frequency was logged less than 30s ago (slider thrash)
+  const slot = _lockerSlotFor(hz);
+  const now = Date.now();
+  if (slot.lastVisit && (now - slot.lastVisit) < 30000 && _lastLockerHz === hz) return;
+  slot.count = (slot.count || 0) + 1;
+  if (!slot.firstVisit) slot.firstVisit = now;
+  slot.lastVisit = now;
+  slot.visits = slot.visits || []; slot.visits.push(now); if (slot.visits.length > 200) slot.visits = slot.visits.slice(-200);
+  _lastLockerHz = hz; _saveLocker();
+  const isFirst = slot.count === 1;
+  const state = (typeof frequencyState === 'function') ? frequencyState(hz) : null;
+  const color = (typeof hzToColor === 'function') ? hzToColor(hz)[2] : '#a78bfa';
+  if (isFirst) notify('New skin · ' + hz + ' Hz', (state && state.short) ? state.short + ' · added to your Locker' : 'Added to your Locker', '✦', color);
+  else if ([5, 10, 25, 50, 100, 200].includes(slot.count)) notify(slot.count + ' visits · ' + hz + ' Hz', 'You keep coming back to this one — the Locker is keeping track.', '◎', color);
+  if (typeof renderLocker === 'function') renderLocker();
+}
+function lockerAddNote(hz, text) {
+  if (!text || !text.trim()) return null;
+  const slot = _lockerSlotFor(Math.round(hz));
+  const note = { t: Date.now(), text: text.trim() };
+  slot.notes = slot.notes || []; slot.notes.push(note); if (slot.notes.length > 500) slot.notes = slot.notes.slice(-500);
+  _saveLocker(); return note;
+}
+function _lockerTopBy(field, n) { const arr = Object.values(_freqLocker); arr.sort((a, b) => (b[field] || 0) - (a[field] || 0)); return arr.slice(0, n); }
+function _fmtRelTime(t) { if (!t) return '—'; const d = Date.now() - t; if (d < 60000) return 'just now'; if (d < 3600000) return Math.floor(d/60000) + 'm ago'; if (d < 86400000) return Math.floor(d/3600000) + 'h ago'; if (d < 604800000) return Math.floor(d/86400000) + 'd ago'; return new Date(t).toLocaleDateString([], { month: 'short', day: 'numeric' }); }
+function _fmtFullTime(t) { if (!t) return '—'; const d = new Date(t); return d.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+function renderLocker() {
+  const grid = document.getElementById('lockerGrid'); const top = document.getElementById('lockerTopRow'); const empty = document.getElementById('lockerEmpty'); if (!grid) return;
+  const slots = Object.values(_freqLocker).filter(s => s && s.count > 0);
+  if (slots.length === 0) { grid.innerHTML = ''; top.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  // Top-3 most returned to
+  const tops = slots.slice().sort((a, b) => b.count - a.count).slice(0, 3);
+  top.innerHTML = ''; tops.forEach((s, i) => {
+    const color = (typeof hzToColor === 'function') ? hzToColor(s.hz)[2] : '#a78bfa';
+    const state = (typeof frequencyState === 'function') ? frequencyState(s.hz) : { short: '—' };
+    const card = document.createElement('div'); card.className = 'locker-top-card'; card.style.setProperty('--lc-c', color);
+    card.innerHTML = '<div class="ltc-eyebrow">' + (i === 0 ? '★ most returned to' : (i+1) + 'st most') + '</div>'
+      + '<div class="ltc-hz">' + s.hz + '<span class="lc-unit">Hz</span></div>'
+      + '<div class="ltc-name">' + escapeHtml(state.short || '—') + '</div>'
+      + '<div class="ltc-count">' + s.count + ' visits · last ' + _fmtRelTime(s.lastVisit) + '</div>';
+    card.addEventListener('click', () => openLocker(s.hz));
+    top.appendChild(card);
+  });
+  // Full grid — sorted by most recent
+  const recent = slots.slice().sort((a, b) => (b.lastVisit || 0) - (a.lastVisit || 0));
+  grid.innerHTML = '';
+  const mostCount = tops[0] ? tops[0].count : 0;
+  recent.forEach(s => {
+    const color = (typeof hzToColor === 'function') ? hzToColor(s.hz)[2] : '#a78bfa';
+    const state = (typeof frequencyState === 'function') ? frequencyState(s.hz) : { short: '' };
+    const card = document.createElement('div'); card.className = 'locker-card' + (s.count >= mostCount && mostCount > 0 ? ' most' : '');
+    card.style.setProperty('--lc-c', color);
+    card.innerHTML = (s.count >= mostCount && mostCount > 0 ? '<div class="lc-crown">★</div>' : '')
+      + '<div class="lc-count">' + s.count + '</div>'
+      + '<div class="lc-hz">' + s.hz + '</div>'
+      + '<div class="lc-name">' + escapeHtml((state.short || '').slice(0, 18)) + '</div>';
+    card.addEventListener('click', () => openLocker(s.hz));
+    grid.appendChild(card);
+  });
+}
+function openLocker(hz) {
+  hz = Math.round(hz); const slot = _lockerSlotFor(hz);
+  const color = (typeof hzToColor === 'function') ? hzToColor(hz)[2] : '#a78bfa';
+  const state = (typeof frequencyState === 'function') ? frequencyState(hz) : { short: '—' };
+  const card = document.querySelector('.locker-modal-card'); if (card) card.style.setProperty('--lm-c', color);
+  document.getElementById('lmHz').textContent = hz;
+  document.getElementById('lmName').textContent = state.short || '';
+  document.getElementById('lmCount').textContent = slot.count || 0;
+  document.getElementById('lmLast').textContent = _fmtRelTime(slot.lastVisit);
+  document.getElementById('lmNotes').textContent = (slot.notes || []).length;
+  // recent visits — last 18 timestamps
+  const visitsEl = document.getElementById('lmVisits'); visitsEl.innerHTML = '';
+  (slot.visits || []).slice().reverse().slice(0, 18).forEach(t => {
+    const c = document.createElement('div'); c.className = 'lm-visit-chip'; c.textContent = _fmtFullTime(t); visitsEl.appendChild(c);
+  });
+  if (!visitsEl.innerHTML) { const c = document.createElement('div'); c.className = 'lm-visit-chip'; c.textContent = 'no visits yet — hold this tone to land it'; visitsEl.appendChild(c); }
+  // notes
+  const notesH = document.getElementById('lmNotesH'); const notesList = document.getElementById('lmNotesList');
+  notesList.innerHTML = '';
+  if ((slot.notes || []).length) {
+    notesH.style.display = 'block';
+    slot.notes.slice().reverse().forEach(n => {
+      const d = document.createElement('div'); d.className = 'lm-note';
+      d.innerHTML = '<div class="lmn-time">' + _fmtFullTime(n.t) + '</div><div class="lmn-text">' + escapeHtml(n.text) + '</div>';
+      notesList.appendChild(d);
+    });
+  } else { notesH.style.display = 'none'; }
+  document.getElementById('lmNoteText').value = '';
+  document.getElementById('lockerModal').classList.add('show');
+  // wire actions for this open
+  document.getElementById('lmPlayBtn')._hz = hz;
+}
+function closeLocker() { document.getElementById('lockerModal').classList.remove('show'); }
+document.getElementById('lockerModalClose').addEventListener('click', closeLocker);
+document.getElementById('lockerModalBg').addEventListener('click', closeLocker);
+document.getElementById('lmPlayBtn').addEventListener('click', async () => {
+  const hz = document.getElementById('lmPlayBtn')._hz; if (!hz) return;
+  try { await ensureAudio(); } catch(e){}
+  applyFrequency(hz); stopAllTones(); startTone(hz, 'manual');
+  const mp = document.getElementById('manualPlay'); if (mp){ mp.textContent='Stop Sync'; mp.classList.add('active'); }
+  closeLocker(); if (typeof gotoTab === 'function') gotoTab('sync');
+});
+document.getElementById('lmNoteSave').addEventListener('click', () => {
+  const hz = document.getElementById('lmPlayBtn')._hz; const txt = document.getElementById('lmNoteText').value;
+  if (!hz) return; if (!txt || !txt.trim()) { notify('Write a line first', '', '◬', '#fbbf24'); return; }
+  lockerAddNote(hz, txt); document.getElementById('lmNoteText').value = '';
+  notify('Note saved · ' + hz + ' Hz', 'In the Locker. You can come back to it any time.', '✦', (typeof hzToColor === 'function') ? hzToColor(hz)[2] : '#a78bfa');
+  openLocker(hz); // refresh
+  renderLocker();
+});
+
+// hook startTone(hz, 'manual') so manual sync sessions are logged into the Locker
+(function () {
+  if (typeof startTone === 'function') {
+    const _st = startTone;
+    startTone = function (hz, mode) { const r = _st(hz, mode); if (mode === 'manual' && typeof lockerLog === 'function') lockerLog(hz); return r; };
+  }
+})();
 
 // ===== COUNCIL (the store + apply for a seat) =====
 function renderCouncil() {
