@@ -5249,6 +5249,133 @@ function toast(message, type) {
   }, 2400);
 }
 
+// =================== DATA_AGENT · RState (persistence abstraction) ===================
+// Single namespace that wraps every read/write. When a real backend (Supabase) lands,
+// only this module changes — everything else still calls RState.get/set/remove.
+//
+// Schema versioning: STATE_VERSION bumps when a key's shape changes; migrations are
+// registered with RState.migration(from, fn) and run once on boot. The schema version
+// itself is persisted in `resonance__schema_version`. New devices read this and run
+// pending migrations forward before the rest of the app touches state.
+(function () {
+  const PREFIX = 'resonance_';
+  const VERSION_KEY = 'resonance__schema_version';
+  const SNAPSHOT_KEY = 'resonance__last_snapshot';
+  const STATE_VERSION = 1;
+  const _listeners = {};
+  const _migrations = {};
+
+  // Local-only adapter for now. Swap this object out (or extend it with a remote
+  // mirror that resolves the same API) when the backend lands.
+  const adapter = {
+    getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    setRaw(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+    removeRaw(k) { try { localStorage.removeItem(k); return true; } catch (e) { return false; } },
+    keys() {
+      const out = [];
+      try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) out.push(k); } } catch (e) {}
+      return out;
+    }
+  };
+
+  function _key(name) {
+    // Accept either a fully-prefixed key (back-compat) or a bare name. `__`-keys
+    // (schema version, snapshot) pass through as-is.
+    if (!name) return null;
+    return (String(name).indexOf(PREFIX) === 0 || name.indexOf('__') === 0) ? name : PREFIX + name;
+  }
+
+  function get(name, fallback) {
+    const raw = adapter.getRaw(_key(name));
+    if (raw == null) return (fallback === undefined ? null : fallback);
+    try { return JSON.parse(raw); } catch (e) { return raw; }
+  }
+
+  function getString(name, fallback) {
+    const raw = adapter.getRaw(_key(name));
+    return raw == null ? (fallback === undefined ? null : fallback) : raw;
+  }
+
+  function set(name, value) {
+    const k = _key(name);
+    const serialized = (typeof value === 'string') ? value : JSON.stringify(value);
+    const ok = adapter.setRaw(k, serialized);
+    _emit(name, value);
+    return ok;
+  }
+
+  function remove(name) { const k = _key(name); const ok = adapter.removeRaw(k); _emit(name, null); return ok; }
+
+  function listKeys() {
+    return adapter.keys().filter(k => k && (k.indexOf(PREFIX) === 0 || k.indexOf('resonance__') === 0));
+  }
+
+  function getAll() {
+    const out = {};
+    listKeys().forEach(k => { const raw = adapter.getRaw(k); try { out[k] = JSON.parse(raw); } catch (e) { out[k] = raw; } });
+    return out;
+  }
+
+  // Snapshot the whole namespace. Used as a safety net before risky ops (import/reset).
+  function snapshot() {
+    const snap = { v: STATE_VERSION, t: Date.now(), data: getAll() };
+    adapter.setRaw(SNAPSHOT_KEY, JSON.stringify(snap));
+    return snap;
+  }
+  function lastSnapshot() {
+    const raw = adapter.getRaw(SNAPSHOT_KEY); if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  }
+  function restoreSnapshot() {
+    const snap = lastSnapshot(); if (!snap || !snap.data) return false;
+    Object.keys(snap.data).forEach(k => {
+      const v = snap.data[k];
+      adapter.setRaw(k, typeof v === 'string' ? v : JSON.stringify(v));
+    });
+    return true;
+  }
+
+  // Migrations: registered as RState.migration(fromVersion, fn). On boot we run every
+  // pending migration in order. Each migration receives the RState API and may mutate.
+  function migration(from, fn) { _migrations[from] = fn; }
+  function _runMigrations() {
+    let cur = 0;
+    const raw = adapter.getRaw(VERSION_KEY);
+    if (raw != null) { const n = parseInt(raw, 10); if (!isNaN(n)) cur = n; }
+    if (cur >= STATE_VERSION) { adapter.setRaw(VERSION_KEY, String(STATE_VERSION)); return; }
+    // Brand-new install: just stamp the version, no migrations to run.
+    if (cur === 0 && listKeys().length === 0) { adapter.setRaw(VERSION_KEY, String(STATE_VERSION)); return; }
+    // Existing install: walk migrations from cur → STATE_VERSION.
+    for (let v = cur; v < STATE_VERSION; v++) {
+      const m = _migrations[v];
+      if (typeof m === 'function') {
+        try { m(api); } catch (e) { console.warn('[RState] migration', v, 'failed:', e); }
+      }
+    }
+    adapter.setRaw(VERSION_KEY, String(STATE_VERSION));
+  }
+
+  function on(name, fn) { (_listeners[name] = _listeners[name] || []).push(fn); }
+  function _emit(name, value) {
+    const arr = _listeners[name]; if (!arr) return;
+    arr.forEach(fn => { try { fn(value); } catch (e) {} });
+  }
+
+  const api = {
+    VERSION: STATE_VERSION,
+    PREFIX,
+    get, getString, set, remove,
+    listKeys, getAll,
+    snapshot, lastSnapshot, restoreSnapshot,
+    migration, on,
+    // escape hatches (use sparingly — keep new code through get/set)
+    _raw: adapter
+  };
+  window.RState = api;
+  try { _runMigrations(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
+
 // =================== SETTINGS (state) ===================
 const DEFAULT_SETTINGS = { volume: 80, notify: false, theme: 'violet', quietMetrics: false, tier: 'free' };
 let appSettings = Object.assign({}, DEFAULT_SETTINGS);
