@@ -208,6 +208,36 @@ html, body {
 .sync-header { position: relative; padding-top: 8px; }
 
 
+
+/* ============ ARRIVAL + AFFIRMATION (Home) ============ */
+.lobby-arrival, .lobby-affirm {
+  max-width: 440px; margin: 16px auto 0; padding: 14px 18px; border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.55);
+  border: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+  text-align: left;
+}
+.lobby-arrival { border-color: rgba(251,191,36,0.28); }
+.lobby-affirm { border-color: rgba(110,231,183,0.30); margin-bottom: 8px; }
+.lobby-arrival .la-row, .lobby-affirm .la-row { display: flex; align-items: center; gap: 12px; }
+.lobby-arrival .la-lotus, .lobby-affirm .la-lotus { width: 28px; height: 28px; flex-shrink: 0; }
+.lobby-arrival .la-eyebrow { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; color: var(--gold); }
+.lobby-affirm .la-eyebrow { color: var(--mint); }
+.lobby-arrival .la-body { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13.5px; line-height: 1.55; color: var(--text); margin-top: 4px; }
+.lobby-affirm .la-body { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 15px; line-height: 1.55; color: var(--text); margin-top: 4px; }
+.lobby-arrival .la-meta { font-family: ui-monospace, 'SF Mono', monospace; font-size: 10px; letter-spacing: 0.4px; color: var(--text-faint); margin-top: 8px; }
+
+/* Lotus mark color is inherited from currentColor; uses two opacity layers for petals */
+.lotus { display: inline-block; vertical-align: middle; }
+.lotus path { fill: currentColor; }
+.lotus .lp-back { opacity: 0.45; }
+.lotus .lp-mid { opacity: 0.75; }
+.lotus .lp-front { opacity: 1; }
+
+/* lotus in the boot title */
+.boot-overlay .boot-lotus { width: 56px; height: 56px; color: var(--violet); margin-bottom: 14px; filter: drop-shadow(0 0 16px var(--violet)); animation: bootOrbIn 1.4s cubic-bezier(.2,.7,.2,1) backwards; }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4333,6 +4363,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 
 <!-- ================= BOOT SEQUENCE (2.5s cinematic open) ================= -->
 <div class="boot-overlay" id="bootOverlay">
+  <svg class="lotus boot-lotus" viewBox="0 0 64 64" aria-hidden="true"><path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/><path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/><path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/><path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/><path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/><circle class="lp-front" cx="32" cy="42" r="4"/></svg>
   <div class="boot-stars"></div>
   <div class="boot-orb-wrap"><div class="boot-orb"></div></div>
   <div class="boot-title" id="bootTitle"></div>
@@ -4629,6 +4660,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="lh-cell"><div class="lh-k" id="lhStreak">0</div><div class="lh-l">Day-Streak</div></div>
       </div>
       <div class="lobby-quest" id="lobbyQuest">Hold 528 Hz for 30 seconds today.</div>
+      <div class="lobby-arrival" id="arrivalCard"></div>
+      <div class="lobby-affirm" id="affirmCard"></div>
       <button class="lobby-soul-btn" id="lobbySoulBtn"><span class="ls-glyph">◐</span><span class="ls-label">Talk to your soul</span><span class="ls-arrow">→</span></button>
     </div>
     <!-- ============ LEGACY HUB MODULES — kept hidden so the old render targets remain (we'll relocate them into Depth/Ascend in subsequent commits) ============ -->
@@ -14545,6 +14578,144 @@ document.getElementById('wroToneBtn').addEventListener('click', async () => {
 // Re-render Connect after sync finishes initializing
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderConnect, 2500));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderConnect, 2500));
+
+
+
+// =================== ARRIVAL READING + DAILY AFFIRMATION ===================
+// CONDUCTOR: the user arrives at a specific moment. The moment itself is a reading.
+// Numerology of HH+MM (digital root) tells them what they came in looking for. The
+// daily affirmation is one present-tense line built from their tradition, zodiac,
+// numerology, and the wavelength they've been returning to most.
+const NUMEROLOGY_MEANINGS = {
+  1: { title: 'The One', short: 'beginning', long: "You came in to begin. Initiation, identity, the spark of a new path. The 1 says: lead yourself in." },
+  2: { title: 'The Two', short: 'partnership', long: "You came in to harmonize. Balance, partnership, the soft work of two truths being held at once. The 2 says: receive, don't push." },
+  3: { title: 'The Three', short: 'expression', long: "You came in to express. Voice, creativity, joy that doesn't have to justify itself. The 3 says: speak it, write it, sing it." },
+  4: { title: 'The Four', short: 'foundation', long: "You came in to build the ground under your feet. Stability, ritual, the body of the practice. The 4 says: simple is sacred." },
+  5: { title: 'The Five', short: 'change', long: "You came in for movement. Freedom, change, the wind shifting. The 5 says: the door you've been staring at is already unlocked." },
+  6: { title: 'The Six', short: 'love', long: "You came in for love. Care, home, the people you carry. The 6 says: pour into the closest first." },
+  7: { title: 'The Seven', short: 'inner sight', long: "You came in to see. Inner wisdom, the mystic's eye, the quiet that knows. The 7 says: listen below the question." },
+  8: { title: 'The Eight', short: 'power', long: "You came in to claim. Abundance, authority, energy moving cleanly. The 8 says: take up the room you already are." },
+  9: { title: 'The Nine', short: 'completion', long: "You came in to release. Endings, wisdom, the chapter closing so the next can open. The 9 says: thank what's done, and let it go." },
+  11: { title: 'The Master 11', short: 'illumination', long: "You came in as a channel. 11 is a master number — illumination, intuition that arrives whole. Don't dim it." },
+  22: { title: 'The Master 22', short: 'the master builder', long: "You came in to build the cathedral. 22 is the master builder — vision made structural, big work made real. Don't shrink it." },
+  33: { title: 'The Master 33', short: 'the master teacher', long: "You came in to teach by example. 33 is the master teacher — devotion that lifts a room. Don't water it down." }
+};
+function _digitalRoot(n) { while (n > 9 && n !== 11 && n !== 22 && n !== 33) n = String(n).split('').reduce((a,b)=>a+ +b, 0); return n; }
+function arrivalNumber(date) {
+  date = date || new Date();
+  const sum = date.getHours() + date.getMinutes();
+  return _digitalRoot(sum);
+}
+function renderArrival() {
+  const card = document.getElementById('arrivalCard'); if (!card) return;
+  // only render on the FIRST arrival of the day; if already shown today, hide
+  const key = (typeof _dayKey === 'function') ? _dayKey() : (new Date().toISOString().slice(0,10));
+  let log = []; try { log = JSON.parse(localStorage.getItem('resonance_arrivals') || '[]') || []; } catch(e){}
+  const last = log[log.length - 1];
+  const now = new Date();
+  if (!last || last.day !== key) {
+    // first arrival today — log it
+    const n = arrivalNumber(now);
+    const entry = { day: key, t: now.toISOString(), hour: now.getHours(), minute: now.getMinutes(), n: n };
+    log.push(entry); if (log.length > 60) log = log.slice(-60);
+    try { localStorage.setItem('resonance_arrivals', JSON.stringify(log)); } catch(e){}
+  }
+  // always show today's arrival
+  const today = log[log.length - 1];
+  const m = NUMEROLOGY_MEANINGS[today.n] || NUMEROLOGY_MEANINGS[7];
+  const timeStr = String(today.hour).padStart(2,'0') + ':' + String(today.minute).padStart(2,'0');
+  card.innerHTML = '<div class="la-row">' + _lotusSvg(28, 'currentColor', 'gold-tint') + '<div><div class="la-eyebrow">Your arrival · ' + timeStr + ' · ' + m.title + '</div>'
+    + '<div class="la-body">' + m.long + '</div>'
+    + '<div class="la-meta">' + (today.hour) + ' + ' + (today.minute < 10 ? '0' + today.minute : today.minute) + ' → ' + today.n + ' · ' + m.short + '</div></div></div>';
+}
+
+function _arrivalLog() { try { return JSON.parse(localStorage.getItem('resonance_arrivals') || '[]') || []; } catch(e){ return []; } }
+
+// ===== DAILY AFFIRMATION =====
+// One present-tense line, generated deterministically per day from the user's tradition + zodiac
+// + numerology + the wavelength they've been returning to most. Speaks as if it's already true.
+const AFFIRM_FRAMES = [
+  "I am __TRAD__. I carry __HZ__ Hz in my chest today and it is already the answer.",
+  "I notice __ELEMENT__. I am __ELEMENT__. What I notice grows.",
+  "What I want, wants me. __TOP_HZ__ Hz is already in the room with me.",
+  "I am the __NUM_NAME__. The work is already moving through me today.",
+  "__SIGN__ is my key. I am __SIGN__. I do not need to become — I only need to remember.",
+  "The wavelength I am today is exactly the one the day needs. I do not need to chase. I am the chase.",
+  "I am the field, not the seeker. __ELEMENT__ is who I am, and __HZ__ Hz is how I sound.",
+  "I am already where I am going. The frequency is the map and the destination.",
+  "Today I am __TRAD_DIVINE__'s instrument. I do not have to play in tune — I AM the tune.",
+  "I am that. I am. __HZ__ Hz hears itself when I am still."
+];
+function _affirmDayKey() { return (typeof _dayKey === 'function') ? _dayKey() : new Date().toISOString().slice(0,10); }
+function generateAffirmation() {
+  const tradKey = (typeof userProfile !== 'undefined' && userProfile.tradition) ? userProfile.tradition : 'universal';
+  const trad = (typeof traditions !== 'undefined' && traditions[tradKey]) ? traditions[tradKey] : { name: 'Universal', divine: 'Source', greeting: 'Welcome' };
+  const z = (typeof userProfile !== 'undefined' && userProfile.zodiac) ? userProfile.zodiac : { sign: 'You', element: 'Light' };
+  const num = (typeof userProfile !== 'undefined' && userProfile.numerology) ? userProfile.numerology : 7;
+  const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432;
+  const top = (typeof _topLockerHz === 'function') ? _topLockerHz() : null;
+  const topHz = (top && top.hz) ? top.hz : hz;
+  const numName = (NUMEROLOGY_MEANINGS[num] || NUMEROLOGY_MEANINGS[7]).title;
+  // deterministic-per-day pick
+  let salt = 0; const name = trad.name + (userProfile && userProfile.name || '') + _affirmDayKey();
+  for (let i = 0; i < name.length; i++) salt = (salt * 31 + name.charCodeAt(i)) >>> 0;
+  const frame = AFFIRM_FRAMES[salt % AFFIRM_FRAMES.length];
+  const line = frame
+    .replace('__TRAD__', trad.name)
+    .replace('__TRAD_DIVINE__', trad.divine || 'Source')
+    .replace('__HZ__', hz)
+    .replace('__TOP_HZ__', topHz)
+    .replace('__ELEMENT__', z.element)
+    .replace('__SIGN__', z.sign)
+    .replace('__NUM_NAME__', numName);
+  return line;
+}
+function renderAffirmation() {
+  const card = document.getElementById('affirmCard'); if (!card) return;
+  const key = _affirmDayKey();
+  let stored = null; try { stored = JSON.parse(localStorage.getItem('resonance_affirmation') || 'null'); } catch(e){}
+  if (!stored || stored.day !== key) { stored = { day: key, line: generateAffirmation(), t: Date.now() }; try { localStorage.setItem('resonance_affirmation', JSON.stringify(stored)); } catch(e){} }
+  card.innerHTML = '<div class="la-row">' + _lotusSvg(28, 'currentColor', 'mint-tint') + '<div><div class="la-eyebrow">A word from yourself</div><div class="la-body">"' + escapeHtml(stored.line) + '"</div></div></div>';
+}
+
+// ===== LOTUS MARK (svg) =====
+function _lotusSvg(size, color, classExtra) {
+  size = size || 28; color = color || 'currentColor';
+  const cls = 'lotus' + (classExtra ? ' lotus-' + classExtra : '');
+  // a stylized 7-petal lotus: 1 center + 3 back + 3 front
+  return '<svg class="' + cls + '" width="' + size + '" height="' + size + '" viewBox="0 0 64 64" aria-hidden="true">'
+    + '<path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/>'
+    + '<path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/>'
+    + '<path class="lp-mid"  d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/>'
+    + '<path class="lp-mid"  d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/>'
+    + '<path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/>'
+    + '<circle class="lp-front" cx="32" cy="42" r="4"/>'
+    + '</svg>';
+}
+
+// Hook into lobby/init: render arrival + affirmation alongside the existing renderLobby
+(function () {
+  if (typeof renderLobby === 'function') {
+    const _orig = renderLobby;
+    renderLobby = function () { _orig(); try { renderArrival(); } catch(e){} try { renderAffirmation(); } catch(e){} };
+  }
+  // first run if Home is the active page
+  setTimeout(() => { try { renderArrival(); renderAffirmation(); } catch(e){} }, 600);
+  // first-open-of-day notify with the affirmation
+  setTimeout(() => {
+    try {
+      const key = _affirmDayKey();
+      let shown = null; try { shown = JSON.parse(localStorage.getItem('resonance_affirmation_notified') || 'null'); } catch(e){}
+      if (!shown || shown.day !== key) {
+        const stored = JSON.parse(localStorage.getItem('resonance_affirmation') || 'null');
+        if (stored && stored.line && typeof notify === 'function') {
+          notify("A word from yourself", stored.line, '✦', '#6ee7b7');
+          try { localStorage.setItem('resonance_affirmation_notified', JSON.stringify({ day: key, t: Date.now() })); } catch(e){}
+        }
+      }
+    } catch(e){}
+  }, 3500);
+})();
 
 
 renderLadder();
