@@ -674,6 +674,30 @@ input[type="date"].signup-input {
   background: linear-gradient(90deg, var(--gold), var(--mint));
   transition: width 0.3s linear;
 }
+/* live frequency reading */
+.scan-orb-stage.big { width: 230px; height: 230px; margin-bottom: 10px; }
+.scan-orb-stage.big .scan-orb { inset: 35px; width: 160px; height: 160px; }
+.scan-phase { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-top: 2px; min-height: 14px; transition: color .3s; }
+.scan-hz { font-size: 46px; font-weight: 100; letter-spacing: -0.02em; line-height: 1; margin: 4px 0 0; font-variant-numeric: tabular-nums; }
+.scan-hz .u { font-size: 14px; font-weight: 300; color: var(--text-faint); letter-spacing: 2px; margin-left: 4px; }
+.scan-coh { width: 100%; max-width: 320px; margin: 12px auto 0; }
+.scan-coh-row { display: flex; align-items: center; gap: 9px; }
+.scan-coh-lbl { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; white-space: nowrap; }
+.scan-coh-bar { flex: 1; height: 5px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+.scan-coh-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--violet), var(--mint)); border-radius: 100px; transition: width .35s var(--ease); box-shadow: 0 0 8px var(--mint); }
+.say-card {
+  margin: 16px auto 0; max-width: 360px; padding: 16px 20px; border-radius: 20px;
+  background: radial-gradient(circle at 50% 0%, rgba(157,92,255,0.14), transparent 60%), var(--card);
+  border: 1px solid rgba(157,92,255,0.28); backdrop-filter: blur(20px);
+  opacity: 0; transform: translateY(8px) scale(0.98); transition: opacity .4s var(--ease), transform .4s var(--ease);
+}
+.say-card.show { opacity: 1; transform: translateY(0) scale(1); }
+.say-card .sc-cue { font-size: 9px; letter-spacing: 5px; text-transform: uppercase; color: var(--violet); font-weight: 700; margin-bottom: 8px; }
+.say-card .sc-line { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 20px; line-height: 1.4; color: var(--text); }
+.scan-howline { font-size: 11px; line-height: 1.5; color: var(--text-faint); max-width: 340px; margin: 14px auto 0; }
+.freq-breakdown { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 14px; margin: 14px auto 4px; max-width: 400px; }
+.freq-breakdown .fb-item { font-family: ui-monospace, 'SF Mono', monospace; font-size: 10px; letter-spacing: 0.5px; color: var(--text-faint); }
+.freq-breakdown .fb-item b { color: var(--text-dim); font-weight: 600; }
 
 /* CALCULATING */
 .calc-orb {
@@ -3466,15 +3490,25 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="gate-content">
       <div class="gate-label">Step 2 of 3</div>
       <h1 class="gate-title" style="font-size:30px;">Reveal your <em>frequency</em>.</h1>
-      <p class="gate-text">Eight seconds of stillness. Breathe naturally. The sensor will read your ambient resonance.</p>
-      <div class="scan-orb-stage">
+      <p class="gate-text" id="scanIntroText">Speak the lines we give you, calmly, in your own voice — then hum and hold one tone. We listen to its real pitch and how steady it sits. This is a practice, not a medical reading.</p>
+      <div class="scan-orb-stage big">
         <canvas class="scan-canvas" id="scanCanvas"></canvas>
         <div class="scan-orb" id="scanOrb"></div>
       </div>
-      <div class="scan-readout" id="scanReadout">Awaiting signal…</div>
+      <div class="scan-phase" id="scanPhase">Awaiting signal</div>
+      <div class="scan-hz" id="scanHz">—<span class="u">Hz</span></div>
+      <div class="scan-coh">
+        <div class="scan-coh-row"><div class="scan-coh-lbl">Coherence</div><div class="scan-coh-bar"><div class="scan-coh-fill" id="scanCohFill"></div></div></div>
+      </div>
+      <div class="say-card" id="sayCard">
+        <div class="sc-cue" id="sayCue">Say…</div>
+        <div class="sc-line" id="sayLine">—</div>
+      </div>
       <div class="scan-progress"><div class="scan-progress-fill" id="scanFill"></div></div>
+      <div class="scan-readout" id="scanReadout" style="display:none;"></div>
       <div class="gate-divider"></div>
-      <button class="gate-btn" id="startScanBtn">Begin Scan</button>
+      <button class="gate-btn" id="startScanBtn">Begin Reading</button>
+      <button class="gate-btn ghost" id="skipScanBtn" style="margin-left:8px;">Skip — read me from my name</button>
     </div>
   </div>
 
@@ -3510,6 +3544,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <div class="verdict-score-val" id="finalTier" style="color:var(--mint);">—</div>
         </div>
       </div>
+      <div class="freq-breakdown" id="verdictBreakdown"></div>
+      <div class="scan-howline" style="margin-bottom:6px;">Read from your voice's real fundamental pitch and how steady it held, woven with your name and your day of birth. A practice — a tuning fork for paying attention — not a medical reading.</div>
       <div id="verdictInviteCompare" style="display:none; margin:0 auto 8px; max-width:380px; padding:14px 18px; border-radius:16px; background:radial-gradient(circle at 100% 0%, rgba(110,231,183,0.12), transparent 55%), var(--card); border:1px solid rgba(110,231,183,0.28); backdrop-filter:blur(20px);">
         <div style="font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--mint); font-weight:700; margin-bottom:6px;" id="verdictInviteKicker">—</div>
         <div style="font-family:Georgia, serif; font-style:italic; font-size:15px; line-height:1.45; color:var(--text);" id="verdictInviteBody">—</div>
@@ -5336,102 +5372,215 @@ document.getElementById('retakePhotoBtn').addEventListener('click', () => {
 
 document.getElementById('confirmPhotoBtn').addEventListener('click', () => goToStep(4));
 
-// Frequency scan
+// ============ FREQUENCY READING — live, voice-based ============
 let scanRunning = false;
 const scanCanvas = document.getElementById('scanCanvas');
 const scanCtx = scanCanvas.getContext('2d');
-scanCanvas.width = 200; scanCanvas.height = 200;
+scanCanvas.width = 230; scanCanvas.height = 230;
+
+// affirmations spoken aloud during the reading (the "Say…" cards)
+const SCAN_AFFIRMATIONS = [
+  "I am here. I am listening. I am whole.",
+  "I am exactly where I'm meant to be right now.",
+  "I'm willing to meet myself.",
+  "I have nothing to prove and nothing to hide.",
+  "I trust the version of me that's further down the road.",
+  "What's mine is already moving toward me.",
+  "I am the one I've been waiting for.",
+  "I'm allowed to become who I already am.",
+  "I let my voice land where it naturally sits.",
+  "I am open. I am clear. I am rising."
+];
+
+// autocorrelation pitch detector (cwilso PitchDetect-style) — returns fundamental Hz or -1
+function _detectPitch(buffer, sampleRate) {
+  const N0 = buffer.length;
+  let rms = 0; for (let i = 0; i < N0; i++) { const v = buffer[i]; rms += v*v; }
+  rms = Math.sqrt(rms / N0);
+  if (rms < 0.012) return -1;
+  let r1 = 0, r2 = N0 - 1; const thres = 0.2;
+  for (let i = 0; i < N0/2; i++) { if (Math.abs(buffer[i]) < thres) { r1 = i; break; } }
+  for (let i = 1; i < N0/2; i++) { if (Math.abs(buffer[N0-i]) < thres) { r2 = N0 - i; break; } }
+  let buf = buffer.slice(r1, r2);
+  let n = buf.length; if (n < 160) return -1;
+  if (n > 1700) { buf = buf.slice(0, 1700); n = 1700; }
+  const c = new Float32Array(n);
+  for (let i = 0; i < n; i++) { let s = 0; for (let j = 0; j < n - i; j++) s += buf[j]*buf[j+i]; c[i] = s; }
+  let d = 0; while (d < n-1 && c[d] > c[d+1]) d++;
+  let maxval = -1, maxpos = -1;
+  for (let i = d; i < n; i++) { if (c[i] > maxval) { maxval = c[i]; maxpos = i; } }
+  let T0 = maxpos; if (T0 <= 0) return -1;
+  const x1 = c[T0-1]||0, x2 = c[T0]||0, x3 = c[T0+1]||0;
+  const a = (x1 + x3 - 2*x2)/2, b = (x3 - x1)/2;
+  if (a) T0 = T0 - b/(2*a);
+  const f = sampleRate / T0;
+  return (f >= 60 && f <= 600) ? f : -1;
+}
+const SOLFEGGIO = [174, 285, 396, 417, 432, 528, 639, 741, 852, 963];
+// the calculator — deterministic: your voice's real pitch + your name + your day of birth, woven
+function computeVibrationalFreq(voiceHz, coherence) {
+  const name = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name : 'Soul';
+  const birth = (typeof userProfile !== 'undefined' && userProfile.birth) ? userProfile.birth : '2000-04-14';
+  const nameNum = (typeof computeNumerology === 'function') ? computeNumerology(name) : 7;
+  const lmap = { a:1,b:2,c:3,d:4,e:5,f:6,g:7,h:8,i:9, j:1,k:2,l:3,m:4,n:5,o:6,p:7,q:8,r:9, s:1,t:2,u:3,v:4,w:5,x:6,y:7,z:8 };
+  let nameLetterSum = 0; for (const ch of String(name).toLowerCase()) if (lmap[ch]) nameLetterSum += lmap[ch];
+  const digits = String(birth).replace(/\D/g,'').split('').map(Number);
+  let birthSum = digits.reduce((a,b)=>a+(isNaN(b)?0:b),0); while (birthSum > 9) birthSum = String(birthSum).split('').reduce((a,b)=>a+ +b,0);
+  const dayWob = (typeof _dayHash === 'function') ? (_dayHash('freqread:'+name) % 25) - 12 : 0;
+  let base = 333 + (((nameNum-1)%9))*14 + (birthSum-1)*16 + (nameLetterSum % 200); // ~333..772
+  const vHz = (voiceHz && voiceHz > 0) ? voiceHz : 150;
+  const voiceNudge = Math.round((vHz - 150) * 0.6); // typical 90..250 Hz -> -36..+60
+  let f = Math.round(base + voiceNudge + dayWob);
+  f = Math.max(174, Math.min(963, f));
+  let nearest = SOLFEGGIO[0], nd = 1e9; SOLFEGGIO.forEach(s => { const dd = Math.abs(s - f); if (dd < nd) { nd = dd; nearest = s; } });
+  let snapped = false;
+  if (nd <= 14 && (coherence||0) >= 0.55) { f = nearest; snapped = true; }
+  return { f, nameNum, nameLetterSum, birthSum, voiceHz: Math.round(vHz), snapped, nearest };
+}
+function _finishFreqReading(voiceHz, coherence) {
+  const read = computeVibrationalFreq(voiceHz, coherence);
+  read.coherence = (typeof coherence === 'number' && coherence >= 0) ? coherence : 0.45;
+  window.__freqRead = read;
+  userFreq = read.f;
+  goToStep(5);
+  runCalculation();
+}
+function _animateSayCard(cue, line) {
+  const card = document.getElementById('sayCard'); if (!card) return;
+  card.classList.remove('show');
+  setTimeout(() => {
+    const c = document.getElementById('sayCue'), l = document.getElementById('sayLine');
+    if (c) c.textContent = cue; if (l) l.textContent = line;
+    card.classList.add('show');
+  }, 230);
+}
 
 document.getElementById('startScanBtn').addEventListener('click', async () => {
   if (scanRunning) return;
+  let analyser, ctx, fbuf, tbuf;
   try {
     scanStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     await Tone.start();
-    const ctx = Tone.context;
+    ctx = Tone.context;
     const src = ctx.createMediaStreamSource(scanStream);
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 4096;
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.65;
     src.connect(analyser);
-    scanRunning = true;
-    scanFreqs = [];
-    document.getElementById('startScanBtn').textContent = 'Scanning…';
-    document.getElementById('startScanBtn').disabled = true;
-    document.getElementById('scanReadout').textContent = 'Reading…';
-    const SCAN_DURATION = 8000;
-    const startTime = Date.now();
-
-    function tick() {
-      if (!scanRunning) return;
-      const elapsed = Date.now() - startTime;
-      const pct = Math.min(100, (elapsed / SCAN_DURATION) * 100);
-      document.getElementById('scanFill').style.width = pct + '%';
-
-      const buf = new Float32Array(analyser.frequencyBinCount);
-      analyser.getFloatFrequencyData(buf);
-      let max = -Infinity, idx = 0;
-      for (let i = 2; i < buf.length; i++) if (buf[i] > max) { max = buf[i]; idx = i; }
-      const hz = Math.round((idx * ctx.sampleRate) / analyser.fftSize);
-      if (max > -95 && hz > 20 && hz < 2000) {
-        scanFreqs.push(hz);
-        document.getElementById('scanReadout').textContent = `${hz} Hz`;
-      } else {
-        document.getElementById('scanReadout').textContent = `Reading… ${Math.ceil((SCAN_DURATION - elapsed) / 1000)}s`;
-      }
-      // Visualize
-      scanCtx.clearRect(0, 0, 200, 200);
-      const cx = 100, cy = 100;
-      scanCtx.strokeStyle = '#a78bfa';
-      scanCtx.lineWidth = 1.2;
-      scanCtx.globalAlpha = 0.6;
-      scanCtx.beginPath();
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(data);
-      for (let i = 0; i < 128; i++) {
-        const angle = (i / 128) * Math.PI * 2 - Math.PI / 2;
-        const r = 78 + (data[i] / 255) * 22;
-        const x = cx + Math.cos(angle) * r;
-        const y = cy + Math.sin(angle) * r;
-        if (i === 0) scanCtx.moveTo(x, y); else scanCtx.lineTo(x, y);
-      }
-      scanCtx.closePath();
-      scanCtx.stroke();
-
-      if (elapsed >= SCAN_DURATION) {
-        scanRunning = false;
-        scanStream.getTracks().forEach(t => t.stop());
-        // compute average freq, fallback to a default vibrational baseline
-        if (scanFreqs.length === 0) scanFreqs = [Math.floor(Math.random() * 200) + 400];
-        const avg = scanFreqs.reduce((a,b) => a+b, 0) / scanFreqs.length;
-        userFreq = Math.round(avg);
-        goToStep(5);
-        runCalculation();
-        return;
-      }
-      requestAnimationFrame(tick);
-    }
-    tick();
+    fbuf = new Uint8Array(analyser.frequencyBinCount);
+    tbuf = new Float32Array(analyser.fftSize);
   } catch (err) {
-    // Mic denied or unavailable — let user continue with default baseline
-    document.getElementById('scanReadout').textContent = 'Sensor unavailable — proceeding with baseline';
+    toast('Microphone unavailable — reading you from your name & your day instead', 'warn');
+    document.getElementById('startScanBtn').textContent = 'Reading…'; document.getElementById('startScanBtn').disabled = true;
+    document.getElementById('scanPhase').textContent = 'Reading from your name';
     document.getElementById('scanFill').style.width = '100%';
-    setTimeout(() => {
-      userFreq = Math.floor(Math.random() * 200) + 400;
-      goToStep(5);
-      runCalculation();
-    }, 1500);
+    setTimeout(() => _finishFreqReading(0, 0.4), 1400);
+    return;
   }
+  scanRunning = true;
+  document.getElementById('startScanBtn').textContent = 'Reading…';
+  document.getElementById('startScanBtn').disabled = true;
+  const skipB = document.getElementById('skipScanBtn'); if (skipB) skipB.style.display = 'none';
+  const introT = document.getElementById('scanIntroText'); if (introT) introT.textContent = 'Speak each line aloud, calmly, in your own voice. Then hum and hold one tone.';
+  const scanOrb = document.getElementById('scanOrb');
+  // build the spoken cues: "I am here…" first, then 3 picked deterministically, then the hum
+  const picks = [0]; let salt = (typeof _dayHash === 'function') ? _dayHash('aff:'+((userProfile&&userProfile.name)||'')) : 3;
+  while (picks.length < 4) { const idx = 1 + (salt % (SCAN_AFFIRMATIONS.length - 1)); if (!picks.includes(idx)) picks.push(idx); salt = (salt * 31 + 7) >>> 0; }
+  const CUES = [
+    { at: 2000,  cue: 'Say…', line: SCAN_AFFIRMATIONS[picks[0]] },
+    { at: 5200,  cue: 'Say…', line: SCAN_AFFIRMATIONS[picks[1]] },
+    { at: 8400,  cue: 'Say…', line: SCAN_AFFIRMATIONS[picks[2]] },
+    { at: 11600, cue: 'Say…', line: SCAN_AFFIRMATIONS[picks[3]] },
+    { at: 14000, cue: 'Now — hold the tone', line: 'Hum, low and easy. Let it sit in your chest, and hold it.' }
+  ];
+  const SCAN_DURATION = 17000, HOLD_AT = 14000;
+  const startTime = Date.now();
+  let lastDetect = 0, lastCueIdx = -1;
+  const pitchAll = [], pitchHold = [];
+  function tick() {
+    if (!scanRunning) return;
+    const elapsed = Date.now() - startTime;
+    document.getElementById('scanFill').style.width = Math.min(100, (elapsed / SCAN_DURATION) * 100) + '%';
+    // amplitude → orb scale + canvas viz
+    analyser.getByteFrequencyData(fbuf);
+    let amp = 0; for (let i = 0; i < 64; i++) amp += fbuf[i]; amp = amp / 64 / 255;
+    if (scanOrb) scanOrb.style.transform = 'scale(' + (1 + amp*1.1).toFixed(3) + ')';
+    scanCtx.clearRect(0, 0, 230, 230);
+    const cx = 115, cy = 115;
+    scanCtx.save(); scanCtx.globalAlpha = 0.55; scanCtx.strokeStyle = '#a78bfa'; scanCtx.lineWidth = 1.4;
+    scanCtx.beginPath();
+    for (let i = 0; i <= 128; i++) { const k = i % 128; const angle = (i / 128) * Math.PI * 2 - Math.PI/2; const r = 92 + (fbuf[k]/255)*24; const x = cx + Math.cos(angle)*r, y = cy + Math.sin(angle)*r; if (i===0) scanCtx.moveTo(x,y); else scanCtx.lineTo(x,y); }
+    scanCtx.stroke(); scanCtx.restore();
+    // phase + cues
+    const inHold = elapsed >= HOLD_AT;
+    const phEl = document.getElementById('scanPhase');
+    if (elapsed < 2000) { phEl.textContent = 'Settle — let your breath drop'; }
+    else if (inHold) { phEl.textContent = 'Hold — one steady tone'; }
+    else { phEl.textContent = 'Speak — let your voice land'; }
+    let ci = -1; for (let i = CUES.length - 1; i >= 0; i--) if (elapsed >= CUES[i].at) { ci = i; break; }
+    if (ci !== lastCueIdx && ci >= 0) { lastCueIdx = ci; _animateSayCard(CUES[ci].cue, CUES[ci].line); }
+    // pitch detection (throttled)
+    if (elapsed - lastDetect > 65 && elapsed > 800) {
+      lastDetect = elapsed;
+      analyser.getFloatTimeDomainData(tbuf);
+      const f = _detectPitch(tbuf, ctx.sampleRate);
+      if (f > 0) {
+        pitchAll.push(f); if (inHold) pitchHold.push(f);
+        document.getElementById('scanHz').innerHTML = Math.round(f) + '<span class="u">Hz</span>';
+        // running coherence estimate from whatever we have so far
+        const src2 = (inHold && pitchHold.length >= 4) ? pitchHold : pitchAll;
+        if (src2.length >= 6) {
+          const m = src2.reduce((a,b)=>a+b,0)/src2.length;
+          const sd = Math.sqrt(src2.reduce((a,b)=>a+(b-m)*(b-m),0)/src2.length);
+          const coh = Math.max(0, Math.min(1, 1 - (sd/m)*3.2));
+          document.getElementById('scanCohFill').style.width = Math.round(coh*100) + '%';
+        }
+      } else if (!inHold) {
+        document.getElementById('scanHz').innerHTML = '<span style="opacity:.45">listening<span class="u">…</span></span>';
+      }
+    }
+    if (elapsed >= SCAN_DURATION) {
+      scanRunning = false;
+      try { scanStream.getTracks().forEach(t => t.stop()); } catch(e){}
+      if (scanOrb) scanOrb.style.transform = '';
+      // final voice fundamental: prefer the held tone, else the speaking median
+      let samples = pitchHold.length >= 4 ? pitchHold.slice() : pitchAll.slice();
+      let voiceHz = 0, coherence = 0.45;
+      if (samples.length >= 3) {
+        samples.sort((a,b)=>a-b);
+        voiceHz = samples[Math.floor(samples.length/2)];
+        const m = samples.reduce((a,b)=>a+b,0)/samples.length;
+        const sd = Math.sqrt(samples.reduce((a,b)=>a+(b-m)*(b-m),0)/samples.length);
+        coherence = Math.max(0.18, Math.min(1, 1 - (sd/m)*3.2));
+      }
+      document.getElementById('scanPhase').textContent = 'Reading complete';
+      _finishFreqReading(voiceHz, coherence);
+      return;
+    }
+    requestAnimationFrame(tick);
+  }
+  tick();
+});
+document.getElementById('skipScanBtn').addEventListener('click', () => {
+  if (scanRunning) return;
+  document.getElementById('startScanBtn').disabled = true;
+  document.getElementById('skipScanBtn').style.display = 'none';
+  document.getElementById('scanPhase').textContent = 'Reading from your name';
+  document.getElementById('scanFill').style.width = '100%';
+  setTimeout(() => _finishFreqReading(0, 0.42), 900);
 });
 
 // Calculation animation
 function runCalculation() {
   const status = document.getElementById('calcStatus');
   const glyph = document.getElementById('calcGlyph');
+  const r = window.__freqRead || {};
   const phases = [
-    { t: 'Reading energetic field…', g: '◐' },
-    { t: 'Mapping frequency signature…', g: '◑' },
-    { t: 'Calculating coherence…', g: '◒' },
-    { t: 'Measuring alignment…', g: '◓' },
-    { t: 'Determining tier…', g: '∞' }
+    { t: r.voiceHz ? `Your voice held near ${r.voiceHz} Hz…` : 'Reading your signal…', g: '◐' },
+    { t: r.nameNum ? `Your name carries the ${r.nameNum} vibration…` : 'Mapping your name…', g: '◑' },
+    { t: r.coherence != null ? `Coherence reads ${Math.round((r.coherence||0)*100)}%…` : 'Calculating coherence…', g: '◒' },
+    { t: 'Weaving voice, name and day…', g: '◓' },
+    { t: r.f ? `You resonate at ${r.f} Hz.` : 'Determining your frequency…', g: '∞' }
   ];
   let i = 0;
   const interval = setInterval(() => {
@@ -5440,25 +5589,37 @@ function runCalculation() {
     i++;
     if (i >= phases.length) {
       clearInterval(interval);
-      setTimeout(showVerdict, 800);
+      setTimeout(showVerdict, 850);
     }
-  }, 700);
+  }, 720);
 }
 
 function showVerdict() {
-  // Compute alignment score (generous — most users pass)
-  // Bias toward passing while still feeling earned
-  const baseScore = 60 + Math.random() * 35; // 60-95
-  // Frequency contribution
-  let freqBonus = 0;
-  if (userFreq > 100 && userFreq < 1500) freqBonus = 5;
-  userAlignment = Math.min(99, Math.round(baseScore + freqBonus));
+  // Alignment is derived — not random: coherence (how steady your voice held, a real measurement)
+  // + the harmony of your name's number + a small daily wobble. Most people land in a good place.
+  const r = window.__freqRead || {};
+  const coh = (typeof r.coherence === 'number') ? Math.max(0, Math.min(1, r.coherence)) : 0.5;
+  const nameNum = r.nameNum || 7;
+  const numHarmony = ({1:6,2:7,3:8,4:5,5:7,6:9,7:9,8:6,9:9,11:10,22:10,33:10})[nameNum] || 7; // 5..10
+  let al = 56 + Math.round(coh * 28) + numHarmony;
+  if (typeof _dayHash === 'function') al += (_dayHash('align:' + ((typeof userProfile !== 'undefined' && userProfile.name) || '')) % 7) - 3;
+  userAlignment = Math.max(56, Math.min(99, al));
 
   const tier =
     userAlignment >= 90 ? 'Sage' :
     userAlignment >= 80 ? 'Adept' :
     userAlignment >= 70 ? 'Seeker' :
     'Initiate';
+  // breakdown — show the inputs so the number reads as computed, not conjured
+  try {
+    const bd = document.getElementById('verdictBreakdown');
+    if (bd && r.f) bd.innerHTML =
+      '<span class="fb-item">voice <b>' + (r.voiceHz || '—') + ' Hz</b></span>' +
+      '<span class="fb-item">name № <b>' + r.nameNum + '</b></span>' +
+      '<span class="fb-item">day <b>' + (r.birthSum != null ? r.birthSum : '—') + '</b></span>' +
+      '<span class="fb-item">coherence <b>' + Math.round(coh*100) + '%</b></span>' +
+      '<span class="fb-item">→ <b>' + r.f + ' Hz</b>' + (r.snapped ? ' · on the ' + r.nearest + ' tone' : '') + '</span>';
+  } catch(e){}
 
   document.getElementById('finalScore').textContent = userAlignment;
   document.getElementById('finalFreq').textContent = userFreq + ' Hz';
