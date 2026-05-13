@@ -2201,6 +2201,11 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 /* ============ DATA_AGENT · STATS HEALTH FOOTER ============ */
 .stats-health-footer { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; flex-wrap: wrap; gap: 6px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
 .stats-health-footer .shf-dot { opacity: 0.5; }
+.depth-page .walk-share-btn { margin-top: 14px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 18px; border-radius: 14px; background: linear-gradient(135deg, rgba(157,92,255,0.18) 0%, rgba(110,231,183,0.10) 100%), rgba(20,20,28,0.55); border: 1px solid rgba(157,92,255,0.42); color: var(--text); font-size: 12.5px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700; cursor: pointer; transition: transform .2s var(--ease), border-color .2s var(--ease); }
+.depth-page .walk-share-btn:active { transform: scale(0.985); }
+.depth-page .walk-share-btn:hover { border-color: rgba(157,92,255,0.7); }
+.depth-page .walk-share-btn .wsb-glyph { color: var(--mint); font-size: 18px; filter: drop-shadow(0 0 8px var(--mint)); }
+.depth-page .walk-share-btn .wsb-arrow { opacity: 0.5; }
 /* ============ /DATA_AGENT ============ */
 /* ============ DATA_AGENT · WALK RIBBON ============ */
 .depth-page .walk-ribbon { margin: 14px 0 18px; padding: 18px 18px 16px; background: linear-gradient(180deg, rgba(157,92,255,0.10) 0%, rgba(110,231,183,0.05) 100%), rgba(20,20,28,0.55); border: 1px solid rgba(157,92,255,0.32); border-radius: 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
@@ -4473,6 +4478,11 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
             <div class="sc-sub">saved</div>
           </div>
         </div>
+        <button class="walk-share-btn" id="walkShareBtn">
+          <span class="wsb-glyph">✦</span>
+          <span class="wsb-label">Share your walk</span>
+          <span class="wsb-arrow">→</span>
+        </button>
       </div>
 
       <!-- Your memories — individual moments you've captured -->
@@ -12757,6 +12767,144 @@ function renderWalkRibbon() {
   // initial paint
   try { renderWalkRibbon(); } catch (e) {}
 })();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · WALK CARD (shareable poster) ===================
+// A 1080×1350 "Your Walk" poster — Day N huge, your name, total time, top freq,
+// signature. Pulls only from data the app already knows; never invents.
+// Lives entirely in DATA_AGENT zone (separate function, separate share path),
+// so the existing makeCardCanvas / shareCard pipeline isn't touched.
+function makeWalkCardCanvas() {
+  const W = 1080, H = 1350;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  const SANS = (typeof _CARD_SANS !== 'undefined') ? _CARD_SANS : '-apple-system, sans-serif';
+  const SERIF = (typeof _CARD_SERIF !== 'undefined') ? _CARD_SERIF : 'Georgia, serif';
+  const MONO = (typeof _CARD_MONO !== 'undefined') ? _CARD_MONO : 'ui-monospace, monospace';
+
+  const meta = window.__installMeta || (window.RState && RState.get('install_meta')) || {};
+  const dayN = (typeof dayNOfWalk === 'function') ? dayNOfWalk() : 1;
+  const top = (typeof statsTopFreq === 'function') ? statsTopFreq() : null;
+  const hz = top && top.hz ? Math.round(top.hz) : (typeof userFreq !== 'undefined' ? Math.round(userFreq) : 432);
+  const accent = (typeof hzToColor === 'function') ? hzToColor(hz)[2] : '#a78bfa';
+  const totalMs = (appStats && appStats.totalMs) || 0;
+  const syncMs = (appStats && appStats.syncedMs) || 0;
+  const sessions = (appStats && appStats.sessions) || 0;
+  const streak = (typeof streakData === 'object' && streakData && streakData.count) || 0;
+  const aw = (typeof awakenedCount === 'function') ? awakenedCount() : 0;
+  const mem = (typeof memories !== 'undefined' && Array.isArray(memories)) ? memories.length : 0;
+  const firstName = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name.split(' ')[0] : 'A soul';
+  const firstOpened = meta.firstOpenedAt ? new Date(meta.firstOpenedAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+
+  function _fmt(ms) {
+    const mins = Math.floor(ms / 60000);
+    if (mins < 60) return mins + ' min';
+    const hrs = mins / 60;
+    if (hrs < 24) return (hrs < 10 ? hrs.toFixed(1) : Math.round(hrs)) + ' hr';
+    const days = hrs / 24;
+    return (days < 10 ? days.toFixed(1) : Math.round(days)) + ' days';
+  }
+
+  // background — void with a low gradient breath
+  ctx.fillStyle = '#020203'; ctx.fillRect(0, 0, W, H);
+  const g1 = ctx.createRadialGradient(W * 0.5, H * 0.30, 0, W * 0.5, H * 0.30, W * 0.95);
+  g1.addColorStop(0, accent + '33'); g1.addColorStop(0.5, accent + '10'); g1.addColorStop(1, 'rgba(2,2,3,0)');
+  ctx.fillStyle = g1; ctx.fillRect(0, 0, W, H);
+  const g2 = ctx.createRadialGradient(W * 0.5, H * 1.05, 0, W * 0.5, H * 1.05, W * 0.85);
+  g2.addColorStop(0, 'rgba(167,139,250,0.14)'); g2.addColorStop(1, 'rgba(2,2,3,0)');
+  ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = 'center';
+  const cx = W / 2;
+
+  // eyebrow
+  try { ctx.letterSpacing = '10px'; } catch (e) {}
+  ctx.fillStyle = accent; ctx.font = '700 26px ' + SANS;
+  ctx.fillText('THE WALK SO FAR', cx, 180);
+  try { ctx.letterSpacing = '0px'; } catch (e) {}
+
+  // name
+  ctx.fillStyle = 'rgba(255,255,255,0.84)'; ctx.font = 'italic 42px ' + SERIF;
+  ctx.fillText(firstName, cx, 248);
+
+  // huge "Day N"
+  ctx.fillStyle = '#fafafa'; ctx.font = '100 360px ' + SANS;
+  ctx.fillText('Day ' + dayN, cx, 538);
+
+  // "since…" line
+  ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = 'italic 30px ' + SERIF;
+  if (firstOpened) ctx.fillText('since ' + firstOpened, cx, 588);
+
+  // stats grid (3×2)
+  const startY = 720;
+  const colX = [W * 0.22, W * 0.5, W * 0.78];
+  const rowY = [startY, startY + 130];
+  const cells = [
+    { label: 'TOP FREQ', value: hz + ' Hz', sub: top && top.count ? top.count + ' visits' : 'this is yours' },
+    { label: 'TIME IN', value: _fmt(totalMs), sub: 'open' },
+    { label: 'SYNCED', value: _fmt(syncMs), sub: 'holding tone' },
+    { label: 'STREAK', value: String(streak), sub: streak === 1 ? 'day' : 'days' },
+    { label: 'AWAKENED', value: String(aw), sub: 'unlocked' },
+    { label: 'MEMORIES', value: String(mem), sub: 'saved' }
+  ];
+  cells.forEach((c, i) => {
+    const col = i % 3, row = Math.floor(i / 3);
+    const x = colX[col], y = rowY[row];
+    try { ctx.letterSpacing = '3px'; } catch (e) {}
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '700 17px ' + SANS;
+    ctx.fillText(c.label, x, y);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+    ctx.fillStyle = '#fafafa'; ctx.font = '200 56px ' + SANS;
+    ctx.fillText(c.value, x, y + 56);
+    ctx.fillStyle = 'rgba(255,255,255,0.42)'; ctx.font = 'italic 22px ' + SERIF;
+    ctx.fillText(c.sub, x, y + 86);
+  });
+
+  // signature line
+  const closeStr = (typeof closeness !== 'undefined') ? Math.round(closeness) + '% HOME' : '';
+  if (closeStr) {
+    try { ctx.letterSpacing = '5px'; } catch (e) {}
+    ctx.fillStyle = accent; ctx.font = '600 24px ' + SANS;
+    ctx.fillText(closeStr, cx, 1060);
+    try { ctx.letterSpacing = '0px'; } catch (e) {}
+  }
+
+  // footer
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '700 30px ' + SANS;
+  ctx.fillText('R E S O N A N C E', cx, H - 112);
+  ctx.fillStyle = 'rgba(255,255,255,0.32)'; ctx.font = '500 23px ' + MONO;
+  ctx.fillText('quantumvers.github.io/resonance', cx, H - 66);
+  return cv;
+}
+async function shareWalkCard() {
+  let cv;
+  try { cv = makeWalkCardCanvas(); } catch (e) { if (typeof toast === 'function') toast('Couldn’t make the card', 'warn'); return; }
+  const blob = await new Promise(res => { try { cv.toBlob(res, 'image/png', 0.95); } catch (e) { res(null); } });
+  if (!blob) { if (typeof toast === 'function') toast('Couldn’t render the card here', 'warn'); return; }
+  const dayN = (typeof dayNOfWalk === 'function') ? dayNOfWalk() : 1;
+  const url = (typeof buildShareUrl === 'function')
+    ? buildShareUrl((typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432, [], (typeof inviteSenderDefault === 'function') ? inviteSenderDefault() : '')
+    : 'https://quantumvers.github.io/resonance/';
+  const text = "Day " + dayN + " of my walk. The app remembered every step. → " + url;
+  const fname = 'resonance-walk-day-' + dayN + '.png';
+  try {
+    const file = new File([blob], fname, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], text: text, title: 'My walk · Resonance' }); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+  } catch (e) {}
+  // fallback: download + copy text
+  try {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname;
+    document.body.appendChild(a); a.click(); setTimeout(() => { try { URL.revokeObjectURL(a.href); } catch (e) {} a.remove(); }, 400);
+  } catch (e) {}
+  if (typeof copyTextFallback === 'function') copyTextFallback(text);
+  if (typeof toast === 'function') toast('Your walk · saved + link copied', 'ok');
+}
+window.shareWalkCard = shareWalkCard;
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · WALK SHARE WIRE ===================
+(function () { const b = document.getElementById('walkShareBtn'); if (b) b.addEventListener('click', () => { try { shareWalkCard(); } catch (e) {} }); })();
 // =================== /DATA_AGENT ===================
 
 renderLadder();
