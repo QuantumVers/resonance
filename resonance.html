@@ -2484,6 +2484,10 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .lobby-soul-btn:hover { box-shadow: 0 0 32px rgba(157,92,255,0.28), 0 12px 32px rgba(0,0,0,0.4); }
 .lobby-soul-btn:active { transform: scale(0.97); }
 
+/* ============ COORD · TOMORROW'S FREQUENCY ============ */
+.lobby-tomorrow { margin: 10px auto 0; font-size: 11.5px; letter-spacing: 0.4px; color: var(--text-faint); font-family: ui-monospace, 'SF Mono', monospace; opacity: 0.85; }
+.lobby-tomorrow #lobbyTomorrowHz { color: var(--gold); font-weight: 600; }
+/* ============ /COORD ============ */
 /* ============ COORD · LIVE FIELD-NOW ============ */
 .lobby-field-now { margin: 14px auto 0; display: inline-flex; align-items: center; gap: 9px; font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; letter-spacing: 0.5px; color: var(--text-faint); padding: 7px 14px; border-radius: 100px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.05); }
 .lobby-field-now .lfn-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); animation: lfnPulse 2.2s ease-in-out infinite; flex-shrink: 0; }
@@ -4216,6 +4220,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       </div>
       <div class="lobby-quest" id="lobbyQuest">Hold 528 Hz for 30 seconds today.</div>
       <!-- COORD · live field-now (deterministic per-minute; every user opening at the same minute sees the same line) -->
+      <!-- COORD · Tomorrow's frequency tease — only visible 7pm-4am local; quiet "the next day already exists" -->
+      <div class="lobby-tomorrow" id="lobbyTomorrow" style="display:none;">↗ Tomorrow opens on <span id="lobbyTomorrowHz">—</span> Hz.</div>
       <div class="lobby-field-now" id="lobbyFieldNow" title="The field, right now">
         <span class="lfn-pulse"></span>
         <span class="lfn-text"><span class="lfn-souls" id="lfnSouls">—</span> souls breathing at <span class="lfn-hz" id="lfnHz">—</span><span class="lfn-u"> Hz</span> right now.</span>
@@ -12887,6 +12893,23 @@ function renderLobby() {
   if (typeof _renderSigil === 'function') _renderSigil();
   // COORD: letter button visibility
   if (typeof _renderLetterBtn === 'function') _renderLetterBtn();
+  // COORD: tomorrow's frequency hint — show only in evenings/late night
+  const tomorrowEl = document.getElementById('lobbyTomorrow');
+  if (tomorrowEl) {
+    const h = new Date().getHours();
+    if (h >= 19 || h <= 4) {
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowKey = tomorrow.getFullYear() + '-' + (tomorrow.getMonth()+1) + '-' + tomorrow.getDate();
+      // FNV hash tomorrowKey → pick from Solfeggio pool
+      let hash = 2166136261; for (const c of tomorrowKey + 'lobbyQ') { hash ^= c.charCodeAt(0); hash = (hash * 16777619) >>> 0; }
+      const POOL = [174, 285, 396, 417, 432, 528, 639, 741, 852, 963];
+      const tomorrowHz = POOL[hash % POOL.length];
+      document.getElementById('lobbyTomorrowHz').textContent = tomorrowHz;
+      tomorrowEl.style.display = '';
+    } else {
+      tomorrowEl.style.display = 'none';
+    }
+  }
 }
 // ============ COORD · LETTER TO YOUR FUTURE SELF ============
 // Weekly ritual. Write a sealed letter; it opens 30 days later. The button surfaces in three
