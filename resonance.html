@@ -2284,6 +2284,18 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .depth-library summary::-webkit-details-marker { display: none; }
 .depth-library summary::after { content: '+'; font-weight: 300; font-size: 22px; color: var(--text-faint); transition: transform .3s; }
 .depth-library[open] summary::after { transform: rotate(45deg); }
+/* ============ COORD · GLOSSARY ============ */
+.depth-glossary { margin: 14px 0 10px; border-top: 1px solid var(--border); padding-top: 16px; }
+.depth-glossary summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; }
+.depth-glossary summary::-webkit-details-marker { display: none; }
+.depth-glossary summary::after { content: '+'; font-weight: 300; font-size: 22px; color: var(--text-faint); transition: transform .3s; }
+.depth-glossary[open] summary::after { transform: rotate(45deg); }
+.gloss-list { display: grid; grid-template-columns: 1fr; gap: 14px; padding-top: 14px; }
+.gloss-list .gloss-card { padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); }
+.gloss-list .gloss-word { font-family: Georgia, "Times New Roman", serif; font-size: 17px; font-style: italic; color: var(--text); margin-bottom: 2px; letter-spacing: 0.2px; }
+.gloss-list .gloss-trad { font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gloss-c, var(--violet)); font-weight: 700; margin-bottom: 6px; }
+.gloss-list .gloss-mean { font-size: 12.5px; color: var(--text-dim); line-height: 1.55; }
+/* ============ /COORD ============ */
 /* ============ DATA_AGENT · STATS PAGE ============ */
 .stats-section .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
 .stats-section .stats-card { background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%), rgba(20,20,28,0.55); border: 1px solid var(--border); border-radius: 14px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 4px; }
@@ -4680,6 +4692,12 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <div class="lib-content" id="content-beats" style="display:none;"></div>
           <div style="text-align: center; margin: 24px 0;"><button class="btn" id="clearLayers">Clear all tones</button></div>
         </div>
+      </details>
+
+      <!-- COORD · Glossary — a quiet shelf of sacred words and their meanings -->
+      <details class="depth-glossary" id="depthGlossary">
+        <summary><span class="dl-summary-lbl">The Glossary</span><span class="dl-summary-sub">Sacred words · their meanings · their lineage</span></summary>
+        <div class="gloss-list" id="glossList"></div>
       </details>
     </div>
   </div>
@@ -13119,7 +13137,39 @@ function renderDepth() {
   if (typeof renderInstrumentList === 'function') renderInstrumentList();
   if (typeof renderBeatList === 'function') renderBeatList();
   if (typeof renderStreakSection === 'function') renderStreakSection();
+  if (typeof _renderGlossary === 'function') _renderGlossary();
 }
+
+// ============ COORD · GLOSSARY ============
+// A small shelf of sacred words across traditions, with meanings + lineage. The user encounters
+// many of these in passing copy (Hashem, Tawhid, Atman, Shechinah, etc.) — this is where they can
+// quietly learn what they mean and which tradition they belong to.
+const GLOSSARY = [
+  { word: 'Shechinah',     trad: 'Judaism',         accent: '#fbbf24', meaning: 'The dwelling-presence of the Divine — the "indwelling" that's nearer than your breath. Feminine in grammar; intimate in feeling.' },
+  { word: 'Hashem',        trad: 'Judaism',         accent: '#fbbf24', meaning: 'Literally "The Name" — the way the unsayable is named in daily speech. Reverence by indirection.' },
+  { word: 'Ruach',         trad: 'Jewish Renewal',  accent: '#2dd4bf', meaning: 'Breath / wind / spirit — the same word for all three. When you inhale, you are also being moved.' },
+  { word: 'Hineni',        trad: 'Judaism',         accent: '#fbbf24', meaning: '"Here I am." The single Hebrew word the prophets answer with when the Voice calls. Total readiness.' },
+  { word: 'Tawhid',        trad: 'Islam',           accent: '#34d399', meaning: 'The oneness of God — and, by extension, the oneness of all things. The ground of the Sufi practice.' },
+  { word: 'Bismillah',     trad: 'Islam',           accent: '#34d399', meaning: '"In the name of God" — said before any beginning, even a meal, even a breath. A way of dedicating an action before it starts.' },
+  { word: 'Christ Spirit', trad: 'Christianity',    accent: '#fafafa', meaning: 'The indwelling presence of Christ within — not as a figure to look up at, but as a frequency to come home to.' },
+  { word: 'Dharma',        trad: 'Buddhism',        accent: '#fde68a', meaning: 'The teaching, the path, the way things are. Walking your dharma is walking what you already know to be true.' },
+  { word: 'Atman',         trad: 'Hinduism',        accent: '#fb7185', meaning: 'The true Self — not the personality, not the body, not the role. The witness that has never been wounded.' },
+  { word: 'Brahman',       trad: 'Hinduism',        accent: '#fb7185', meaning: 'The ultimate reality. Atman is to Brahman as the wave is to the ocean — different in form, identical in essence.' },
+  { word: 'Tat Tvam Asi',  trad: 'Hinduism',        accent: '#fb7185', meaning: '"That, thou art." Four Sanskrit words. The whole point: you are not separate from any of it.' },
+  { word: 'Source',        trad: 'Spiritual',       accent: '#9d5cff', meaning: 'A non-traditional name for the originating field — Whatever this all came from, by whatever name you give it.' },
+  { word: 'Resonance',     trad: 'Universal',       accent: '#00f5d4', meaning: 'When two systems share a frequency, they amplify each other. The mechanism behind every connection in here.' }
+];
+function _renderGlossary() {
+  const list = document.getElementById('glossList'); if (!list) return;
+  list.innerHTML = GLOSSARY.map(g =>
+    '<div class="gloss-card" style="--gloss-c:' + g.accent + ';">' +
+      '<div class="gloss-word">' + g.word + '</div>' +
+      '<div class="gloss-trad">' + g.trad + '</div>' +
+      '<div class="gloss-mean">' + g.meaning + '</div>' +
+    '</div>'
+  ).join('');
+}
+// ============ /COORD ============
 // =================== FEATURES_AGENT · STREAKS (Depth render) ===================
 // Paints the streak detail card on Depth: current / longest / lifetime + last-30-day micro-cal.
 // Each dot is one day; filled if present, dim if absent, gold for milestone days (3,7,14,30),
