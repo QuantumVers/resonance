@@ -1889,6 +1889,50 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .mic-indicator.active .mic-dot { background: var(--mint); animation: dotPulse 1.5s ease-in-out infinite; }
 @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
 
+/* ============ DEPTH (the Locker) ============ */
+.depth-page { padding: 16px 20px 24px; }
+.depth-header { padding: 4px 0 16px; }
+.depth-eyebrow { font-size: 9px; letter-spacing: 5px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 6px; }
+.depth-header h1 { font-size: 36px; font-weight: 200; letter-spacing: -0.02em; line-height: 1.05; margin: 0 0 8px; }
+.depth-header p { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 14px; color: var(--text-dim); line-height: 1.55; max-width: 360px; margin: 0; }
+.depth-inner-card {
+  display: flex; align-items: center; gap: 16px; width: 100%; text-align: left;
+  margin: 20px 0 22px; padding: 18px 18px 18px 20px; border-radius: 22px;
+  background: radial-gradient(circle at 0% 0%, rgba(157,92,255,0.16), transparent 55%), var(--card);
+  border: 1px solid rgba(157,92,255,0.3); backdrop-filter: blur(20px);
+  cursor: pointer; transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+.depth-inner-card:active { transform: scale(0.98); }
+.depth-inner-card:hover { box-shadow: 0 0 24px rgba(157,92,255,0.18); }
+.depth-inner-card .dic-glyph { font-size: 30px; font-weight: 100; color: var(--violet); flex-shrink: 0; filter: drop-shadow(0 0 12px var(--violet)); animation: lobbyPulse 3.2s ease-in-out infinite; }
+.depth-inner-card .dic-body { flex: 1; min-width: 0; }
+.depth-inner-card .dic-eyebrow { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--violet); font-weight: 700; margin-bottom: 4px; }
+.depth-inner-card .dic-title { font-size: 19px; font-weight: 300; letter-spacing: -0.01em; }
+.depth-inner-card .dic-sub { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-top: 4px; }
+.depth-inner-card .dic-cta { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; color: var(--violet); flex-shrink: 0; }
+.depth-section { margin: 22px 0 0; }
+.depth-section-h { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text); font-weight: 700; margin-bottom: 4px; }
+.depth-section-sub { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 11.5px; color: var(--text-faint); margin-bottom: 12px; }
+.depth-tradition-card {
+  display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 18px;
+  background: radial-gradient(circle at 100% 0%, rgba(251,191,36,0.10), transparent 55%), var(--card);
+  border: 1px solid rgba(251,191,36,0.22); backdrop-filter: blur(20px);
+}
+.depth-tradition-card .dtc-glyph { font-size: 32px; color: var(--gold); filter: drop-shadow(0 0 10px var(--gold)); flex-shrink: 0; }
+.depth-tradition-card .dtc-body { flex: 1; min-width: 0; }
+.depth-tradition-card .dtc-name { font-size: 16px; font-weight: 300; letter-spacing: -0.01em; }
+.depth-tradition-card .dtc-divine { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-top: 3px; }
+.depth-tradition-card .dtc-blessing { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 12.5px; color: var(--text-dim); margin-top: 8px; line-height: 1.5; }
+.depth-page #memoriesStrip { padding-left: 0; padding-right: 0; margin: 0 -20px; padding: 4px 20px 8px; }
+.depth-library { margin: 30px 0 8px; border-top: 1px solid var(--border); padding-top: 16px; }
+.depth-library summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; }
+.depth-library summary::-webkit-details-marker { display: none; }
+.depth-library summary::after { content: '+'; font-weight: 300; font-size: 22px; color: var(--text-faint); transition: transform .3s; }
+.depth-library[open] summary::after { transform: rotate(45deg); }
+.depth-library .dl-summary-lbl { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text); font-weight: 700; }
+.depth-library .dl-summary-sub { font-size: 10px; color: var(--text-faint); text-align: right; line-height: 1.4; }
+.depth-page .create-instrument-card { margin: 0 0 12px; }
+
 .library-page { padding: 8px 0 12px; }
 .library-tabs { display: flex; gap: 8px; padding: 8px 20px 16px; overflow-x: auto; scrollbar-width: none; }
 .library-tabs::-webkit-scrollbar { display: none; }
@@ -3713,12 +3757,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <!-- Lines in your field -->
       <div id="fieldNotesSlot"></div>
 
-      <!-- Memories strip -->
-      <div class="section-poetic memories-header" id="memoriesHeader">
-        <h2>Your memories</h2>
-        <div class="sub">Frequency over time · constellation ✦</div>
-      </div>
-      <div class="memories-strip" id="memoriesStrip"></div>
+      <!-- Memories strip — relocated to Depth (#page-depth) -->
 
       <!-- Live souls -->
       <div class="section-poetic" style="padding-top:20px;">
@@ -3927,55 +3966,101 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
   </div>
 
   <div class="page" id="page-depth">
-    <div class="library-page">
-      <div class="library-tabs">
-        <button class="lib-tab active" data-tab="divine">Divine</button>
-        <button class="lib-tab" data-tab="universal">Universal</button>
-        <button class="lib-tab" data-tab="custom">My Library</button>
-        <button class="lib-tab" data-tab="beats">Beats</button>
+    <div class="depth-page">
+      <div class="depth-header">
+        <div class="depth-eyebrow">The Locker</div>
+        <h1>Your depth</h1>
+        <p>Everything you've gathered. Everything you've made. Everything that's yours.</p>
       </div>
-      <div class="layer-info-wrap"><div class="layer-info" id="layerInfo">Tap to play · Layer multiple together</div></div>
-      <div class="lib-content" id="content-divine">
-        <div class="lib-section-title">Solfeggio</div><div class="preset-list" id="solfeggioList"></div>
-        <div class="lib-section-title">Chakras</div><div class="preset-list" id="chakraList"></div>
-        <div class="lib-section-title">Sacred</div><div class="preset-list" id="sacredList"></div>
-      </div>
-      <div class="lib-content" id="content-universal" style="display:none;">
-        <div class="lib-section-title">Planetary</div><div class="preset-list" id="planetaryList"></div>
-        <div class="lib-section-title">Earth & Elements</div><div class="preset-list" id="elementalList"></div>
-        <div class="lib-gate" id="universalGate">
-          <div class="lg-glyph">☉</div>
-          <div class="lg-text">The planetary, sacred and elemental tones open with Resonance Pro. The free room keeps the Solfeggio, the chakras and the sacred few — this is the rest of the sky.</div>
-          <button class="btn primary" id="universalUnlockBtn">Open with Pro →</button>
+
+      <!-- Talk to your Inner Self — primary action -->
+      <button class="depth-inner-card" id="depthInnerSelfBtn">
+        <div class="dic-glyph">◎</div>
+        <div class="dic-body">
+          <div class="dic-eyebrow">Inner Self · one continuous chat</div>
+          <div class="dic-title">Talk to yourself.</div>
+          <div class="dic-sub">It remembers every word. It mirrors what you bring. The higher you come in, the higher it meets you.</div>
+        </div>
+        <div class="dic-cta">Open →</div>
+      </button>
+
+      <!-- Your tradition -->
+      <div class="depth-section">
+        <div class="depth-section-h">Your tradition</div>
+        <div class="depth-tradition-card" id="depthTraditionCard">
+          <div class="dtc-glyph" id="dtcGlyph">◎</div>
+          <div class="dtc-body">
+            <div class="dtc-name" id="dtcName">Universal</div>
+            <div class="dtc-divine" id="dtcDivine">Frequency</div>
+            <div class="dtc-blessing" id="dtcBlessing">May you remember.</div>
+          </div>
         </div>
       </div>
-      <div class="lib-content" id="content-custom" style="display:none;">
-        <div class="lib-instruments-section">
-          <div class="lib-section-title" style="padding-left:0; padding-right:0;">My Instruments</div>
-          <div class="create-instrument-card" id="instCreateBtn">
-            <div class="create-instrument-icon">+</div>
-            <div>
-              <div class="create-instrument-title">Create an instrument</div>
-              <div class="create-instrument-sub">Design a sound, save it, play it</div>
+
+      <!-- Your memories -->
+      <div class="depth-section" id="memoriesHeader" style="cursor:pointer;">
+        <div class="depth-section-h">Your memories</div>
+        <div class="depth-section-sub">Frequencies you've held · tap to open the constellation ✦</div>
+        <div class="memories-strip" id="memoriesStrip"></div>
+      </div>
+
+      <!-- Your instruments -->
+      <div class="depth-section">
+        <div class="depth-section-h">Your instruments</div>
+        <div class="depth-section-sub">Sounds you've designed</div>
+        <div class="create-instrument-card" id="instCreateBtn">
+          <div class="create-instrument-icon">+</div>
+          <div>
+            <div class="create-instrument-title">Create an instrument</div>
+            <div class="create-instrument-sub">Design a sound, save it, play it</div>
+          </div>
+        </div>
+        <div id="instrumentList"></div>
+      </div>
+
+      <!-- Your beats -->
+      <div class="depth-section">
+        <div class="depth-section-h">Your beats</div>
+        <div class="depth-section-sub">Patterns you've made</div>
+        <div class="create-instrument-card" id="beatCreateBtn">
+          <div class="create-instrument-icon" style="background:linear-gradient(135deg, var(--pink), var(--gold));">+</div>
+          <div>
+            <div class="create-instrument-title">Make a beat</div>
+            <div class="create-instrument-sub">Step sequencer · 5 pads · 16 steps · Assistant patterns</div>
+          </div>
+        </div>
+        <div id="beatList"></div>
+      </div>
+
+      <!-- The Library — Solfeggio + chakras + sacred + planetary + elemental — demoted into a collapsible footer -->
+      <details class="depth-library">
+        <summary><span class="dl-summary-lbl">The Library</span><span class="dl-summary-sub">Solfeggio · Chakras · Sacred · Planetary · Elemental</span></summary>
+        <div class="library-page" style="padding-top:0;">
+          <div class="library-tabs">
+            <button class="lib-tab active" data-tab="divine">Divine</button>
+            <button class="lib-tab" data-tab="universal">Universal</button>
+          </div>
+          <div class="layer-info-wrap"><div class="layer-info" id="layerInfo">Tap to play · Layer multiple together</div></div>
+          <div class="lib-content" id="content-divine">
+            <div class="lib-section-title">Solfeggio</div><div class="preset-list" id="solfeggioList"></div>
+            <div class="lib-section-title">Chakras</div><div class="preset-list" id="chakraList"></div>
+            <div class="lib-section-title">Sacred</div><div class="preset-list" id="sacredList"></div>
+          </div>
+          <div class="lib-content" id="content-universal" style="display:none;">
+            <div class="lib-section-title">Planetary</div><div class="preset-list" id="planetaryList"></div>
+            <div class="lib-section-title">Earth & Elements</div><div class="preset-list" id="elementalList"></div>
+            <div class="lib-gate" id="universalGate">
+              <div class="lg-glyph">☉</div>
+              <div class="lg-text">The planetary, sacred and elemental tones open with Resonance Pro. The free room keeps the Solfeggio, the chakras and the sacred few — this is the rest of the sky.</div>
+              <button class="btn primary" id="universalUnlockBtn">Open with Pro →</button>
             </div>
           </div>
-          <div id="instrumentList"></div>
+          <!-- placeholder targets so any code referencing the old custom/beats lib-tabs still finds an element -->
+          <div class="lib-content" id="content-custom" style="display:none;"></div>
+          <div class="lib-content" id="content-beats" style="display:none;"></div>
+          <div style="text-align: center; margin: 24px 0;"><button class="btn" id="clearLayers">Clear all tones</button></div>
         </div>
-      </div>
-      <div class="lib-content" id="content-beats" style="display:none;">
-        <div class="lib-instruments-section">
-          <div class="lib-section-title" style="padding-left:0; padding-right:0;">My Beats</div>
-          <div class="create-instrument-card" id="beatCreateBtn">
-            <div class="create-instrument-icon" style="background:linear-gradient(135deg, var(--pink), var(--gold));">+</div>
-            <div>
-              <div class="create-instrument-title">Make a beat</div>
-              <div class="create-instrument-sub">Step sequencer · 5 pads · 16 steps · Assistant patterns</div>
-            </div>
-          </div>
-          <div id="beatList"></div>
-        </div>
-      </div>
-      <div style="text-align: center; margin: 24px 0;"><button class="btn" id="clearLayers">Clear All Tones</button></div>
+      </details>
     </div>
   </div>
 
@@ -8081,6 +8166,7 @@ function gotoTab(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (name === 'home' && typeof renderLobby === 'function') renderLobby();
+  if (name === 'depth' && typeof renderDepth === 'function') renderDepth();
 }
 
 // =================== SHARE THIS MOMENT ===================
@@ -10851,6 +10937,23 @@ function renderLobby() {
   }
 }
 { const b = document.getElementById('lobbyOrb'); if (b) b.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('sync'); if (typeof ensureAudio === 'function') ensureAudio(); }); }
+
+// ===== DEPTH (the locker) =====
+function renderDepth() {
+  // tradition card
+  const t = (typeof traditions !== 'undefined' && typeof userProfile !== 'undefined') ? traditions[userProfile.tradition || 'universal'] : null;
+  if (t) {
+    const g = document.getElementById('dtcGlyph'); if (g) { g.textContent = t.glyph || '◎'; g.style.color = t.accent || '#fbbf24'; if (t.accentGradient) { g.style.background = t.accentGradient; g.style.webkitBackgroundClip = 'text'; g.style.backgroundClip = 'text'; g.style.webkitTextFillColor = 'transparent'; g.style.color = 'transparent'; } }
+    const n = document.getElementById('dtcName'); if (n) n.textContent = t.name;
+    const d = document.getElementById('dtcDivine'); if (d) { d.textContent = (t.divine || 'Source') + ' · ' + (t.tagline || ''); d.style.color = t.accent || '#fbbf24'; }
+    const bs = document.getElementById('dtcBlessing'); if (bs) bs.textContent = t.blessing || 'May you remember.';
+  }
+  // ensure the user's data is freshly rendered each visit
+  if (typeof renderMemories === 'function') renderMemories();
+  if (typeof renderInstrumentList === 'function') renderInstrumentList();
+  if (typeof renderBeatList === 'function') renderBeatList();
+}
+{ const b = document.getElementById('depthInnerSelfBtn'); if (b) b.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
 // re-render lobby when the user's frequency changes (wrap applyFrequency once more)
 (function(){ if (typeof applyFrequency === 'function') { const _af = applyFrequency; applyFrequency = function(hz, fromSlider){ _af(hz, fromSlider); if (typeof renderLobby === 'function') renderLobby(); }; } })();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
