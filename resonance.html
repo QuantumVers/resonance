@@ -2197,8 +2197,43 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .locker-card .lc-name { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-top: 2px; }
 .locker-card .lc-count { position: absolute; top: 8px; right: 9px; font-family: ui-monospace, monospace; font-size: 10px; color: rgba(255,255,255,0.7); background: rgba(0,0,0,0.35); padding: 2px 6px; border-radius: 100px; backdrop-filter: blur(8px); }
 .locker-card .lc-crown { position: absolute; top: 7px; left: 8px; font-size: 11px; color: var(--gold); filter: drop-shadow(0 0 6px var(--gold)); }
-.locker-empty { font-size: 12.5px; color: var(--text-faint); line-height: 1.55; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); }
-.locker-empty b { color: var(--text); font-weight: 600; }
+/* ============ UX_AGENT · UNIFIED EMPTY STATES ============ */
+/* All "you don't have anything here yet" states share one sacred shape:
+   a soft glyph, an italic invitation, and (optionally) a single CTA. */
+.ux-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  text-align: center; padding: 28px 22px;
+  margin: 6px 0; border-radius: 20px;
+  background: radial-gradient(circle at 50% 0%, rgba(167,139,250,0.08), transparent 60%), rgba(255,255,255,0.025);
+  border: 1px dashed rgba(255,255,255,0.10);
+  backdrop-filter: blur(20px);
+  animation: uxEmptyIn 0.6s cubic-bezier(.16,.84,.32,1);
+}
+.ux-empty .ux-glyph {
+  font-size: 38px; font-weight: 100; line-height: 1; color: var(--violet);
+  filter: drop-shadow(0 0 16px rgba(167,139,250,0.45));
+  margin-bottom: 4px;
+  animation: uxGlyphBreath 4s ease-in-out infinite;
+}
+.ux-empty .ux-eyebrow { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; color: var(--text-faint); }
+.ux-empty .ux-title { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 17px; line-height: 1.4; color: var(--text); max-width: 320px; }
+.ux-empty .ux-sub { font-size: 12.5px; color: var(--text-dim); line-height: 1.55; max-width: 320px; }
+.ux-empty .ux-sub b { color: var(--text); font-weight: 600; }
+.ux-empty .ux-cta {
+  margin-top: 6px; padding: 9px 18px; border-radius: 100px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(110,231,183,0.12));
+  border: 1px solid rgba(167,139,250,0.32);
+  color: var(--text); font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700;
+  cursor: pointer; transition: transform 0.2s var(--pop), box-shadow 0.25s var(--ease);
+}
+.ux-empty .ux-cta:hover { box-shadow: 0 0 22px rgba(167,139,250,0.28); }
+.ux-empty .ux-cta:active { transform: scale(0.97); }
+@keyframes uxEmptyIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes uxGlyphBreath { 0%,100% { filter: drop-shadow(0 0 14px rgba(167,139,250,0.4)); transform: scale(1); } 50% { filter: drop-shadow(0 0 24px rgba(110,231,183,0.5)); transform: scale(1.06); } }
+/* legacy locker-empty: keep the selector but defer to .ux-empty styling so old call-sites still look right */
+.locker-empty { display: none; }
+.locker-empty.ux-empty { display: flex; }
+/* ============ /UX_AGENT ============ */
 
 /* Locker detail modal */
 .locker-modal { position: fixed; inset: 0; z-index: 560; display: none; align-items: flex-end; justify-content: center; }
@@ -4669,7 +4704,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="depth-section-sub">Every frequency you've operated at · tap any to add a note, see when you've been there, and how often you've come back</div>
         <div class="locker-top-row" id="lockerTopRow"></div>
         <div class="locker-grid" id="lockerGrid"></div>
-        <div class="locker-empty" id="lockerEmpty" style="display:none;">No skins collected yet. Hold a tone in Sync — the moment you press <b>Begin Sync</b>, that frequency lands in your Locker.</div>
+        <div class="locker-empty ux-empty" id="lockerEmpty" style="display:none;"><div class="ux-glyph">◯</div><div class="ux-eyebrow">The Locker · empty</div><div class="ux-title">No skins yet. Every frequency you hold becomes one.</div><div class="ux-sub">Tap <b>Begin Sync</b> on Home — the moment you start a tone, it lands here as a card you can revisit, annotate, and return to.</div><button class="ux-cta" type="button" onclick="if(typeof gotoTab==='function')gotoTab('home');">Take me home →</button></div>
       </div>
 
       <!-- DATA_AGENT · STATS — surfaces what the app knows about you -->
@@ -9413,7 +9448,12 @@ function renderInstrumentList() {
   if (!container) return;
   container.innerHTML = '';
   if (instruments.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:30px 0; color:var(--text-faint); font-size:12px; font-style:italic;">No instruments yet · craft your first above</div>';
+    container.innerHTML = '<div class="ux-empty">'
+      + '<div class="ux-glyph">∿</div>'
+      + '<div class="ux-eyebrow">Instruments · empty</div>'
+      + '<div class="ux-title">Design your first sound.</div>'
+      + '<div class="ux-sub">A wave, a warmth, a brightness — yours, saved, playable on any frequency. Use the <b>Create an instrument</b> card above to start.</div>'
+      + '</div>';
     return;
   }
   instruments.forEach(inst => {
@@ -9762,7 +9802,12 @@ function renderBeatList() {
   if (!list) return;
   list.innerHTML = '';
   if (beats.length === 0) {
-    list.innerHTML = '<div style="text-align:center; padding:30px 0; color:var(--text-faint); font-size:12px; font-style:italic;">No beats yet · make your first above</div>';
+    list.innerHTML = '<div class="ux-empty">'
+      + '<div class="ux-glyph">♪</div>'
+      + '<div class="ux-eyebrow">Beats · empty</div>'
+      + '<div class="ux-title">No patterns laid down yet.</div>'
+      + '<div class="ux-sub">5 pads · 16 steps · the Assistant will start you with a pattern at the frequency you\'re holding. Use the <b>Make a beat</b> card above.</div>'
+      + '</div>';
     return;
   }
   beats.forEach(beat => {
@@ -13395,7 +13440,12 @@ function _makeSongFromCurrentFreq() {
 function renderUserSongs() {
   const host = document.getElementById('userSongList'); if (!host) return;
   try { window._userSongs = JSON.parse(localStorage.getItem('resonance_songs') || '[]') || []; } catch(e){ window._userSongs = []; }
-  if (!window._userSongs.length) { host.innerHTML = ''; return; }
+  if (!window._userSongs.length) { host.innerHTML = '<div class="ux-empty" style="margin-top:14px;">'
+    + '<div class="ux-glyph">◐</div>'
+    + '<div class="ux-eyebrow">Your songs · empty</div>'
+    + '<div class="ux-title">Build a song from the tone you\'re holding.</div>'
+    + '<div class="ux-sub">House music built on the frequency in your body, right now. Tap <b>Make a song from your frequency</b> above — it will be saved here, shareable.</div>'
+    + '</div>'; return; }
   host.innerHTML = '<div class="cs-section-sub" style="margin-top:14px;">Your songs</div>';
   const wrap = document.createElement('div'); wrap.className = 'song-list';
   window._userSongs.forEach(s => {
