@@ -14905,6 +14905,117 @@ if (typeof openBeatMaker === 'function') {
     }
   }); }
 
+
+// =================== SOUL_VOICE_MODULE · better speech + paragraph pauses ===================
+// CONDUCTOR's improvement: rank voices by quality (premium/neural/enhanced/wavenet) and speak
+// each paragraph as its own utterance so the cadence has space. User can pick the voice in
+// Settings; choice is saved.
+function _voiceQualityScore(v) {
+  const n = (v.name || '').toLowerCase();
+  let s = 0;
+  if (/premium|enhanced|neural|wavenet|natural/.test(n)) s += 6;
+  if (/samantha|karen|moira|tessa|victoria|ava|allison|kate|serena|jenny|aria/.test(n)) s += 4;
+  if (/daniel|alex|aaron|oliver|fred|tom/.test(n)) s += 3;
+  if (/google|microsoft|apple/.test(n)) s += 2;
+  if (/en[-_]us/i.test(v.lang)) s += 2;
+  else if (/en[-_]gb/i.test(v.lang)) s += 1;
+  if (/novelty|whisper|cellos|bahh|zarvox|bells/.test(n)) s -= 6; // skip joke voices
+  return s;
+}
+function _pickInnerVoiceImproved() {
+  if (!voicesLoaded.length) loadVoices();
+  if (!voicesLoaded.length) return null;
+  const stored = (typeof appSettings !== 'undefined' && appSettings.soulVoiceName) ? appSettings.soulVoiceName : null;
+  if (stored) {
+    const m = voicesLoaded.find(v => v.name === stored);
+    if (m) return m;
+  }
+  const en = voicesLoaded.filter(v => /^en[-_]/i.test(v.lang));
+  const pool = en.length ? en : voicesLoaded.slice();
+  const filtered = (typeof voiceGender !== 'undefined' && voiceGender) ? pool.filter(v => {
+    const n = (v.name || '').toLowerCase();
+    if (voiceGender === 'female') return !/daniel|alex|aaron|oliver|fred|tom|male/.test(n);
+    if (voiceGender === 'male') return !/samantha|karen|moira|tessa|victoria|ava|allison|kate|serena|jenny|aria|female/.test(n);
+    return true;
+  }) : pool;
+  const ranked = (filtered.length ? filtered : pool).slice().sort((a, b) => _voiceQualityScore(b) - _voiceQualityScore(a));
+  return ranked[0] || voicesLoaded[0];
+}
+// override the original
+if (typeof pickInnerVoice === 'function') { pickInnerVoice = _pickInnerVoiceImproved; }
+
+// Speak each paragraph as its own utterance — gives natural pauses between thoughts.
+function _speakSoulMulti(text) {
+  if (typeof speechSynthesis === 'undefined') return;
+  try { speechSynthesis.cancel(); } catch(e){}
+  const paragraphs = String(text || '').split(/\n\n+/).map(s => s.trim()).filter(Boolean);
+  if (!paragraphs.length) return;
+  const level = (typeof getTrustLevel === 'function') ? getTrustLevel() : { muffle: 0 };
+  const v = _pickInnerVoiceImproved();
+  // pitch: pitch-match the user's voice if captured
+  let basePitch = 0.96; // CONDUCTOR: slightly under 1.0 for warmth
+  if (typeof voicePitch !== 'undefined' && voicePitch) {
+    const targetPitch = (typeof voiceGender !== 'undefined' && voiceGender === 'female') ? 200 : 120;
+    basePitch = Math.max(0.78, Math.min(1.15, (voicePitch / targetPitch) * 0.95));
+  }
+  const pitch = Math.max(0.5, basePitch - level.muffle * 0.22);
+  const rateBase = (typeof appSettings !== 'undefined' && appSettings.soulRate) ? appSettings.soulRate : 0.86; // contemplative
+  const rate = Math.max(0.72, Math.min(1.0, rateBase - level.muffle * 0.12));
+  const volume = Math.max(0.6, 1.0 - level.muffle * 0.30);
+  const orb = document.getElementById('innerSelfOrb');
+  let i = 0;
+  const speakNext = () => {
+    if (i >= paragraphs.length) { if (orb) { orb.classList.remove('speaking'); ['muffled-deep','muffled-mid','muffled-light'].forEach(c => orb.classList.remove(c)); } return; }
+    const utt = new SpeechSynthesisUtterance(paragraphs[i]);
+    if (v) utt.voice = v;
+    utt.pitch = pitch; utt.rate = rate; utt.volume = volume;
+    utt.onstart = () => { if (orb && i === 0) { orb.classList.add('speaking'); if (level.orbClass) orb.classList.add(level.orbClass); } };
+    utt.onend = () => { i++; setTimeout(speakNext, 360); };
+    utt.onerror = (e) => { console.warn('TTS', e && e.error); i++; setTimeout(speakNext, 200); };
+    try { speechSynthesis.speak(utt); } catch(e){}
+  };
+  setTimeout(speakNext, 80);
+}
+// override speakAsInnerSelf to route through the multi-utterance speaker
+if (typeof speakAsInnerSelf === 'function') {
+  speakAsInnerSelf = function (text) {
+    if (voicesLoaded.length === 0) { loadVoices(); setTimeout(() => _speakSoulMulti(text), 260); return; }
+    _speakSoulMulti(text);
+  };
+}
+
+// =================== SETTINGS · Soul Voice picker (added next to existing settings) ===================
+(function ensureSoulVoiceSettings() {
+  const sec = document.querySelector('.set-section') || document.body;
+  if (!sec || document.getElementById('soulVoiceRow')) return;
+  const row = document.createElement('div'); row.className = 'set-row'; row.id = 'soulVoiceRow';
+  row.style.cssText = 'display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06);';
+  row.innerHTML = '<div style="flex:1;min-width:0;"><div class="set-row-name" style="font-size:14px;font-weight:500;">Soul voice</div><div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Pick how your Inner Self sounds aloud.</div></div><select id="soulVoiceSelect" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:var(--text);padding:8px 10px;border-radius:10px;font-size:12px;max-width:170px;"></select>';
+  const insertBefore = document.querySelector('#settingsOverlay .set-section:last-child') || sec;
+  insertBefore.appendChild(row);
+  const sel = document.getElementById('soulVoiceSelect');
+  function fillVoices() {
+    if (!voicesLoaded.length) loadVoices();
+    sel.innerHTML = '';
+    const auto = document.createElement('option'); auto.value = ''; auto.textContent = 'Auto · best available'; sel.appendChild(auto);
+    voicesLoaded
+      .filter(v => /^en[-_]/i.test(v.lang))
+      .sort((a,b) => _voiceQualityScore(b) - _voiceQualityScore(a))
+      .forEach(v => { const o = document.createElement('option'); o.value = v.name; o.textContent = v.name + ' · ' + v.lang; sel.appendChild(o); });
+    if (typeof appSettings !== 'undefined' && appSettings.soulVoiceName) sel.value = appSettings.soulVoiceName;
+  }
+  fillVoices();
+  if (typeof speechSynthesis !== 'undefined') speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', fillVoices);
+  sel.addEventListener('change', () => {
+    if (typeof appSettings === 'undefined') return;
+    appSettings.soulVoiceName = sel.value || '';
+    if (typeof saveSettings === 'function') saveSettings();
+    // sample
+    _speakSoulMulti('This is how I sound now. I am already here.');
+  });
+})();
+
+
 renderLadder();
 </script>
 <meta id="brighterMark" data-applied="1">
