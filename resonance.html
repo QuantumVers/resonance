@@ -2284,6 +2284,43 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .depth-library summary::-webkit-details-marker { display: none; }
 .depth-library summary::after { content: '+'; font-weight: 300; font-size: 22px; color: var(--text-faint); transition: transform .3s; }
 .depth-library[open] summary::after { transform: rotate(45deg); }
+/* ============ COORD · LETTER TO YOUR FUTURE SELF ============ */
+.lobby-letter-btn {
+  margin: 10px auto 0; display: inline-flex; align-items: center; gap: 10px;
+  padding: 10px 20px 10px 16px; border-radius: 100px;
+  background: linear-gradient(180deg, rgba(255,184,0,0.10) 0%, rgba(255,184,0,0.02) 100%), rgba(20,20,28,0.55);
+  border: 1px solid rgba(255,184,0,0.30);
+  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 0 22px rgba(255,184,0,0.12), 0 8px 24px rgba(0,0,0,0.35);
+  color: var(--text); font-size: 12px; letter-spacing: 0.8px; font-weight: 600;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+.lobby-letter-btn.delivered { border-color: rgba(255,184,0,0.6); box-shadow: 0 0 32px rgba(255,184,0,0.4), 0 8px 24px rgba(0,0,0,0.35); animation: letterDeliveredPulse 3s ease-in-out infinite; }
+@keyframes letterDeliveredPulse { 0%, 100% { box-shadow: 0 0 32px rgba(255,184,0,0.35), 0 8px 24px rgba(0,0,0,0.35); } 50% { box-shadow: 0 0 48px rgba(255,184,0,0.6), 0 8px 24px rgba(0,0,0,0.35); } }
+.lobby-letter-btn .ll-glyph { color: var(--gold); font-size: 14px; filter: drop-shadow(0 0 6px var(--gold)); }
+.lobby-letter-btn .ll-arrow { color: var(--gold); font-weight: 700; }
+.lobby-letter-btn:active { transform: scale(0.97); }
+.letter-modal { position: fixed; inset: 0; z-index: 600; display: none; align-items: center; justify-content: center; padding: 20px; }
+.letter-modal.show { display: flex; animation: gateIn 0.45s var(--ease); }
+.letter-modal .letter-modal-bg { position: absolute; inset: 0; background: rgba(2,2,3,0.78); backdrop-filter: blur(8px); }
+.letter-modal .letter-modal-card {
+  position: relative; max-width: 460px; width: 100%; max-height: 85vh; overflow-y: auto;
+  padding: 26px 24px 24px; border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%), rgba(15,15,22,0.95);
+  border: 1px solid rgba(255,184,0,0.35);
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 50px rgba(255,184,0,0.15);
+}
+.letter-modal .lt-eyebrow { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 8px; }
+.letter-modal .lt-title { font-size: 22px; font-weight: 200; letter-spacing: -0.01em; line-height: 1.2; margin-bottom: 10px; }
+.letter-modal .lt-title b { color: var(--gold); font-weight: 400; }
+.letter-modal .lt-sub { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 13.5px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px; }
+.letter-modal .lt-textarea { width: 100%; min-height: 180px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; color: var(--text); font-size: 14px; line-height: 1.6; font-family: Georgia, "Times New Roman", serif; outline: none; resize: vertical; }
+.letter-modal .lt-textarea:focus { border-color: rgba(255,184,0,0.4); }
+.letter-modal .lt-letter-paper { padding: 18px 20px; border-radius: 14px; background: radial-gradient(circle at 50% 0%, rgba(255,184,0,0.08), transparent 70%), rgba(255,255,255,0.025); border: 1px solid rgba(255,184,0,0.18); font-family: Georgia, "Times New Roman", serif; font-size: 15px; line-height: 1.7; color: var(--text); white-space: pre-wrap; max-height: 50vh; overflow-y: auto; margin-bottom: 18px; }
+.letter-modal .lt-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+/* ============ /COORD ============ */
+
 /* ============ COORD · GLOSSARY ============ */
 .depth-glossary { margin: 14px 0 10px; border-top: 1px solid var(--border); padding-top: 16px; }
 .depth-glossary summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; }
@@ -4184,6 +4221,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <span class="lfn-text"><span class="lfn-souls" id="lfnSouls">—</span> souls breathing at <span class="lfn-hz" id="lfnHz">—</span><span class="lfn-u"> Hz</span> right now.</span>
       </div>
       <button class="lobby-soul-btn" id="lobbySoulBtn"><span class="ls-glyph">◐</span><span class="ls-label">Talk to your soul</span><span class="ls-arrow">→</span></button>
+      <!-- COORD · Letter to your future self — weekly ritual; sealed 30 days; "you have mail" when one arrives -->
+      <button class="lobby-letter-btn" id="lobbyLetterBtn" style="display:none;"><span class="ll-glyph">✉</span><span class="ll-label" id="lobbyLetterLabel">Write to your future self</span><span class="ll-arrow">→</span></button>
     </div>
     <!-- ============ LEGACY HUB MODULES — kept hidden so the old render targets remain (we'll relocate them into Depth/Ascend in subsequent commits) ============ -->
     <div id="legacyHubModules" style="display:none;">
@@ -5284,6 +5323,34 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 </div>
 
 <!-- ================= LOCKER · per-frequency detail + note input ================= -->
+<!-- COORD · Letter to your future self — write modal + delivery modal -->
+<div class="letter-modal" id="letterWriteModal">
+  <div class="letter-modal-bg"></div>
+  <div class="letter-modal-card">
+    <button class="inner-self-close" id="letterWriteClose">✕</button>
+    <div class="lt-eyebrow">A letter to your future self</div>
+    <div class="lt-title">Write it. Seal it. It opens in <b>30 days</b>.</div>
+    <div class="lt-sub">No one else will read this. Not even you, until the seal breaks. Tell yourself what's true right now — the version of you a month from now will need to remember.</div>
+    <textarea class="lt-textarea" id="letterWriteText" placeholder="Right now, here is what is true for me…" maxlength="2000"></textarea>
+    <div class="lt-actions">
+      <button class="btn" id="letterWriteCancel">Not now</button>
+      <button class="btn primary" id="letterWriteSeal">Seal & send forward</button>
+    </div>
+  </div>
+</div>
+<div class="letter-modal" id="letterDeliveryModal">
+  <div class="letter-modal-bg"></div>
+  <div class="letter-modal-card">
+    <button class="inner-self-close" id="letterDeliveryClose">✕</button>
+    <div class="lt-eyebrow" id="letterDeliveryEyebrow">A letter has arrived</div>
+    <div class="lt-title">From you, <span id="letterDeliveryWhen">30 days ago</span>.</div>
+    <div class="lt-letter-paper" id="letterDeliveryBody">—</div>
+    <div class="lt-actions">
+      <button class="btn primary" id="letterDeliveryDone">Hold it. Carry it forward.</button>
+    </div>
+  </div>
+</div>
+
 <div class="locker-modal" id="lockerModal">
   <div class="locker-modal-bg" id="lockerModalBg"></div>
   <div class="locker-modal-card">
@@ -12802,7 +12869,76 @@ function renderLobby() {
   if (typeof _applyOrbMood === 'function') _applyOrbMood();
   // COORD: the user's personal sigil
   if (typeof _renderSigil === 'function') _renderSigil();
+  // COORD: letter button visibility
+  if (typeof _renderLetterBtn === 'function') _renderLetterBtn();
 }
+// ============ COORD · LETTER TO YOUR FUTURE SELF ============
+// Weekly ritual. Write a sealed letter; it opens 30 days later. The button surfaces in three
+// states on the lobby:
+//   1. "Write to your future self" — visible if no letter sent this calendar week
+//   2. hidden — visible only if you wrote one this week (no nag)
+//   3. "A letter has arrived" (glowing gold) — visible if a sealed letter has matured
+const _LETTERS_KEY = 'resonance_letters';
+function _loadLetters() { try { const v = JSON.parse(localStorage.getItem(_LETTERS_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch(e){ return []; } }
+function _saveLetters(arr) { try { localStorage.setItem(_LETTERS_KEY, JSON.stringify(arr.slice(-50))); } catch(e){} }
+function _isoWeek(d) { d = d || new Date(); const t = new Date(d.getTime()); t.setHours(0,0,0,0); t.setDate(t.getDate() + 4 - (t.getDay() || 7)); const ys = new Date(t.getFullYear(), 0, 1); return t.getFullYear() + '-W' + String(Math.ceil((((t - ys) / 86400000) + 1) / 7)).padStart(2,'0'); }
+function _hasDeliveredLetter() { return _loadLetters().some(l => !l.opened && l.deliverAt && l.deliverAt <= Date.now()); }
+function _hasLetterThisWeek() { const week = _isoWeek(); return _loadLetters().some(l => l.weekWritten === week); }
+function _renderLetterBtn() {
+  const btn = document.getElementById('lobbyLetterBtn'); if (!btn) return;
+  const label = document.getElementById('lobbyLetterLabel');
+  const delivered = _hasDeliveredLetter();
+  if (delivered) {
+    btn.style.display = ''; btn.classList.add('delivered'); btn.dataset.mode = 'open';
+    label.textContent = 'A letter has arrived ✦';
+    return;
+  }
+  btn.classList.remove('delivered');
+  if (_hasLetterThisWeek()) { btn.style.display = 'none'; return; }
+  btn.style.display = ''; btn.dataset.mode = 'write';
+  label.textContent = 'Write to your future self';
+}
+function _openLetterWriteModal() {
+  const ov = document.getElementById('letterWriteModal'); if (!ov) return;
+  document.getElementById('letterWriteText').value = '';
+  ov.classList.add('show');
+  setTimeout(() => { document.getElementById('letterWriteText').focus(); }, 250);
+}
+function _openLetterDeliveryModal(letter) {
+  const ov = document.getElementById('letterDeliveryModal'); if (!ov) return;
+  const days = Math.round((Date.now() - letter.writtenAt) / 86400000);
+  document.getElementById('letterDeliveryWhen').textContent = days + ' days ago';
+  document.getElementById('letterDeliveryBody').textContent = letter.body;
+  ov.classList.add('show');
+}
+{ const b = document.getElementById('lobbyLetterBtn'); if (b) b.addEventListener('click', () => {
+  if (b.dataset.mode === 'open') {
+    const delivered = _loadLetters().find(l => !l.opened && l.deliverAt && l.deliverAt <= Date.now());
+    if (delivered) _openLetterDeliveryModal(delivered);
+  } else { _openLetterWriteModal(); }
+}); }
+{ const b = document.getElementById('letterWriteClose'); if (b) b.addEventListener('click', () => document.getElementById('letterWriteModal').classList.remove('show')); }
+{ const b = document.getElementById('letterWriteCancel'); if (b) b.addEventListener('click', () => document.getElementById('letterWriteModal').classList.remove('show')); }
+{ const b = document.getElementById('letterWriteSeal'); if (b) b.addEventListener('click', () => {
+  const body = (document.getElementById('letterWriteText').value || '').trim();
+  if (body.length < 12) { if (typeof toast === 'function') toast('A letter to yourself deserves more than this.', 'warn'); return; }
+  const letter = { writtenAt: Date.now(), deliverAt: Date.now() + 30 * 86400000, body, weekWritten: _isoWeek(), opened: false };
+  const arr = _loadLetters(); arr.push(letter); _saveLetters(arr);
+  document.getElementById('letterWriteModal').classList.remove('show');
+  if (typeof notify === 'function') notify('Sealed', 'It opens in 30 days. You won’t see it again until then.', '✉', '#ffb800');
+  else if (typeof toast === 'function') toast('Sealed. It opens in 30 days.', 'ok');
+  _renderLetterBtn();
+}); }
+{ const b = document.getElementById('letterDeliveryClose'); if (b) b.addEventListener('click', () => document.getElementById('letterDeliveryModal').classList.remove('show')); }
+{ const b = document.getElementById('letterDeliveryDone'); if (b) b.addEventListener('click', () => {
+  const arr = _loadLetters();
+  for (const l of arr) if (!l.opened && l.deliverAt && l.deliverAt <= Date.now()) { l.opened = true; l.openedAt = Date.now(); break; }
+  _saveLetters(arr);
+  document.getElementById('letterDeliveryModal').classList.remove('show');
+  _renderLetterBtn();
+}); }
+// ============ /COORD ============
+
 // ============ COORD · SIGIL ============
 // A unique geometric sigil per user — deterministically generated from their name's
 // numerology, birth date, and tradition. SVG, no images. Lives on the lobby (small) and is
