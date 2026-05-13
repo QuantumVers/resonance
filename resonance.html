@@ -9641,6 +9641,12 @@ document.getElementById('setImportBtn').addEventListener('click', () => {
   const payload = _importArmed; _importArmed = null;
   // Snapshot current state so the user can roll back if the import was wrong.
   try { if (window.RState && RState.snapshot) RState.snapshot(); } catch (e) {}
+  // Preserve THIS device's install_meta (clientId, firstOpenedAt) across imports —
+  // the clientId is a device identity, not a profile identity. We keep our own and
+  // append the imported one to an `imported_from` history field so the lineage is
+  // still recorded.
+  let preservedInstallMeta = null;
+  try { preservedInstallMeta = (window.RState && RState.get('install_meta')) || null; } catch (e) {}
   // Clear existing resonance_* keys first, then write the imported ones.
   const existing = (window.RState && RState.listKeys) ? RState.listKeys() : (function () {
     const k = []; for (let i = 0; i < localStorage.length; i++) { const x = localStorage.key(i); if (x && x.indexOf('resonance_') === 0) k.push(x); } return k;
@@ -9651,6 +9657,16 @@ document.getElementById('setImportBtn').addEventListener('click', () => {
     const v = payload[k];
     try { localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)); } catch (err) {}
   });
+  // Restore our device's install_meta, recording the imported one as lineage.
+  if (preservedInstallMeta && preservedInstallMeta.clientId) {
+    const importedMeta = (payload && payload['resonance_install_meta']) || null;
+    const lineage = preservedInstallMeta.importedFrom || [];
+    if (importedMeta && importedMeta.clientId && importedMeta.clientId !== preservedInstallMeta.clientId) {
+      lineage.push({ clientId: importedMeta.clientId, firstOpenedAt: importedMeta.firstOpenedAt || null, importedAt: Date.now() });
+    }
+    preservedInstallMeta.importedFrom = lineage;
+    try { localStorage.setItem('resonance_install_meta', JSON.stringify(preservedInstallMeta)); } catch (e) {}
+  }
   if (typeof toast === 'function') toast('Imported — reloading', 'ok');
   setTimeout(() => location.reload(), 900);
 });
