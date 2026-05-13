@@ -1946,6 +1946,51 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .badge-emoji { font-size: 28px; margin-bottom: 4px; filter: drop-shadow(0 0 8px currentColor); }
 .badge-name { font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
 
+/* ============ LOBBY (Home tab — pure lobby, no feed) ============ */
+.lobby {
+  min-height: calc(100dvh - 140px); display: flex; flex-direction: column; align-items: center;
+  padding: 18px 24px 0; gap: 0; position: relative;
+}
+.lobby-greet { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 18px; color: var(--text); margin-top: 4px; opacity: 0.92; text-align: center; }
+.lobby-orb {
+  margin: 32px auto 28px; width: min(72vw, 320px); aspect-ratio: 1; position: relative;
+  background: transparent; border: 0; padding: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.lobby-orb .lo-core {
+  position: absolute; inset: 14%; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), var(--violet) 38%, rgba(15,5,40,0.95) 100%);
+  box-shadow: 0 0 80px var(--violet), 0 0 24px rgba(255,255,255,0.18), inset 0 0 40px rgba(255,255,255,0.10);
+  animation: lobbyPulse 3.2s ease-in-out infinite;
+  transition: transform .4s var(--pop), box-shadow .4s var(--ease);
+}
+.lobby-orb:active .lo-core { transform: scale(0.96); box-shadow: 0 0 120px var(--mint), 0 0 24px rgba(255,255,255,0.3); }
+.lobby-orb .lo-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,0.10); pointer-events: none; }
+.lobby-orb .lo-ring-a { animation: lobbyRing 4s ease-out infinite; }
+.lobby-orb .lo-ring-b { animation: lobbyRing 4s ease-out infinite; animation-delay: 2s; }
+.lobby-orb .lo-label {
+  position: absolute; bottom: -34px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; letter-spacing: 6px; text-transform: uppercase; font-weight: 700; color: var(--text);
+  white-space: nowrap;
+}
+@keyframes lobbyPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes lobbyRing { 0% { transform: scale(0.92); opacity: 0.45; } 100% { transform: scale(1.18); opacity: 0; } }
+.lobby-hud {
+  margin: 50px auto 0; display: flex; align-items: center; gap: 14px;
+  padding: 11px 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 100px; backdrop-filter: blur(20px);
+}
+.lobby-hud .lh-cell { text-align: center; }
+.lobby-hud .lh-k { font-family: ui-monospace, 'SF Mono', monospace; font-size: 13px; color: var(--text); letter-spacing: 1px; font-weight: 600; line-height: 1; }
+.lobby-hud .lh-l { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-top: 4px; }
+.lobby-hud .lh-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.10); }
+.lobby-quest {
+  margin: 22px auto 0; max-width: 320px; text-align: center;
+  font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 14px; line-height: 1.55; color: var(--text-dim);
+}
+
 .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; padding: 12px 20px calc(20px + env(safe-area-inset-bottom, 8px)); background: linear-gradient(0deg, rgba(5,5,7,0.95) 60%, transparent); backdrop-filter: blur(30px); z-index: 100; }
 .tab-bar-inner { display: flex; align-items: center; justify-content: space-around; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; padding: 6px; backdrop-filter: blur(40px); }
 .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border-radius: 100px; color: var(--text-faint); transition: color 0.2s var(--ease); }
@@ -3587,7 +3632,27 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
   </div>
 
-  <div class="page active" id="page-feed">
+  <div class="page active" id="page-home">
+    <!-- ============ LOBBY ============ -->
+    <div class="lobby" id="lobby">
+      <div class="lobby-greet" id="lobbyGreet">Welcome</div>
+      <button class="lobby-orb" id="lobbyOrb" aria-label="Begin Sync">
+        <div class="lo-ring lo-ring-a"></div>
+        <div class="lo-ring lo-ring-b"></div>
+        <div class="lo-core" id="lobbyOrbCore"></div>
+        <div class="lo-label">Begin Sync</div>
+      </button>
+      <div class="lobby-hud" id="lobbyHud">
+        <div class="lh-cell"><div class="lh-k" id="lhTier">—</div><div class="lh-l">Tier</div></div>
+        <div class="lh-sep"></div>
+        <div class="lh-cell"><div class="lh-k" id="lhAwk">0/9</div><div class="lh-l">Awakenings</div></div>
+        <div class="lh-sep"></div>
+        <div class="lh-cell"><div class="lh-k" id="lhStreak">0</div><div class="lh-l">Day-Streak</div></div>
+      </div>
+      <div class="lobby-quest" id="lobbyQuest">Hold 528 Hz for 30 seconds today.</div>
+    </div>
+    <!-- ============ LEGACY HUB MODULES — kept hidden so the old render targets remain (we'll relocate them into Depth/Ascend in subsequent commits) ============ -->
+    <div id="legacyHubModules" style="display:none;">
     <div class="feed-v2">
       <!-- Hero: your current frequency state -->
       <div class="freq-hero" id="freqHero">
@@ -3683,6 +3748,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         </div>
       </div>
     </div>
+    </div><!-- /legacyHubModules -->
   </div>
 
   <!-- Memory modal -->
@@ -3768,7 +3834,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
   </div>
 
-  <div class="page" id="page-discover">
+  <div class="page" id="page-ascend">
     <div class="ascend-page">
       <div class="ascend-header">
         <div class="ascend-eyebrow">The Path Inward</div>
@@ -3854,7 +3920,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
   </div>
 
-  <div class="page" id="page-library">
+  <div class="page" id="page-depth">
     <div class="library-page">
       <div class="library-tabs">
         <button class="lib-tab active" data-tab="divine">Divine</button>
@@ -3907,7 +3973,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     </div>
   </div>
 
-  <div class="page" id="page-you">
+  <div class="page" id="page-council">
     <div class="profile-page">
       <div class="profile-hero">
         <div class="profile-avatar" style="position:relative;"><div id="profileAvatar">E</div><div class="avatar-plate-badge" id="profileAvatarPlateBadge"></div></div>
@@ -3966,11 +4032,11 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
 
   <div class="tab-bar">
     <div class="tab-bar-inner">
-      <button class="tab-btn active" data-tab="feed"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h14V10"/></svg><span>Feed</span></button>
-      <button class="tab-btn" data-tab="discover"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L4 9h4v11h8V9h4z"/></svg><span>Ascend</span></button>
+      <button class="tab-btn active" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h14V10"/></svg><span>Home</span></button>
       <button class="tab-btn sync-tab" data-tab="sync"><div class="sync-icon"><div>◎</div></div><span>Sync</span></button>
-      <button class="tab-btn" data-tab="library"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6v15M4 6a2 2 0 012-2h12a2 2 0 012 2v15M9 21V9h6v12"/></svg><span>Library</span></button>
-      <button class="tab-btn" data-tab="you"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>You</span></button>
+      <button class="tab-btn" data-tab="depth"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6v15M4 6a2 2 0 012-2h12a2 2 0 012 2v15M9 21V9h6v12"/></svg><span>Depth</span></button>
+      <button class="tab-btn" data-tab="ascend"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L4 9h4v11h8V9h4z"/></svg><span>Ascend</span></button>
+      <button class="tab-btn" data-tab="council"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Council</span></button>
     </div>
   </div>
 </div>
@@ -6029,15 +6095,9 @@ function detectMicFrequency() {
   requestAnimationFrame(detectMicFrequency);
 }
 
-// TABS
+// TABS — delegate to gotoTab so the alias map + per-tab render hooks run
 document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + btn.dataset.tab).classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  btn.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab(btn.dataset.tab); });
 });
 document.getElementById('micBtn').addEventListener('click', async () => { await ensureAudio(); toggleMic(); });
 
@@ -7882,9 +7942,13 @@ _manualPlayBtn.addEventListener('click', () => {
 
 // =================== TAB HELPER ===================
 function gotoTab(name) {
+  // alias old tab names to the new IA: Home / Sync / Depth / Ascend / Council
+  const ALIAS = { feed: 'home', discover: 'ascend', library: 'depth', you: 'council' };
+  name = ALIAS[name] || name;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'home' && typeof renderLobby === 'function') renderLobby();
 }
 
 // =================== SHARE THIS MOMENT ===================
@@ -10612,6 +10676,54 @@ function renderRisingCard() {
 renderRisingCard();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderRisingCard, 2500));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderRisingCard, 2500));
+
+// =================== HOME LOBBY ===================
+// Pure lobby. One job: tap the orb → Sync. Greeting + HUD + a single quest line.
+function _lobbyTradGreet() {
+  const t = (typeof traditions !== 'undefined' && typeof userProfile !== 'undefined') ? traditions[userProfile.tradition || 'universal'] : null;
+  const word = (t && t.greeting) ? t.greeting : 'Welcome';
+  const name = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name.split(' ')[0] : 'soul';
+  return word + ', ' + name;
+}
+function _lobbyDailyQuestHz() {
+  const POOL = [174, 285, 396, 417, 432, 528, 639, 741, 852, 963];
+  return (typeof _dayPick === 'function') ? _dayPick(POOL, 'lobbyQ') : 528;
+}
+function renderLobby() {
+  const greet = document.getElementById('lobbyGreet'); if (greet) greet.textContent = _lobbyTradGreet();
+  // orb color: match the user's current frequency
+  const core = document.getElementById('lobbyOrbCore');
+  if (core && typeof hzToColor === 'function' && typeof userFreq !== 'undefined') {
+    const [, c2] = hzToColor(userFreq);
+    core.style.background = 'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), ' + c2 + ' 38%, rgba(15,5,40,0.95) 100%)';
+    core.style.boxShadow = '0 0 80px ' + c2 + ', 0 0 24px rgba(255,255,255,0.18), inset 0 0 40px rgba(255,255,255,0.10)';
+  }
+  // HUD
+  const tEl = document.getElementById('lhTier');
+  if (tEl && typeof getCurrentTier === 'function' && typeof userFreq !== 'undefined') {
+    const tier = getCurrentTier(userFreq); tEl.textContent = (tier && tier.name) ? tier.name : '—';
+  }
+  const aEl = document.getElementById('lhAwk');
+  if (aEl) {
+    const c = (typeof awakenedCount === 'function') ? awakenedCount() : 0;
+    const total = (typeof AWAKENINGS !== 'undefined' && AWAKENINGS.length) ? Math.min(9, AWAKENINGS.length) : 9;
+    aEl.textContent = Math.min(c, total) + '/' + total;
+  }
+  const sEl = document.getElementById('lhStreak');
+  if (sEl) sEl.textContent = (typeof streakData !== 'undefined' && streakData.count) ? streakData.count : 0;
+  // quest line — today's hold
+  const qEl = document.getElementById('lobbyQuest');
+  if (qEl) {
+    const hz = _lobbyDailyQuestHz();
+    qEl.textContent = 'Hold ' + hz + ' Hz for 60 seconds today.';
+  }
+}
+{ const b = document.getElementById('lobbyOrb'); if (b) b.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('sync'); if (typeof ensureAudio === 'function') ensureAudio(); }); }
+// re-render lobby when the user's frequency changes (wrap applyFrequency once more)
+(function(){ if (typeof applyFrequency === 'function') { const _af = applyFrequency; applyFrequency = function(hz, fromSlider){ _af(hz, fromSlider); if (typeof renderLobby === 'function') renderLobby(); }; } })();
+document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
+document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
+renderLobby();
 
 renderLadder();
 </script>
