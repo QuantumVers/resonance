@@ -5641,6 +5641,94 @@ const userProfile = {
   tradition: null
 };
 
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · VALIDATORS + CORRUPTION RECOVERY ===================
+// Each known key gets a tiny schema (shape predicate + default builder). On read,
+// RState passes the value through the validator; if it doesn't fit, it returns the
+// default AND quarantines the bad value into resonance__quarantine_<key>_<ts>.
+// That way nothing user-visible breaks, but the bad payload is preserved for
+// inspection if a bug or import corrupted state.
+(function () {
+  if (!window.RState) return;
+
+  const isArr = v => Array.isArray(v);
+  const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+  const isStr = v => typeof v === 'string';
+  const isNum = v => typeof v === 'number' && !isNaN(v);
+  const isFiniteNum = v => isNum(v) && isFinite(v);
+
+  const schemas = {
+    settings:      { ok: v => isObj(v),                                          def: () => ({ volume: 80, notify: false, theme: 'violet', quietMetrics: false, tier: 'free' }) },
+    streak:        { ok: v => isObj(v) && isNum(v.count),                        def: () => ({ count: 0, lastDay: null }) },
+    stats:         { ok: v => isObj(v) && isNum(v.sessions),                     def: () => ({ sessions: 0, syncedMs: 0, totalMs: 0, songCounts: {} }) },
+    closeness:     { ok: v => isStr(v) && !isNaN(parseFloat(v)),                 def: () => '0' },
+    trust:         { ok: v => isStr(v) && !isNaN(parseFloat(v)),                 def: () => '0' },
+    lastopen:      { ok: v => isStr(v) && /^\d+$/.test(v),                       def: () => String(Date.now()) },
+    modes:         { ok: v => isObj(v),                                          def: () => ({ binaural: false, harmonics: false, mirror: false, breath: false }) },
+    memories:      { ok: v => isArr(v),                                          def: () => [] },
+    instruments:   { ok: v => isArr(v),                                          def: () => [] },
+    beats:         { ok: v => isArr(v),                                          def: () => [] },
+    awakenings:    { ok: v => isArr(v) && v.every(x => isStr(x)),                def: () => [] },
+    inner_chat:    { ok: v => isArr(v),                                          def: () => [] },
+    plates:        { ok: v => isObj(v) && isArr(v.earned),                       def: () => ({ firstDay: null, daysAtHome: 0, lastHomeDay: null, earned: [] }) },
+    pass:          { ok: v => isObj(v) && isNum(v.idx) && isNum(v.depth) && isArr(v.claimed), def: () => ({ idx: 0, depth: 0, claimed: [] }) },
+    cosmetics:     { ok: v => isArr(v),                                          def: () => [] },
+    convergences:  { ok: v => isArr(v),                                          def: () => [] },
+    gratitudes_given: { ok: v => isArr(v),                                       def: () => [] },
+    risings:       { ok: v => isArr(v),                                          def: () => [] },
+    songs:         { ok: v => isArr(v),                                          def: () => [] },
+    freq_locker:   { ok: v => isObj(v),                                          def: () => ({}) },
+    council_application: { ok: v => isObj(v),                                    def: () => null },
+    challenges:    { ok: v => isObj(v),                                          def: () => null },
+    identity:      { ok: v => isObj(v),                                          def: () => null },
+    install_meta:  { ok: v => isObj(v) && isStr(v.clientId),                     def: () => null },
+    day_visits:    { ok: v => isArr(v) && v.every(x => isStr(x)),                def: () => [] },
+    longest_streak:{ ok: v => isFiniteNum(v),                                    def: () => 0 },
+    snapshot_history: { ok: v => isArr(v),                                       def: () => [] },
+    housekeeping:  { ok: v => isObj(v),                                          def: () => ({}) },
+    tab_heartbeat: { ok: v => isObj(v),                                          def: () => null }
+  };
+
+  // Wrap RState.get to validate when a schema exists for the key.
+  const _origGet = RState.get;
+  RState.get = function (name, fallback) {
+    const v = _origGet.call(RState, name, fallback);
+    const bare = (typeof name === 'string') ? (name.indexOf(RState.PREFIX) === 0 ? name.slice(RState.PREFIX.length) : name) : name;
+    const schema = schemas[bare];
+    if (!schema || v == null) return v;
+    if (schema.ok(v)) return v;
+    // Quarantine the bad value and return the default.
+    try {
+      const fullKey = (name.indexOf(RState.PREFIX) === 0 ? name : RState.PREFIX + name);
+      RState._raw.setRaw('resonance__quarantine_' + bare + '_' + Date.now(), RState._raw.getRaw(fullKey));
+      console.warn('[RState] quarantined invalid', bare);
+    } catch (e) {}
+    const def = (typeof schema.def === 'function') ? schema.def() : null;
+    return def;
+  };
+
+  // Expose the schema list for tests / future tooling.
+  RState.schemas = schemas;
+
+  // Sanity check pass on boot — touch every known key once so quarantine fires
+  // before any UI consumes a bad value.
+  RState.validateAll = function () {
+    const out = { ok: [], quarantined: [] };
+    Object.keys(schemas).forEach(k => {
+      const fullKey = RState.PREFIX + k;
+      if (RState._raw.getRaw(fullKey) == null) return;
+      const v = RState.get(k);
+      // After the wrapped get, quarantined keys have the default returned. We can
+      // detect a quarantine by checking storage for a fresh quarantine key — but
+      // simpler: just track what schema.ok says now.
+      if (v == null || schemas[k].ok(v)) out.ok.push(k); else out.quarantined.push(k);
+    });
+    return out;
+  };
+  try { RState.validateAll(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
+
 // =================== DATA_AGENT · IDENTITY (persisted across reloads) ===================
 // Before this module: userProfile/userFreq/userAlignment/userPhoto lived only in memory,
 // so every reload forced the user back through the entire initiation gate. Now they're
