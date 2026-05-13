@@ -2202,6 +2202,14 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .stats-health-footer { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; flex-wrap: wrap; gap: 6px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
 .stats-health-footer .shf-dot { opacity: 0.5; }
 /* ============ /DATA_AGENT ============ */
+/* ============ DATA_AGENT · WALK RIBBON ============ */
+.depth-page .walk-ribbon { margin: 14px 0 18px; padding: 18px 18px 16px; background: linear-gradient(180deg, rgba(157,92,255,0.10) 0%, rgba(110,231,183,0.05) 100%), rgba(20,20,28,0.55); border: 1px solid rgba(157,92,255,0.32); border-radius: 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.depth-page .wr-label { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.depth-page .wr-number { font-family: Georgia, serif; font-style: italic; font-size: 38px; font-weight: 200; color: var(--text); line-height: 1.1; letter-spacing: -0.5px; }
+.depth-page .wr-sub { font-size: 11px; color: var(--text-faint); font-style: italic; font-family: Georgia, serif; }
+body.quiet-metrics .depth-page .walk-ribbon .wr-number { font-size: 28px; }
+/* ============ /DATA_AGENT ============ */
+
 
 
 .depth-library .dl-summary-lbl { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text); font-weight: 700; }
@@ -4380,6 +4388,11 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <h1>Your depth</h1>
         <p>Everything you've gathered. Everything you've made. Everything that's yours.</p>
       </div>
+        <div class="walk-ribbon" id="walkRibbon" style="display:none;">
+          <div class="wr-label">Your walk</div>
+          <div class="wr-number" id="wrNumber">—</div>
+          <div class="wr-sub" id="wrSub">since you arrived</div>
+        </div>
 
       <!-- Talk to your Inner Self — primary action -->
       <button class="depth-inner-card" id="depthInnerSelfBtn">
@@ -12714,6 +12727,35 @@ renderStatsPage();
 
   // Run on boot, gated by the 18h interval.
   try { RState.takeAutoSnapshot(false); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · WALK RIBBON ===================
+function renderWalkRibbon() {
+  const ribbon = document.getElementById('walkRibbon'); if (!ribbon) return;
+  const meta = window.__installMeta || (window.RState && RState.get('install_meta')) || null;
+  if (!meta || !meta.firstOpenedAt) { ribbon.style.display = 'none'; return; }
+  const n = (typeof dayNOfWalk === 'function') ? dayNOfWalk() : 1;
+  const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+  const numEl = document.getElementById('wrNumber');
+  const subEl = document.getElementById('wrSub');
+  if (numEl) {
+    if (quiet) numEl.textContent = n >= 365 ? 'a year and counting' : n >= 90 ? 'months in' : n >= 30 ? 'weeks in' : n >= 7 ? 'a week in' : 'just begun';
+    else numEl.textContent = 'Day ' + n;
+  }
+  if (subEl) {
+    const d = new Date(meta.firstOpenedAt);
+    const dateStr = d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+    subEl.textContent = 'since ' + dateStr;
+  }
+  ribbon.style.display = '';
+}
+(function () {
+  if (typeof renderDepth === 'function') {
+    const _rd = renderDepth;
+    renderDepth = function () { _rd.apply(this, arguments); try { renderWalkRibbon(); } catch (e) {} };
+  }
+  // initial paint
+  try { renderWalkRibbon(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
 
