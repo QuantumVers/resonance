@@ -12215,6 +12215,80 @@ renderLobby();
   const db = document.getElementById('devSkipBtn');  if (db) db.addEventListener('click', _persist);
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · STATS EXTENSIONS ===================
+// The existing appStats tracks { sessions, syncedMs } where syncedMs is the time a
+// manual tone was held. This adds:
+//   - totalMs       — total time the app has been open (any tab, any activity).
+//   - songCounts    — { [songId]: playCount } for most-played-song.
+//   - freqCounts is already covered by _freqLocker (per-Hz visit log) — that's the
+//     source of truth for favorite frequency.
+// We extend appStats in-place; saveStats() persists the whole object so additions
+// just ride along the existing key.
+(function () {
+  if (typeof appStats !== 'object' || appStats == null) return;
+  if (typeof appStats.totalMs !== 'number') appStats.totalMs = 0;
+  if (!appStats.songCounts || typeof appStats.songCounts !== 'object') appStats.songCounts = {};
+  if (typeof saveStats === 'function') saveStats();
+
+  // Heartbeat: while the app is visible, accumulate elapsed time. Saving every
+  // ~30s of accumulation keeps writes cheap but the data fresh enough to be useful.
+  let _lastTick = Date.now();
+  let _dirty = false;
+  function _tick() {
+    const now = Date.now();
+    const dt = now - _lastTick;
+    _lastTick = now;
+    if (document.visibilityState !== 'hidden' && dt > 0 && dt < 5 * 60 * 1000) {
+      appStats.totalMs = (appStats.totalMs || 0) + dt;
+      _dirty = true;
+    }
+    if (_dirty) { try { if (typeof saveStats === 'function') saveStats(); } catch (e) {} _dirty = false; }
+  }
+  setInterval(_tick, 30000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') _tick();
+    else _lastTick = Date.now();
+  });
+  window.addEventListener('beforeunload', _tick);
+})();
+
+// Wrap playSong to count plays (defines source-of-truth for "most-used soundscape").
+(function () {
+  function _wrapPlaySong() {
+    if (typeof playSong !== 'function') return false;
+    const _orig = playSong;
+    playSong = function (id) {
+      try {
+        if (id && appStats && appStats.songCounts) {
+          appStats.songCounts[id] = (appStats.songCounts[id] || 0) + 1;
+          if (typeof saveStats === 'function') saveStats();
+        }
+      } catch (e) {}
+      return _orig.apply(this, arguments);
+    };
+    return true;
+  }
+  // playSong is defined later in the script — defer one tick so it exists.
+  if (!_wrapPlaySong()) setTimeout(_wrapPlaySong, 0);
+})();
+
+// Public helpers used by the Stats page (UI in a separate commit).
+window.statsTopSong = function () {
+  const c = (appStats && appStats.songCounts) || {};
+  let best = null, n = 0;
+  Object.keys(c).forEach(k => { if (c[k] > n) { n = c[k]; best = k; } });
+  return best ? { id: best, count: n } : null;
+};
+window.statsTopFreq = function () {
+  try {
+    const locker = (typeof _freqLocker === 'object' && _freqLocker) || {};
+    const v = Object.values(locker);
+    if (!v.length) return null;
+    v.sort((a, b) => (b.count || 0) - (a.count || 0));
+    return v[0] || null;
+  } catch (e) { return null; }
+};
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
