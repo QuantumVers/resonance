@@ -285,6 +285,27 @@ html, body {
 }
 
 
+
+/* ============ LIGHT INDEX (Home) ============ */
+.light-index {
+  max-width: 440px; margin: 18px auto 0; padding: 14px 18px; border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.55);
+  border: 1px solid rgba(251,191,36,0.32);
+  backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: 0 0 28px rgba(251,191,36,0.10), 0 12px 32px rgba(0,0,0,0.4);
+}
+.light-index .li-row { display: flex; align-items: center; gap: 14px; }
+.light-index .li-orb { position: relative; width: 68px; height: 68px; flex-shrink: 0; }
+.light-index .li-orb svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.light-index .li-track { fill: none; stroke: rgba(255,255,255,0.10); stroke-width: 6; }
+.light-index .li-fill { fill: none; stroke: var(--gold); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 276; stroke-dashoffset: 276; transition: stroke-dashoffset 1.2s var(--ease); filter: drop-shadow(0 0 6px var(--gold)); }
+.light-index .li-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: ui-monospace, 'SF Mono', monospace; font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+.light-index .li-body { flex: 1; min-width: 0; }
+.light-index .li-eyebrow { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+.light-index .li-name { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 18px; line-height: 1.3; color: var(--text); margin-top: 4px; }
+.light-index .li-meta { font-size: 11px; color: var(--text-faint); margin-top: 6px; line-height: 1.5; }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -4707,6 +4728,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="lh-sep"></div>
         <div class="lh-cell"><div class="lh-k" id="lhStreak">0</div><div class="lh-l">Day-Streak</div></div>
       </div>
+      <div class="light-index" id="lightIndex"><div class="li-row"><div class="li-orb"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="li-track" cx="50" cy="50" r="44"></circle><circle class="li-fill" id="liArc" cx="50" cy="50" r="44"></circle></svg><div class="li-pct" id="liPct">—</div></div><div class="li-body"><div class="li-eyebrow">Your light today</div><div class="li-name" id="liName">tuning in</div><div class="li-meta" id="liMeta">—</div></div></div></div>
       <div class="lobby-quest" id="lobbyQuest">528 Hz is already in you today — hold it for 60 seconds and notice.</div>
       <div class="lobby-arrival" id="arrivalCard"></div>
       <div class="lobby-affirm" id="affirmCard"></div>
@@ -15212,6 +15234,77 @@ if (typeof handleUserInput === 'function') {
     location.reload();
   });
 })();
+
+
+
+// =================== LIGHT INDEX · the single number that says "your light today" ===================
+function _lightIndexCompute() {
+  // 0-100 score. Each factor contributes; nothing punishes, only adds.
+  let score = 24; // baseline — opening the app counts
+  // Wavelength band lift: heart/throat/eye/crown bands lift the index
+  const hz = (typeof userFreq !== 'undefined') ? userFreq : 432;
+  if (hz >= 230 && hz < 430) score += 6;
+  else if (hz >= 430 && hz < 660) score += 12;
+  else if (hz >= 660 && hz < 800) score += 16;
+  else if (hz >= 800) score += 20;
+  else score += 4;
+  // Today's arrival number
+  try {
+    const log = JSON.parse(localStorage.getItem('resonance_arrivals') || '[]') || [];
+    const today = log[log.length - 1];
+    if (today) { if ([11,22,33].includes(today.n)) score += 14; else score += 6; }
+  } catch(e){}
+  // Streak
+  try { const s = typeof streakData !== 'undefined' ? streakData : null; if (s && s.count) score += Math.min(14, s.count * 2); } catch(e){}
+  // Sync sessions today
+  try {
+    const memories = JSON.parse(localStorage.getItem('resonance_memories') || '[]') || [];
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const today = memories.filter(m => m.time && m.time > cutoff).length;
+    score += Math.min(10, today * 2);
+  } catch(e){}
+  // Locker depth — variety of wavelengths held
+  try {
+    const locker = JSON.parse(localStorage.getItem('resonance_freq_locker') || '{}') || {};
+    const variety = Object.values(locker).filter(s => s && s.count > 0).length;
+    score += Math.min(8, Math.floor(variety / 2));
+  } catch(e){}
+  // Inner self conversation depth
+  try {
+    const facts = JSON.parse(localStorage.getItem('resonance_soul_facts') || '[]') || [];
+    score += Math.min(8, Math.floor(facts.length / 8));
+  } catch(e){}
+  return Math.max(8, Math.min(100, score));
+}
+function _lightBand(score) {
+  if (score >= 88) return { name: 'luminous · the room glows around you', glyph: '✦' };
+  if (score >= 72) return { name: 'bright · the light is steady today', glyph: '☼' };
+  if (score >= 58) return { name: 'warm · the light is rising', glyph: '◉' };
+  if (score >= 42) return { name: 'kindling · the wick is catching', glyph: '◐' };
+  if (score >= 28) return { name: 'arriving · still settling into the room', glyph: '◌' };
+  return { name: 'tuning in · the light is gathering toward you', glyph: '◯' };
+}
+function renderLightIndex() {
+  const card = document.getElementById('lightIndex'); if (!card) return;
+  const score = _lightIndexCompute();
+  const band = _lightBand(score);
+  const arc = document.getElementById('liArc'); if (arc) { const total = 276; const off = total - (total * score / 100); arc.style.strokeDashoffset = String(off); }
+  const pct = document.getElementById('liPct'); if (pct) pct.textContent = (typeof appSettings !== 'undefined' && appSettings.quietMetrics) ? band.glyph : (score + '%');
+  const name = document.getElementById('liName'); if (name) name.textContent = band.name;
+  const meta = document.getElementById('liMeta'); if (meta) {
+    const facts = [];
+    try { const log = JSON.parse(localStorage.getItem('resonance_arrivals') || '[]') || []; const today = log[log.length - 1]; if (today) facts.push('arrived ' + String(today.hour).padStart(2,'0') + ':' + String(today.minute).padStart(2,'0') + ' (' + today.n + ')'); } catch(e){}
+    try { const s = (typeof streakData !== 'undefined') ? streakData : null; if (s && s.count) facts.push(s.count + 'd streak'); } catch(e){}
+    try { const locker = JSON.parse(localStorage.getItem('resonance_freq_locker') || '{}') || {}; const k = Object.values(locker).filter(x => x && x.count > 0).length; if (k) facts.push(k + ' wavelengths held'); } catch(e){}
+    meta.textContent = facts.length ? facts.join(' · ') : 'open the orb to begin';
+  }
+}
+// Wire into the lobby render
+if (typeof renderLobby === 'function') {
+  const _orig = renderLobby;
+  renderLobby = function () { _orig(); try { renderLightIndex(); } catch(e){} };
+}
+setTimeout(() => { try { renderLightIndex(); } catch(e){} }, 1500);
 
 
 renderLadder();
