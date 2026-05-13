@@ -6136,7 +6136,7 @@ function generateInnerResponse(userText) {
   const hz = (typeof userFreq !== 'undefined') ? userFreq : 432;
   const tradition = (typeof userProfile !== 'undefined' && userProfile.tradition) ? userProfile.tradition : 'universal';
   // recent memories for context
-  let memories = []; try { memories = (JSON.parse(localStorage.getItem('resonance_memories') || '[]') || []).slice(-5); } catch(e){}
+  let memories = []; try { memories = (window.RState ? (RState.get('memories', []) || []) : JSON.parse(localStorage.getItem('resonance_memories') || '[]')).slice(-5); } catch(e){}
   // detect the register the user is bringing
   const isDivine    = /\b(divine|sacred|holy|god|spirit|soul|source|light|blessed|grace|cosmos|universe|infinite|consciousness|presence|awakening|awakened|enlightenment|miracle|prayer)\b/i.test(text);
   const isShadow    = /\b(pain|hurt|lost|fear|afraid|alone|broken|stuck|dark|suffering|empty|numb|tired|heavy|grief|loss|angry|sad|hopeless|cry|tears|exhausted|done|anxious|anxiety|depressed|depression|hate|ashamed|shame)\b/i.test(text);
@@ -9774,10 +9774,10 @@ function _dayHash(salt) {
 }
 function _dayPick(arr, salt) { return arr[_dayHash(salt) % arr.length]; }
 function txKey() { return 'resonance_tx_' + (typeof _dayKey === 'function' ? _dayKey() : 'd'); }
-function txState() { try { const v = JSON.parse(localStorage.getItem(txKey()) || 'null'); return (v && Array.isArray(v.done)) ? v : { done: [] }; } catch (e) { return { done: [] }; } }
+function txState() { try { const v = window.RState ? RState.get(txKey()) : JSON.parse(localStorage.getItem(txKey()) || 'null'); return (v && Array.isArray(v.done)) ? v : { done: [] }; } catch (e) { return { done: [] }; } }
 function txSetDone(i) {
   const s = txState(); if (s.done.indexOf(i) === -1) s.done.push(i);
-  try { localStorage.setItem(txKey(), JSON.stringify(s)); } catch (e) {}
+  try { if (window.RState) RState.set(txKey(), s); else localStorage.setItem(txKey(), JSON.stringify(s)); } catch (e) {}
   renderTransmission();
 }
 function renderTransmission() {
@@ -9875,8 +9875,8 @@ renderTransmission();
 // One line per day. Not a feed. It reaches souls near your frequency — the closest, not the most.
 // Gone in 24 hours. No likes. If it lands, you're simply told one person needed it.
 function soulNoteKey() { return 'resonance_soulnote_' + (typeof _dayKey === 'function' ? _dayKey() : 'd'); }
-function getSoulNote() { try { return JSON.parse(localStorage.getItem(soulNoteKey()) || 'null'); } catch (e) { return null; } }
-function setSoulNote(line, freq) { try { localStorage.setItem(soulNoteKey(), JSON.stringify({ line: line, t: Date.now(), freq: freq })); } catch (e) {} }
+function getSoulNote() { try { return window.RState ? RState.get(soulNoteKey()) : JSON.parse(localStorage.getItem(soulNoteKey()) || 'null'); } catch (e) { return null; } }
+function setSoulNote(line, freq) { try { const rec = { line: line, t: Date.now(), freq: freq }; if (window.RState) RState.set(soulNoteKey(), rec); else localStorage.setItem(soulNoteKey(), JSON.stringify(rec)); } catch (e) {} }
 function renderSoulNote() {
   const slot = document.getElementById('soulNoteSlot'); if (!slot) return;
   const existing = getSoulNote();
@@ -10021,17 +10021,17 @@ document.getElementById('waveVisitBtn').addEventListener('click', async () => {
 // --- A wave received (shown once per day in the feed) ---
 function waveRxKey() { return 'resonance_wave_' + (typeof _dayKey === 'function' ? _dayKey() : 'd'); }
 function getWaveRx() {
-  try { const v = JSON.parse(localStorage.getItem(waveRxKey()) || 'null'); if (v && v.from) return v; } catch (e) {}
+  try { const v = window.RState ? RState.get(waveRxKey()) : JSON.parse(localStorage.getItem(waveRxKey()) || 'null'); if (v && v.from) return v; } catch (e) {}
   // generate one from the live souls
   const live = (typeof storyUsers !== 'undefined') ? storyUsers.filter(s => !s.you) : [];
   if (!live.length) return null;
   const pick = live[_dayHash('waverx') % live.length];
   const v = { from: pick.name, freq: pick.freq, color: pick.color1 || null, status: 'open' };
-  try { localStorage.setItem(waveRxKey(), JSON.stringify(v)); } catch (e) {}
+  try { if (window.RState) RState.set(waveRxKey(), v); else localStorage.setItem(waveRxKey(), JSON.stringify(v)); } catch (e) {}
   return v;
 }
 function setWaveRxStatus(st) {
-  try { const v = getWaveRx(); if (v) { v.status = st; localStorage.setItem(waveRxKey(), JSON.stringify(v)); } } catch (e) {}
+  try { const v = getWaveRx(); if (v) { v.status = st; if (window.RState) RState.set(waveRxKey(), v); else localStorage.setItem(waveRxKey(), JSON.stringify(v)); } } catch (e) {}
 }
 function renderWaveCard() {
   const slot = document.getElementById('waveCardSlot'); if (!slot) return;
@@ -10873,8 +10873,8 @@ var GRATITUDE_POOL = [
   'second chances. all of them.'
 ];
 function gratKey() { return 'resonance_gratitude_' + ((typeof _dayKey === 'function') ? _dayKey() : 'd'); }
-function getMyGratitude() { try { const v = JSON.parse(localStorage.getItem(gratKey()) || 'null'); return (v && v.line) ? v : null; } catch (e) { return null; } }
-function setMyGratitude(line) { try { localStorage.setItem(gratKey(), JSON.stringify({ line: line, t: Date.now() })); } catch (e) {} }
+function getMyGratitude() { try { const v = window.RState ? RState.get(gratKey()) : JSON.parse(localStorage.getItem(gratKey()) || 'null'); return (v && v.line) ? v : null; } catch (e) { return null; } }
+function setMyGratitude(line) { try { const rec = { line: line, t: Date.now() }; if (window.RState) RState.set(gratKey(), rec); else localStorage.setItem(gratKey(), JSON.stringify(rec)); } catch (e) {} }
 function gratGivenList() { try { const v = window.RState ? RState.get('gratitudes_given', []) : JSON.parse(localStorage.getItem('resonance_gratitudes_given') || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
 function recordGratitude() {
   const list = gratGivenList(); const today = (typeof _dayKey === 'function') ? _dayKey() : 'd';
@@ -11258,7 +11258,7 @@ function _readingSeenKey() { return 'resonance_reading_seen_' + ((typeof _dayKey
 function renderReadingCard() {
   const slot = document.getElementById('readingSlot'); if (!slot) return;
   let r; try { r = makeReading(); } catch (e) { slot.innerHTML = ''; return; }
-  let seen = false; try { seen = !!localStorage.getItem(_readingSeenKey()); } catch (e) {}
+  let seen = false; try { seen = !!(window.RState ? RState.getString(_readingSeenKey()) : localStorage.getItem(_readingSeenKey())); } catch (e) {}
   slot.innerHTML = `<div class="reading-card" id="readingCardBtn" style="--rd-c:${r.color}26; --rd-bd:${r.color}55; --rd-orb:${r.color};">
     <div class="rd-pip"></div>
     <div class="rd-kicker">Today’s reading · for ${escapeHtml(r.name)}</div>
@@ -11292,7 +11292,7 @@ function openReading() {
   _readingTimers.forEach(clearTimeout); _readingTimers = [];
   blocks.forEach((bl, i) => { _readingTimers.push(setTimeout(() => bl && bl.classList.add('in'), 550 + i * 800)); });
   _readingTimers.push(setTimeout(() => { const a = document.getElementById('roActions'); if (a) a.classList.add('in'); }, 550 + 3 * 800));
-  try { localStorage.setItem(_readingSeenKey(), '1'); } catch (e) {}
+  try { if (window.RState) RState.set(_readingSeenKey(), '1'); else localStorage.setItem(_readingSeenKey(), '1'); } catch (e) {}
   renderReadingCard();
 }
 function closeReading() { document.getElementById('readingOverlay').classList.remove('show'); _readingTimers.forEach(clearTimeout); _readingTimers = []; }
@@ -11452,12 +11452,12 @@ function weeklyChallenges() {
   return order.slice(0,4).map(o=>o.c);
 }
 function loadChallengeState() {
-  let v=null; try { v = JSON.parse(localStorage.getItem('resonance_challenges')||'null'); } catch(e){}
+  let v=null; try { v = window.RState ? RState.get('challenges') : JSON.parse(localStorage.getItem('resonance_challenges')||'null'); } catch(e){}
   const wk = challengeWeekKey();
   if (!v || v.week !== wk) {
     const base = {}; weeklyChallenges().forEach(c => base[c.id] = _statNow(c.stat));
     v = { week: wk, base: base, done: [] };
-    try { localStorage.setItem('resonance_challenges', JSON.stringify(v)); } catch(e){}
+    try { if (window.RState) RState.set('challenges', v); else localStorage.setItem('resonance_challenges', JSON.stringify(v)); } catch(e){}
   }
   return v;
 }
@@ -11471,7 +11471,7 @@ function checkChallenges() {
       if (st.done.indexOf(c.id) !== -1) return;
       if (challengeProgress(c) >= c.target) { st.done.push(c.id); gained += 150; changed = true; if (typeof floatGain==='function') floatGain('Challenge done · +150 ✦'); }
     });
-    if (changed) { try { localStorage.setItem('resonance_challenges', JSON.stringify(st)); } catch(e){} }
+    if (changed) { try { if (window.RState) RState.set('challenges', st); else localStorage.setItem('resonance_challenges', JSON.stringify(st)); } catch(e){} }
     if (document.getElementById('passOverlay') && document.getElementById('passOverlay').classList.contains('show') && typeof renderPassOverlay === 'function') renderPassOverlay();
     if (gained) { _inChallengeCheck = false; addPassDepth(gained, 'challenge'); return; }
   } catch(e){}
@@ -11659,9 +11659,9 @@ var RISING_DURATION = 200000; // 3:20
 var RISING_SOUL_COUNT = 72;
 function risingCount() { try { const v = window.RState ? RState.get('risings', []) : JSON.parse(localStorage.getItem('resonance_risings')||'[]'); return Array.isArray(v) ? v.length : 0; } catch(e){ return 0; } }
 function recordRising(pct, lifted) {
-  let arr=[]; try { arr = JSON.parse(localStorage.getItem('resonance_risings')||'[]'); if (!Array.isArray(arr)) arr=[]; } catch(e){}
+  let arr=[]; try { arr = window.RState ? (RState.get('risings', []) || []) : JSON.parse(localStorage.getItem('resonance_risings')||'[]'); if (!Array.isArray(arr)) arr=[]; } catch(e){}
   arr.push({ t: Date.now(), pct: Math.round(pct*100), lifted: lifted }); if (arr.length > 300) arr.shift();
-  try { localStorage.setItem('resonance_risings', JSON.stringify(arr)); } catch(e){}
+  try { if (window.RState) RState.set('risings', arr); else localStorage.setItem('resonance_risings', JSON.stringify(arr)); } catch(e){}
   const n = arr.length;
   if (typeof addPassDepth === 'function') addPassDepth(Math.max(12, Math.round(80 * Math.min(1, pct))), 'rising');
   if (pct >= 0.5 && typeof addCloseness === 'function') addCloseness(2, 'rising');
@@ -11943,11 +11943,11 @@ function seededSoulsForTier(tier) {
 }
 function chamberStorageKey(tier) { return 'resonance_chamber_' + tier.n; }
 function loadChamberHistory(tier) {
-  try { const v = JSON.parse(localStorage.getItem(chamberStorageKey(tier)) || '[]'); return Array.isArray(v) ? v : []; } catch(e){ return []; }
+  try { const v = window.RState ? RState.get(chamberStorageKey(tier), []) : JSON.parse(localStorage.getItem(chamberStorageKey(tier)) || '[]'); return Array.isArray(v) ? v : []; } catch(e){ return []; }
 }
 function saveChamberHistory(tier) {
   if (!_ch) return;
-  try { localStorage.setItem(chamberStorageKey(tier), JSON.stringify(_ch.messages.slice(-200))); } catch(e){}
+  try { const v = _ch.messages.slice(-200); if (window.RState) RState.set(chamberStorageKey(tier), v); else localStorage.setItem(chamberStorageKey(tier), JSON.stringify(v)); } catch(e){}
 }
 function _chAppendMsg(m) {
   if (!_ch) return;
@@ -12175,7 +12175,7 @@ function _makeSongFromCurrentFreq() {
   const id = 'user-' + Date.now();
   const song = { id, name: 'A song on ' + hz + ' Hz', freq: hz, bpm: 120 + (hz % 9), mood: state.short || ('built on ' + hz + ' Hz'), color: color, desc: 'You made this — a house arrangement built on ' + hz + ' Hz.', t: Date.now() };
   window._userSongs = window._userSongs || [];
-  try { window._userSongs = JSON.parse(localStorage.getItem('resonance_songs') || '[]') || []; } catch(e){ window._userSongs = []; }
+  try { window._userSongs = (window.RState ? (RState.get('songs', []) || []) : JSON.parse(localStorage.getItem('resonance_songs') || '[]')) || []; } catch(e){ window._userSongs = []; }
   window._userSongs.unshift(song);
   if (window._userSongs.length > 20) window._userSongs = window._userSongs.slice(0, 20);
   try { if (window.RState) RState.set('songs', window._userSongs); else localStorage.setItem('resonance_songs', JSON.stringify(window._userSongs)); } catch(e){}
@@ -12184,7 +12184,7 @@ function _makeSongFromCurrentFreq() {
 }
 function renderUserSongs() {
   const host = document.getElementById('userSongList'); if (!host) return;
-  try { window._userSongs = JSON.parse(localStorage.getItem('resonance_songs') || '[]') || []; } catch(e){ window._userSongs = []; }
+  try { window._userSongs = (window.RState ? (RState.get('songs', []) || []) : JSON.parse(localStorage.getItem('resonance_songs') || '[]')) || []; } catch(e){ window._userSongs = []; }
   if (!window._userSongs.length) { host.innerHTML = ''; return; }
   host.innerHTML = '<div class="cs-section-sub" style="margin-top:14px;">Your songs</div>';
   const wrap = document.createElement('div'); wrap.className = 'song-list';
@@ -12352,7 +12352,7 @@ function renderCouncil() {
   else if (t === 'proplus') document.getElementById('ctcProPlus').classList.add('on');
   // if already applied, hide the form and show the thanks state
   try {
-    const a = JSON.parse(localStorage.getItem('resonance_council_application') || 'null');
+    const a = window.RState ? RState.get('council_application') : JSON.parse(localStorage.getItem('resonance_council_application') || 'null');
     if (a && a.t) { document.getElementById('caForm').style.display = 'none'; document.getElementById('caThanks').style.display = 'block'; }
   } catch(e){}
 }
@@ -12364,7 +12364,7 @@ function renderCouncil() {
     const why = (document.getElementById('caWhy').value || '').trim();
     const bring = (document.getElementById('caBring').value || '').trim();
     if (!name || !email || why.length < 20 || bring.length < 20) { if (typeof toast === 'function') toast('Tell us a little more — a sentence in each, at least.', 'warn'); return; }
-    try { localStorage.setItem('resonance_council_application', JSON.stringify({ name, email, why, bring, t: Date.now() })); } catch(e){}
+    try { const rec = { name, email, why, bring, t: Date.now() }; if (window.RState) RState.set('council_application', rec); else localStorage.setItem('resonance_council_application', JSON.stringify(rec)); } catch(e){} 
     document.getElementById('caForm').style.display = 'none';
     document.getElementById('caThanks').style.display = 'block';
     if (typeof toast === 'function') toast('Your application landed.', 'ok');
