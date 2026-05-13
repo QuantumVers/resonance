@@ -12622,6 +12622,45 @@ renderStatsPage();
   };
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · CROSS-TAB SYNC ===================
+// If the user opens Resonance in two tabs (or a PWA + a browser tab), changes
+// in one currently don't reach the other. Listen for the `storage` event and
+// re-hydrate the in-memory mirrors of the keys that actually drive live UI.
+//
+// We deliberately only re-hydrate a small allowlist (the keys whose loaders
+// exist and whose UI updates on change). Other keys still update on next
+// reload — safer than calling arbitrary re-renders for keys whose handlers
+// might not be defined yet at the moment the event fires.
+(function () {
+  if (!window.RState) return;
+  const handlers = {
+    resonance_settings:   () => { if (typeof loadSettings === 'function') loadSettings(); if (typeof applyTheme === 'function') applyTheme(appSettings.theme); if (document.body) document.body.classList.toggle('quiet-metrics', !!appSettings.quietMetrics); if (typeof applyVolume === 'function') applyVolume(); },
+    resonance_streak:     () => { if (typeof loadStreak === 'function') loadStreak(); if (typeof updateStreakUI === 'function') updateStreakUI(); },
+    resonance_stats:      () => { if (typeof loadStats === 'function') loadStats(); if (typeof updateStatsUI === 'function') updateStatsUI(); if (typeof renderStatsPage === 'function') renderStatsPage(); },
+    resonance_closeness:  () => { if (typeof loadCloseness === 'function') loadCloseness(); if (typeof renderTrueSelfCard === 'function') renderTrueSelfCard(); if (typeof renderTrueSelfYou === 'function') renderTrueSelfYou(); if (typeof renderKindred === 'function') renderKindred(); },
+    resonance_memories:   () => { try { const v = RState.get('memories'); if (Array.isArray(v) && typeof memories !== 'undefined') { memories.length = 0; v.forEach(x => memories.push(x)); if (typeof renderMemories === 'function') renderMemories(); } } catch (e) {} },
+    resonance_awakenings: () => { if (typeof loadAwakenings === 'function') loadAwakenings(); if (typeof renderAwakenings === 'function') renderAwakenings(); if (typeof updateAwakeningsBadge === 'function') updateAwakeningsBadge(); },
+    resonance_identity:   () => { if (typeof loadIdentity === 'function') loadIdentity(); if (typeof applyUserProfileToApp === 'function') applyUserProfileToApp(); if (typeof renderStatsPage === 'function') renderStatsPage(); },
+    resonance_plates:     () => { if (typeof renderPlateShelf === 'function') renderPlateShelf(); if (typeof updatePlateMark === 'function') updatePlateMark(); },
+    resonance_freq_locker: () => { try { const v = RState.get('freq_locker'); if (v && typeof v === 'object' && typeof _freqLocker !== 'undefined') { Object.keys(_freqLocker).forEach(k => delete _freqLocker[k]); Object.assign(_freqLocker, v); if (typeof renderLocker === 'function') renderLocker(); } } catch (e) {} },
+    resonance_install_meta: () => { try { window.__installMeta = RState.get('install_meta') || window.__installMeta; } catch (e) {} }
+  };
+  let _hydrating = false; // re-entrancy guard
+  window.addEventListener('storage', e => {
+    if (!e.key || _hydrating) return;
+    const h = handlers[e.key];
+    if (!h) return;
+    _hydrating = true;
+    try { h(); } catch (err) { console.warn('[cross-tab sync]', e.key, err); }
+    _hydrating = false;
+  });
+  // Quietly publish a "tab is alive" beacon so future tabs can detect activity.
+  // (Useful for the upcoming Convergence multi-tab presence logic.)
+  function _heartbeat() { try { RState.set('tab_heartbeat', { t: Date.now(), client: (window.__installMeta && window.__installMeta.clientId) || null }); } catch (e) {} }
+  _heartbeat();
+  setInterval(_heartbeat, 30000);
+})();
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
