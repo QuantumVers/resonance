@@ -13512,6 +13512,54 @@ function renderPersonalRecords() {
   _scheduleNudge();
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · LONG-ABSENCE WELCOME ===================
+// If the user has been away ≥ 7 days, fire a cinematic moment on next open:
+// "{firstName} · welcome back." / "It's been {N} days. Day {dayN} of your walk."
+// Distinct from the daily welcome-back notification (which is quieter and runs
+// every visit). This is the rarer, bigger one.
+(function () {
+  if (!window.RState) return;
+
+  function _today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+  function _trigger() {
+    const meta = window.__installMeta || RState.get('install_meta') || {};
+    if (!meta.firstOpenedAt) return;
+    const dayN = (typeof dayNOfWalk === 'function') ? dayNOfWalk() : 1;
+    if (dayN < 8) return; // can't have been away for a week if walk is shorter
+
+    const visits = RState.get('day_visits', []) || [];
+    if (visits.length < 2) return;
+
+    const lastVisit = visits[visits.length - 2]; // the one BEFORE today's
+    const lastT = Date.parse(lastVisit);
+    if (isNaN(lastT)) return;
+    const gapDays = Math.round((Date.now() - lastT) / 86400000);
+    if (gapDays < 7) return;
+
+    // Don't fire twice for the same return.
+    const flag = 'long_absence_seen_' + _today();
+    if (RState.get(flag)) return;
+    RState.set(flag, 1);
+
+    const first = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name.split(' ')[0] : 'You';
+    const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+    const subA = quiet ? 'welcome back · the field held the space'
+                       : ("It's been " + gapDays + ' days. Day ' + dayN + ' of your walk.');
+    const subB = 'The field held the space.';
+
+    // Prefer cinematicMoment if available; fall back to notify().
+    if (typeof cinematicMoment === 'function') {
+      // signature is (title, sub, color, glyph) per resonance build-state convention
+      setTimeout(() => cinematicMoment(first + ' · welcome back', subA + ' ' + subB, '#a78bfa', '◎'), 2400);
+    } else if (typeof notify === 'function') {
+      setTimeout(() => notify(first + ' · welcome back', subA, '◎', '#a78bfa'), 2400);
+    }
+  }
+
+  _trigger();
+})();
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
