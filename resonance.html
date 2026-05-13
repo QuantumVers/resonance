@@ -2205,6 +2205,13 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .stats-section .act-heatmap { display: grid; grid-template-columns: repeat(15, 1fr); gap: 3px; margin-top: 10px; }
 .stats-section .hm-cell { aspect-ratio: 1 / 1; border-radius: 3px; background: rgba(255,255,255,0.05); }
 .stats-section .hm-cell.hit { background: var(--violet); box-shadow: 0 0 6px rgba(157,92,255,0.42); }
+/* ============ DATA_AGENT · IDENTITY CARD ============ */
+.stats-section .depth-identity-card { margin-top: 14px; padding: 14px 16px; background: rgba(20,20,28,0.55); border: 1px dashed var(--border); border-radius: 12px; display: flex; flex-direction: column; gap: 6px; }
+.stats-section .depth-identity-card .dic-row { display: flex; justify-content: space-between; align-items: baseline; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 10.5px; }
+.stats-section .depth-identity-card .dic-k { color: var(--text-faint); letter-spacing: 3px; font-weight: 700; }
+.stats-section .depth-identity-card .dic-v { color: var(--text-soft); letter-spacing: 1.5px; }
+/* ============ /DATA_AGENT ============ */
+
 /* ============ /DATA_AGENT ============ */
 
 /* ============ /DATA_AGENT ============ */
@@ -4509,7 +4516,7 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
           <span class="wsb-glyph">✦</span>
           <span class="wsb-label">Share your walk</span>
           <span class="wsb-arrow">→</span>
-        </button>
+        </button>        <div class="depth-identity-card" id="depthIdentityCard"></div>
       </div>
 
       <!-- DATA_AGENT · ON THIS DAY -->
@@ -13127,6 +13134,59 @@ function renderActivityHeatmap() {
     }
   };
   try { renderStatsPage(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · IDENTITY CARD + WELCOME BACK ===================
+// Two surfaces that turn install_meta into something the user can feel:
+//   - An identity card at the bottom of Stats: clientId short hash, firstOpenedAt,
+//     openCount. Quiet, monospace, signed-receipt aesthetic.
+//   - A one-time-per-day "Welcome back, name. Day N." notification — fires once
+//     per calendar day on app open (after the gate auto-skip).
+function renderIdentityCard() {
+  const host = document.getElementById('depthIdentityCard'); if (!host) return;
+  const meta = window.__installMeta || (window.RState && RState.get('install_meta')) || null;
+  if (!meta || !meta.clientId) { host.style.display = 'none'; return; }
+  const shortId = meta.clientId.replace(/-/g, '').slice(0, 6).toUpperCase();
+  const since = meta.firstOpenedAt ? new Date(meta.firstOpenedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+  const opens = meta.openCount || 1;
+  host.style.display = '';
+  host.innerHTML =
+    '<div class="dic-row"><span class="dic-k">ID</span><span class="dic-v">' + shortId + '</span></div>' +
+    '<div class="dic-row"><span class="dic-k">SINCE</span><span class="dic-v">' + since + '</span></div>' +
+    '<div class="dic-row"><span class="dic-k">OPENS</span><span class="dic-v">' + opens + '</span></div>';
+}
+(function () {
+  if (typeof renderStatsPage === 'function') {
+    const _r = renderStatsPage;
+    renderStatsPage = function () { _r.apply(this, arguments); try { renderIdentityCard(); } catch (e) {} };
+  }
+  try { renderIdentityCard(); } catch (e) {}
+})();
+
+// Welcome-back moment — fires at most once per calendar day, only if a previous
+// session exists. Uses the existing notify() / moment() / floatGain APIs so it
+// fits the Apple Liquid Glass stack already in place.
+(function () {
+  if (!window.RState) return;
+  function _today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  function _fire() {
+    const meta = window.__installMeta || RState.get('install_meta') || {};
+    if (!meta.firstOpenedAt) return;
+    // Only fire if the user has been here before — first-ever open doesn't get a
+    // welcome-back; that's the gate's job.
+    if ((meta.openCount || 0) < 2) return;
+    const dayN = (typeof dayNOfWalk === 'function') ? dayNOfWalk() : 1;
+    if (dayN < 2) return;
+    const flagKey = 'welcomeback_' + _today();
+    if (RState.get(flagKey)) return;
+    RState.set(flagKey, 1);
+    const first = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name.split(' ')[0] : 'you';
+    const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+    const sub = quiet ? 'good to have you back' : ('Day ' + dayN + ' · welcome back');
+    if (typeof notify === 'function') notify('Welcome back, ' + first, sub, '◎', '#a78bfa');
+  }
+  // Defer past the gate's auto-skip + boot animations.
+  setTimeout(_fire, 1800);
 })();
 // =================== /DATA_AGENT ===================
 
