@@ -352,6 +352,27 @@ html, body {
 .i-see-you.hidden { display: none; }
 
 
+
+/* ============ AURA HALO around the lobby orb ============ */
+.lobby-orb::after {
+  content: ''; position: absolute; inset: -16%; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from var(--aura-spin, 0deg),
+    rgba(251,191,36,0.20),   /* gold */
+    rgba(110,231,183,0.18),  /* mint */
+    rgba(96,165,250,0.18),   /* blue */
+    rgba(167,139,250,0.20),  /* violet */
+    rgba(251,113,133,0.18),  /* pink */
+    rgba(253,230,138,0.18),  /* warm yellow */
+    rgba(251,191,36,0.20));
+  -webkit-mask: radial-gradient(circle, transparent 56%, black 60%, black 78%, transparent 86%);
+          mask: radial-gradient(circle, transparent 56%, black 60%, black 78%, transparent 86%);
+  filter: blur(8px);
+  opacity: 0.85;
+  animation: lobbyAuraSpin 36s linear infinite;
+}
+@keyframes lobbyAuraSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+
 /* ============ NOTIFICATION STACK (iOS-style top drops · right rail on desktop) ============ */
 .notify-stack {
   position: fixed; z-index: 1200; pointer-events: none;
@@ -15510,9 +15531,67 @@ if (typeof renderLobby === 'function') {
 setTimeout(() => { try { renderISeeYou(); } catch(e){} }, 1800);
 
 
+
+// =================== NOTIFY CHIME · soft bell on every notification ===================
+let _chimeNodes = null;
+async function _ensureChime() {
+  if (_chimeNodes) return;
+  try { if (typeof ensureAudio === 'function') await ensureAudio(); else await Tone.start(); } catch(e){}
+  try {
+    const out = new Tone.Volume(-22).toDestination();
+    const reverb = new Tone.Reverb({ decay: 4, wet: 0.55 }).connect(out);
+    const synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.6, sustain: 0, release: 1.6 } });
+    synth.connect(reverb);
+    _chimeNodes = { synth, reverb, out };
+  } catch(e){ _chimeNodes = null; }
+}
+function _playChime(color) {
+  if (typeof appSettings !== 'undefined' && appSettings.soulChime === false) return;
+  if (typeof Tone === 'undefined' || !Tone) return;
+  _ensureChime().then(() => {
+    if (!_chimeNodes) return;
+    // tonality from color (rough mapping); fallback to a major triad
+    const palette = { '#fbbf24': ['G5','B5','D6'], '#6ee7b7': ['C5','E5','G5'], '#a78bfa': ['A4','C5','E5','A5'], '#60a5fa': ['F5','A5','C6'], '#fb7185': ['E5','G5','B5'], '#34d399': ['D5','F5','A5'], '#fde68a': ['G5','B5','D6'] };
+    const notes = palette[color] || ['C5','E5','G5'];
+    try { _chimeNodes.synth.triggerAttackRelease(notes, '4n', undefined, 0.55); } catch(e){}
+  }).catch(()=>{});
+}
+// Wrap notify() so each call rings the chime in the notification's color.
+(function () {
+  if (typeof notify !== 'function') return;
+  const _orig = notify;
+  notify = function (title, sub, glyph, color) { _orig(title, sub, glyph, color); try { _playChime(color); } catch(e){} };
+})();
+
+// Settings: chime toggle (additive)
+(function ensureChimeToggle() {
+  const sec = document.querySelector('#settingsOverlay .set-section:last-child') || document.querySelector('#settingsOverlay');
+  if (!sec || document.getElementById('soulChimeRow')) return;
+  const row = document.createElement('div'); row.className = 'set-row'; row.id = 'soulChimeRow';
+  row.style.cssText = 'display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06);';
+  row.innerHTML = '<div style="flex:1;min-width:0;"><div class="set-row-name" style="font-size:14px;font-weight:500;">Notification chime</div><div style="font-size:11px;color:var(--text-faint);margin-top:2px;">A soft bell when a notification lands. Color of the chime follows the notification color.</div></div><label class="switch" style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;"><input type="checkbox" id="soulChimeCheck" style="opacity:0;width:0;height:0;"><span class="slider" style="position:absolute;inset:0;background:rgba(255,255,255,0.10);border-radius:100px;transition:.3s;"></span></label>';
+  sec.appendChild(row);
+  const cb = document.getElementById('soulChimeCheck');
+  cb.checked = !(typeof appSettings !== 'undefined' && appSettings.soulChime === false);
+  // visual on/off
+  const sl = row.querySelector('.slider');
+  function paint() {
+    sl.style.background = cb.checked ? 'linear-gradient(90deg, var(--gold), var(--mint))' : 'rgba(255,255,255,0.10)';
+    sl.style.boxShadow = cb.checked ? '0 0 12px rgba(110,231,183,0.45)' : 'none';
+  }
+  paint();
+  cb.addEventListener('change', () => {
+    if (typeof appSettings === 'undefined') return;
+    appSettings.soulChime = !!cb.checked; if (typeof saveSettings === 'function') saveSettings();
+    paint(); if (cb.checked) _playChime('#fbbf24');
+  });
+})();
+
+
 renderLadder();
 </script>
 <meta id="brighterMark" data-applied="1">
 <meta id="polishMark" data-applied="POLISH_SWEEP_v1">
+<meta id="chimeMark" data-applied="NOTIFY_CHIME_v1">
 </body>
 </html>
