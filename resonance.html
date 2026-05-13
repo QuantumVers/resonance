@@ -13470,6 +13470,48 @@ function renderPersonalRecords() {
   try { renderPersonalRecords(); } catch (e) {}
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · EXPORT NUDGE ===================
+// Every 60 days (after the user has at least 14 days of walk), surface a quiet
+// Apple-Liquid-Glass notification: "Back up your walk." One-tap exports the
+// JSON. Suppressed for 60 more days after export OR after dismissal.
+(function () {
+  if (!window.RState) return;
+
+  function _shouldNudge() {
+    const meta = window.__installMeta || RState.get('install_meta') || {};
+    if (!meta.firstOpenedAt) return false;
+    const dayN = (typeof dayNOfWalk === 'function') ? dayNOfWalk() : 1;
+    if (dayN < 14) return false;
+    const last = RState.get('last_export_nudge', 0) || 0;
+    if (Date.now() - last < 60 * 86400000) return false;
+    return true;
+  }
+
+  function _scheduleNudge() {
+    if (!_shouldNudge()) return;
+    // Wait a beat so we don't drown out the welcome-back moment.
+    setTimeout(() => {
+      if (typeof notify !== 'function') return;
+      // Mark that we nudged regardless of action — better to be quiet than annoying.
+      RState.set('last_export_nudge', Date.now());
+      notify('Back up your walk', 'Tap to export · keep a copy', '◇', '#fbbf24');
+      // Find the freshly-rendered notification card and make tap-to-export.
+      setTimeout(() => {
+        const stack = document.getElementById('notifyStack'); if (!stack) return;
+        const card = stack.lastElementChild; if (!card) return;
+        const _origClick = card.onclick;
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', e => {
+          e.stopPropagation();
+          try { const btn = document.getElementById('setExportBtn'); if (btn) btn.click(); } catch (er) {}
+        }, { once: true });
+      }, 50);
+    }, 4500);
+  }
+
+  _scheduleNudge();
+})();
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
