@@ -13748,6 +13748,76 @@ function renderStorageDetail() {
   }, 2200);
 })();
 // =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · PER-FREQUENCY TIME HELD ===================
+// _freqLocker counts visits, not duration. A user who holds 528 Hz for 60 min
+// has the same "count" as one who held it for 6 seconds. Track actual total
+// time per Hz so the Stats / Walk-card story is honest.
+function _addFreqTimeMs(hz, ms) {
+  if (!window.RState || !(ms > 0) || !hz) return;
+  hz = Math.round(hz);
+  const t = RState.get('freq_time_ms', {}) || {};
+  t[hz] = (t[hz] || 0) + ms;
+  RState.set('freq_time_ms', t);
+}
+
+// Hook recordSessionEnd to also record time-at-freq.
+(function () {
+  if (typeof recordSessionEnd === 'function') {
+    const _r = recordSessionEnd;
+    recordSessionEnd = function (ms) {
+      _r.apply(this, arguments);
+      try {
+        const hz = (typeof sessionStartFreq !== 'undefined' && sessionStartFreq) ? sessionStartFreq
+                 : (typeof userFreq !== 'undefined' ? userFreq : 432);
+        _addFreqTimeMs(hz, ms);
+      } catch (e) {}
+    };
+  }
+})();
+
+// Replace statsTopFreq with a time-weighted version (visit-count was a poor proxy).
+window.statsTopFreqByTime = function () {
+  if (!window.RState) return null;
+  const t = RState.get('freq_time_ms', {}) || {};
+  const keys = Object.keys(t);
+  if (!keys.length) return null;
+  let best = null, mx = 0;
+  keys.forEach(k => { if (t[k] > mx) { mx = t[k]; best = k; } });
+  return best ? { hz: parseInt(best, 10), ms: mx } : null;
+};
+
+// Surface the time-weighted top freq alongside the visit-count one on Stats.
+(function () {
+  if (typeof renderStatsPage !== 'function') return;
+  const _r = renderStatsPage;
+  renderStatsPage = function () {
+    _r.apply(this, arguments);
+    try {
+      // Find the Favorite-frequency card and append a sub line with time held.
+      const grid = document.querySelector('#depthStatsSection .stats-grid'); if (!grid) return;
+      // The "Favorite frequency" card has data-bind hooks not in this version;
+      // locate by the static label text.
+      let favCard = null;
+      grid.querySelectorAll('.stats-card').forEach(c => { const lbl = c.querySelector('.sc-label'); if (lbl && lbl.textContent === 'Favorite frequency') favCard = c; });
+      if (!favCard) return;
+      const t = window.statsTopFreqByTime ? window.statsTopFreqByTime() : null;
+      let timeEl = favCard.querySelector('.sc-time-held');
+      if (!timeEl) {
+        timeEl = document.createElement('div');
+        timeEl.className = 'sc-sub sc-time-held';
+        favCard.appendChild(timeEl);
+      }
+      if (t && t.ms > 60000) {
+        const mins = Math.floor(t.ms / 60000);
+        const longest = mins >= 60 ? (mins / 60 < 10 ? (mins / 60).toFixed(1) + ' hr' : Math.round(mins / 60) + ' hr') : (mins + ' min');
+        timeEl.textContent = 'held longest · ' + longest + ' at ' + t.hz + ' Hz';
+        timeEl.style.display = '';
+      } else timeEl.style.display = 'none';
+    } catch (e) {}
+  };
+  try { renderStatsPage(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
