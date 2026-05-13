@@ -5482,6 +5482,73 @@ const userProfile = {
   tradition: null
 };
 
+// =================== DATA_AGENT · IDENTITY (persisted across reloads) ===================
+// Before this module: userProfile/userFreq/userAlignment/userPhoto lived only in memory,
+// so every reload forced the user back through the entire initiation gate. Now they're
+// saved through RState and restored on boot.
+function saveIdentity() {
+  if (!window.RState) return;
+  RState.set('identity', {
+    v: 1,
+    name: userProfile.name || '',
+    birth: userProfile.birth || '',
+    zodiac: userProfile.zodiac || null,
+    numerology: userProfile.numerology || null,
+    tradition: userProfile.tradition || null,
+    freq: userFreq,
+    alignment: userAlignment,
+    photo: userPhoto || null,
+    initiated: !!(userProfile.name && userProfile.tradition && userProfile.zodiac),
+    createdAt: (RState.get('identity') && RState.get('identity').createdAt) || Date.now(),
+    updatedAt: Date.now()
+  });
+}
+function loadIdentity() {
+  if (!window.RState) return null;
+  const v = RState.get('identity');
+  if (!v || typeof v !== 'object') return null;
+  if (v.name) userProfile.name = v.name;
+  if (v.birth) userProfile.birth = v.birth;
+  if (v.zodiac) userProfile.zodiac = v.zodiac;
+  if (v.numerology) userProfile.numerology = v.numerology;
+  if (v.tradition) userProfile.tradition = v.tradition;
+  if (typeof v.freq === 'number') userFreq = v.freq;
+  if (typeof v.alignment === 'number') userAlignment = v.alignment;
+  if (v.photo) userPhoto = v.photo;
+  return v;
+}
+const _restoredIdentity = loadIdentity();
+// If already initiated, auto-skip the gate on next tick (after all functions exist).
+if (_restoredIdentity && _restoredIdentity.initiated) {
+  setTimeout(() => {
+    try {
+      if (typeof applyUserProfileToApp === 'function') applyUserProfileToApp();
+      if (typeof applyFrequency === 'function') {
+        try { applyFrequency(userFreq); } catch (e) {}
+      }
+      // Mirror the visual updates from the enterInner handler.
+      const t = (typeof traditions !== 'undefined' && traditions[userProfile.tradition]) || null;
+      if (userPhoto) {
+        const a = document.getElementById('userAvatarMini'); if (a) a.innerHTML = `<img src="${userPhoto}">`;
+        const b = document.getElementById('profileAvatar'); if (b) b.innerHTML = `<img src="${userPhoto}">`;
+      }
+      const fd = document.getElementById('profileFreqDisp'); if (fd) fd.textContent = userFreq + ' Hz';
+      const sa = document.getElementById('statAlign'); if (sa) sa.textContent = userAlignment;
+      const pt = document.getElementById('profileTier');
+      if (pt) {
+        const tier = userAlignment >= 90 ? '✦ Sage' : userAlignment >= 80 ? '◇ Adept' : userAlignment >= 70 ? '◎ Seeker' : '◌ Initiate';
+        pt.textContent = tier;
+      }
+      const gate = document.getElementById('gate');
+      const app = document.getElementById('app');
+      if (gate) gate.style.display = 'none';
+      if (app) app.classList.add('unlocked');
+    } catch (e) { console.warn('[identity restore] failed:', e); }
+  }, 0);
+}
+// =================== /DATA_AGENT ===================
+
+
 // =================== TRADITIONS ===================
 const traditions = {
   judaism:     { name: 'Judaism',     glyph: '✡',  tagline: 'Hashem',         greeting: 'Shalom',    accent: '#fbbf24', divine: 'Hashem',  blessing: 'May your path align with the will of Hashem. The Shechinah walks with you.' },
@@ -12127,6 +12194,27 @@ function renderCouncil() {
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
 renderLobby();
+
+
+// =================== DATA_AGENT · IDENTITY HOOKS ===================
+// Wrap applyFrequency one more time so the user's freq is saved every time it changes.
+(function () {
+  if (typeof applyFrequency !== 'function') return;
+  const _af = applyFrequency;
+  applyFrequency = function (hz, fromSlider) {
+    _af(hz, fromSlider);
+    try { if (typeof saveIdentity === 'function') saveIdentity(); } catch (e) {}
+  };
+})();
+// Save identity on gate completion (both paths). These run AFTER the existing handlers
+// because addEventListener stacks listeners — the original handlers fire first and set
+// userProfile/userFreq/userAlignment, then we persist.
+(function () {
+  function _persist() { try { if (typeof saveIdentity === 'function') saveIdentity(); } catch (e) {} }
+  const eb = document.getElementById('enterInnerBtn'); if (eb) eb.addEventListener('click', _persist);
+  const db = document.getElementById('devSkipBtn');  if (db) db.addEventListener('click', _persist);
+})();
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
