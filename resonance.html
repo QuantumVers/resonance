@@ -15863,6 +15863,33 @@ if (typeof renderLobby === 'function') {
 setTimeout(() => { try { renderLightOfDay(); } catch(e){} }, 1900);
 
 
+
+// =================== BOOT CHIME · the app announces itself ===================
+// A soft major-9 chord on a sine PolySynth through a long reverb, played quietly under the
+// boot sequence. Fires when the user first interacts (audio context unlock) — modern browsers
+// require a gesture to autoplay audio, so we listen for any interaction.
+(function () {
+  let played = false;
+  function ring() {
+    if (played) return; played = true;
+    try {
+      if (typeof Tone === 'undefined') return;
+      Tone.start().then(() => {
+        const out = new Tone.Volume(-26).toDestination();
+        const verb = new Tone.Reverb({ decay: 8, wet: 0.7 }).connect(out);
+        const synth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, envelope: { attack: 0.02, decay: 1.4, sustain: 0.0, release: 6.0 } });
+        synth.connect(verb);
+        // C major add 9 — bright, welcoming, never sad
+        const now = Tone.now();
+        ['C4', 'E4', 'G4', 'D5'].forEach((n, i) => synth.triggerAttackRelease(n, '1n', now + i * 0.18, 0.6));
+        setTimeout(() => { try { synth.dispose(); verb.dispose(); out.dispose(); } catch(e){} }, 12000);
+      }).catch(() => {});
+    } catch (e) {}
+  }
+  ['pointerdown','keydown','touchstart'].forEach(ev => document.addEventListener(ev, ring, { once: true, passive: true }));
+})();
+
+
 renderLadder();
 </script>
 <meta id="brighterMark" data-applied="1">
@@ -15870,5 +15897,6 @@ renderLadder();
 <meta id="chimeMark" data-applied="NOTIFY_CHIME_v1">
 <meta id="hourMark" data-applied="HOUR_AMBIENT_v1">
 <meta id="rlMark" data-applied="ROOM_LIFE_v1">
+<meta id="bootChimeMark" data-applied="BOOT_CHIME_v1">
 </body>
 </html>
