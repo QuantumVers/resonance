@@ -2277,6 +2277,21 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border-radius
 .depth-library summary::-webkit-details-marker { display: none; }
 .depth-library summary::after { content: '+'; font-weight: 300; font-size: 22px; color: var(--text-faint); transition: transform .3s; }
 .depth-library[open] summary::after { transform: rotate(45deg); }
+/* ============ DATA_AGENT · STATS PAGE ============ */
+.stats-section .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.stats-section .stats-card { background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%), rgba(20,20,28,0.55); border: 1px solid var(--border); border-radius: 14px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 4px; }
+.stats-section .stats-card-wide { grid-column: span 2; }
+.stats-section .sc-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+.stats-section .sc-value { font-size: 26px; font-weight: 200; color: var(--text); letter-spacing: -0.5px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stats-section .sc-sub { font-size: 10.5px; color: var(--text-faint); margin-top: 2px; }
+body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
+/* ============ /DATA_AGENT ============ */
+/* ============ DATA_AGENT · STATS HEALTH FOOTER ============ */
+.stats-health-footer { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); display: flex; flex-wrap: wrap; gap: 6px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
+.stats-health-footer .shf-dot { opacity: 0.5; }
+/* ============ /DATA_AGENT ============ */
+
+
 .depth-library .dl-summary-lbl { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text); font-weight: 700; }
 .depth-library .dl-summary-sub { font-size: 10px; color: var(--text-faint); text-align: right; line-height: 1.4; }
 .depth-page .create-instrument-card { margin: 0 0 12px; }
@@ -4508,6 +4523,54 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="locker-empty" id="lockerEmpty" style="display:none;">No skins collected yet. Hold a tone in Sync — the moment you press <b>Begin Sync</b>, that frequency lands in your Locker.</div>
       </div>
 
+      <!-- DATA_AGENT · STATS — surfaces what the app knows about you -->
+      <div class="depth-section stats-section" id="depthStatsSection">
+        <div class="depth-section-h">Your stats</div>
+        <div class="depth-section-sub">Quiet numbers. Only for you.</div>
+        <div class="stats-grid" id="statsGrid">
+          <div class="stats-card">
+            <div class="sc-label">Time in app</div>
+            <div class="sc-value" id="statTotalTime">—</div>
+            <div class="sc-sub" id="statTotalTimeSub">total</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Sessions</div>
+            <div class="sc-value" id="statSessionsCount">—</div>
+            <div class="sc-sub">opens</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Time synced</div>
+            <div class="sc-value" id="statSyncedTime">—</div>
+            <div class="sc-sub">holding tone</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Streak</div>
+            <div class="sc-value" id="statStreakNow">—</div>
+            <div class="sc-sub">days returning</div>
+          </div>
+          <div class="stats-card stats-card-wide">
+            <div class="sc-label">Favorite frequency</div>
+            <div class="sc-value" id="statFavFreq">—</div>
+            <div class="sc-sub" id="statFavFreqSub">no skin yet</div>
+          </div>
+          <div class="stats-card stats-card-wide">
+            <div class="sc-label">Most-played song</div>
+            <div class="sc-value" id="statTopSong">—</div>
+            <div class="sc-sub" id="statTopSongSub">tap a song in Create to start counting</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Awakenings</div>
+            <div class="sc-value" id="statAwakenings">—</div>
+            <div class="sc-sub">unlocked</div>
+          </div>
+          <div class="stats-card">
+            <div class="sc-label">Memories</div>
+            <div class="sc-value" id="statMemoriesCount">—</div>
+            <div class="sc-sub">saved</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Your memories — individual moments you've captured -->
       <div class="depth-section" id="memoriesHeader" style="cursor:pointer;">
         <div class="depth-section-h">Your memories</div>
@@ -4962,8 +5025,11 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="set-row-sub" style="margin-bottom:12px;">Everything you do here is stored only in this browser.</div>
     <div class="set-actions">
       <button class="btn" id="setExportBtn">Export JSON</button>
+      <button class="btn" id="setImportBtn">Import JSON</button>
+      <button class="btn" id="setRestoreSnapBtn" style="display:none;">Restore last snapshot</button>
       <button class="btn" id="setResetBtn">Reset all data</button>
     </div>
+    <input type="file" id="setImportFile" accept="application/json,.json" style="display:none;">
   </div>
 
   <div class="set-section" style="border-top:1px solid var(--border); padding-top:18px;">
@@ -5364,6 +5430,162 @@ function toast(message, type) {
   }, 2400);
 }
 
+// =================== DATA_AGENT · RState (persistence abstraction) ===================
+// Single namespace that wraps every read/write. When a real backend (Supabase) lands,
+// only this module changes — everything else still calls RState.get/set/remove.
+//
+// Schema versioning: STATE_VERSION bumps when a key's shape changes; migrations are
+// registered with RState.migration(from, fn) and run once on boot. The schema version
+// itself is persisted in `resonance__schema_version`. New devices read this and run
+// pending migrations forward before the rest of the app touches state.
+(function () {
+  const PREFIX = 'resonance_';
+  const VERSION_KEY = 'resonance__schema_version';
+  const SNAPSHOT_KEY = 'resonance__last_snapshot';
+  const STATE_VERSION = 1;
+  const _listeners = {};
+  const _migrations = {};
+
+  // Local-only adapter for now. Swap this object out (or extend it with a remote
+  // mirror that resolves the same API) when the backend lands.
+  const adapter = {
+    getRaw(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    setRaw(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+    removeRaw(k) { try { localStorage.removeItem(k); return true; } catch (e) { return false; } },
+    keys() {
+      const out = [];
+      try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) out.push(k); } } catch (e) {}
+      return out;
+    }
+  };
+
+  function _key(name) {
+    // Accept either a fully-prefixed key (back-compat) or a bare name. `__`-keys
+    // (schema version, snapshot) pass through as-is.
+    if (!name) return null;
+    return (String(name).indexOf(PREFIX) === 0 || name.indexOf('__') === 0) ? name : PREFIX + name;
+  }
+
+  function get(name, fallback) {
+    const raw = adapter.getRaw(_key(name));
+    if (raw == null) return (fallback === undefined ? null : fallback);
+    try { return JSON.parse(raw); } catch (e) { return raw; }
+  }
+
+  function getString(name, fallback) {
+    const raw = adapter.getRaw(_key(name));
+    return raw == null ? (fallback === undefined ? null : fallback) : raw;
+  }
+
+  function set(name, value) {
+    const k = _key(name);
+    const serialized = (typeof value === 'string') ? value : JSON.stringify(value);
+    const ok = adapter.setRaw(k, serialized);
+    _emit(name, value);
+    return ok;
+  }
+
+  function remove(name) { const k = _key(name); const ok = adapter.removeRaw(k); _emit(name, null); return ok; }
+
+  function listKeys() {
+    return adapter.keys().filter(k => k && (k.indexOf(PREFIX) === 0 || k.indexOf('resonance__') === 0));
+  }
+
+  function getAll() {
+    const out = {};
+    listKeys().forEach(k => { const raw = adapter.getRaw(k); try { out[k] = JSON.parse(raw); } catch (e) { out[k] = raw; } });
+    return out;
+  }
+
+  // Snapshot the whole namespace. Used as a safety net before risky ops (import/reset).
+  function snapshot() {
+    const snap = { v: STATE_VERSION, t: Date.now(), data: getAll() };
+    adapter.setRaw(SNAPSHOT_KEY, JSON.stringify(snap));
+    return snap;
+  }
+  function lastSnapshot() {
+    const raw = adapter.getRaw(SNAPSHOT_KEY); if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  }
+  function restoreSnapshot() {
+    const snap = lastSnapshot(); if (!snap || !snap.data) return false;
+    Object.keys(snap.data).forEach(k => {
+      const v = snap.data[k];
+      adapter.setRaw(k, typeof v === 'string' ? v : JSON.stringify(v));
+    });
+    return true;
+  }
+
+  // Migrations: registered as RState.migration(fromVersion, fn). On boot we run every
+  // pending migration in order. Each migration receives the RState API and may mutate.
+  function migration(from, fn) { _migrations[from] = fn; }
+  function _runMigrations() {
+    let cur = 0;
+    const raw = adapter.getRaw(VERSION_KEY);
+    if (raw != null) { const n = parseInt(raw, 10); if (!isNaN(n)) cur = n; }
+    if (cur >= STATE_VERSION) { adapter.setRaw(VERSION_KEY, String(STATE_VERSION)); return; }
+    // Brand-new install: just stamp the version, no migrations to run.
+    if (cur === 0 && listKeys().length === 0) { adapter.setRaw(VERSION_KEY, String(STATE_VERSION)); return; }
+    // Existing install: walk migrations from cur → STATE_VERSION.
+    for (let v = cur; v < STATE_VERSION; v++) {
+      const m = _migrations[v];
+      if (typeof m === 'function') {
+        try { m(api); } catch (e) { console.warn('[RState] migration', v, 'failed:', e); }
+      }
+    }
+    adapter.setRaw(VERSION_KEY, String(STATE_VERSION));
+  }
+
+  function on(name, fn) { (_listeners[name] = _listeners[name] || []).push(fn); }
+  function _emit(name, value) {
+    const arr = _listeners[name]; if (!arr) return;
+    arr.forEach(fn => { try { fn(value); } catch (e) {} });
+  }
+
+  const api = {
+    VERSION: STATE_VERSION,
+    PREFIX,
+    get, getString, set, remove,
+    listKeys, getAll,
+    snapshot, lastSnapshot, restoreSnapshot,
+    migration, on,
+    // escape hatches (use sparingly — keep new code through get/set)
+    _raw: adapter
+  };
+  window.RState = api;
+  try { _runMigrations(); } catch (e) {}
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · INSTALL META (client_id, firstOpenedAt) ===================
+// Persistent install identity — generated once, never changes. Powers:
+//   - "Day N of your walk" surface (firstOpenedAt → days since)
+//   - Future backend handshake (clientId is the device's identity until login lands)
+//   - Future invite/share lineage that doesn't rely on the in-memory user name
+(function () {
+  if (!window.RState) return;
+  let meta = RState.get('install_meta');
+  if (!meta || typeof meta !== 'object') meta = {};
+  if (!meta.clientId) {
+    // RFC4122-ish v4 (no crypto dep — readable, unique-enough for local install ID)
+    function _rand(n) { let s = ''; for (let i = 0; i < n; i++) s += Math.floor(Math.random() * 16).toString(16); return s; }
+    meta.clientId = _rand(8) + '-' + _rand(4) + '-4' + _rand(3) + '-' + (8 + Math.floor(Math.random() * 4)).toString(16) + _rand(3) + '-' + _rand(12);
+  }
+  if (!meta.firstOpenedAt) meta.firstOpenedAt = Date.now();
+  meta.lastSeenAt = Date.now();
+  meta.openCount = (meta.openCount || 0) + 1;
+  RState.set('install_meta', meta);
+  // Expose globally so other modules and the Stats page can read without re-hitting storage.
+  window.__installMeta = meta;
+})();
+
+// Day N of your walk — derived; null-safe; respects Quiet Metrics.
+window.dayNOfWalk = function () {
+  const m = window.__installMeta || (window.RState && RState.get('install_meta')) || {};
+  if (!m.firstOpenedAt) return 0;
+  return Math.max(1, Math.floor((Date.now() - m.firstOpenedAt) / 86400000) + 1);
+};
+// =================== /DATA_AGENT ===================
+
 // =================== SETTINGS (state) ===================
 const DEFAULT_SETTINGS = { volume: 80, notify: false, theme: 'violet', quietMetrics: false, tier: 'free' };
 let appSettings = Object.assign({}, DEFAULT_SETTINGS);
@@ -5581,6 +5803,73 @@ const userProfile = {
   numerology: null,
   tradition: null
 };
+
+// =================== DATA_AGENT · IDENTITY (persisted across reloads) ===================
+// Before this module: userProfile/userFreq/userAlignment/userPhoto lived only in memory,
+// so every reload forced the user back through the entire initiation gate. Now they're
+// saved through RState and restored on boot.
+function saveIdentity() {
+  if (!window.RState) return;
+  RState.set('identity', {
+    v: 1,
+    name: userProfile.name || '',
+    birth: userProfile.birth || '',
+    zodiac: userProfile.zodiac || null,
+    numerology: userProfile.numerology || null,
+    tradition: userProfile.tradition || null,
+    freq: userFreq,
+    alignment: userAlignment,
+    photo: userPhoto || null,
+    initiated: !!(userProfile.name && userProfile.tradition && userProfile.zodiac),
+    createdAt: (RState.get('identity') && RState.get('identity').createdAt) || Date.now(),
+    updatedAt: Date.now()
+  });
+}
+function loadIdentity() {
+  if (!window.RState) return null;
+  const v = RState.get('identity');
+  if (!v || typeof v !== 'object') return null;
+  if (v.name) userProfile.name = v.name;
+  if (v.birth) userProfile.birth = v.birth;
+  if (v.zodiac) userProfile.zodiac = v.zodiac;
+  if (v.numerology) userProfile.numerology = v.numerology;
+  if (v.tradition) userProfile.tradition = v.tradition;
+  if (typeof v.freq === 'number') userFreq = v.freq;
+  if (typeof v.alignment === 'number') userAlignment = v.alignment;
+  if (v.photo) userPhoto = v.photo;
+  return v;
+}
+const _restoredIdentity = loadIdentity();
+// If already initiated, auto-skip the gate on next tick (after all functions exist).
+if (_restoredIdentity && _restoredIdentity.initiated) {
+  setTimeout(() => {
+    try {
+      if (typeof applyUserProfileToApp === 'function') applyUserProfileToApp();
+      if (typeof applyFrequency === 'function') {
+        try { applyFrequency(userFreq); } catch (e) {}
+      }
+      // Mirror the visual updates from the enterInner handler.
+      const t = (typeof traditions !== 'undefined' && traditions[userProfile.tradition]) || null;
+      if (userPhoto) {
+        const a = document.getElementById('userAvatarMini'); if (a) a.innerHTML = `<img src="${userPhoto}">`;
+        const b = document.getElementById('profileAvatar'); if (b) b.innerHTML = `<img src="${userPhoto}">`;
+      }
+      const fd = document.getElementById('profileFreqDisp'); if (fd) fd.textContent = userFreq + ' Hz';
+      const sa = document.getElementById('statAlign'); if (sa) sa.textContent = userAlignment;
+      const pt = document.getElementById('profileTier');
+      if (pt) {
+        const tier = userAlignment >= 90 ? '✦ Sage' : userAlignment >= 80 ? '◇ Adept' : userAlignment >= 70 ? '◎ Seeker' : '◌ Initiate';
+        pt.textContent = tier;
+      }
+      const gate = document.getElementById('gate');
+      const app = document.getElementById('app');
+      if (gate) gate.style.display = 'none';
+      if (app) app.classList.add('unlocked');
+    } catch (e) { console.warn('[identity restore] failed:', e); }
+  }, 0);
+}
+// =================== /DATA_AGENT ===================
+
 
 // =================== TRADITIONS ===================
 const traditions = {
@@ -9882,22 +10171,109 @@ document.querySelectorAll('.set-theme-card').forEach(card => {
     saveSettings();
   });
 });
-document.getElementById('setExportBtn').addEventListener('click', () => {
-  const out = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.indexOf('resonance_') === 0) { try { out[k] = JSON.parse(localStorage.getItem(k)); } catch (e) { out[k] = localStorage.getItem(k); } }
-  }
-  out._exportedAt = new Date().toISOString();
-  if (typeof userProfile !== 'undefined') out._profile = userProfile;
-  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+// =================== DATA_AGENT · EXPORT / IMPORT ===================
+// Versioned envelope so imports on another device (or after a schema change)
+// can be validated and migrated forward.
+function _buildExportEnvelope() {
+  const data = (window.RState && RState.getAll) ? RState.getAll() : (function () {
+    const out = {};
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('resonance_') === 0) { try { out[k] = JSON.parse(localStorage.getItem(k)); } catch (e) { out[k] = localStorage.getItem(k); } } }
+    return out;
+  })();
+  return {
+    app: 'resonance',
+    schemaVersion: (window.RState && RState.VERSION) || 1,
+    exportedAt: new Date().toISOString(),
+    profile: (typeof userProfile !== 'undefined') ? userProfile : null,
+    data: data
+  };
+}
+function _downloadJson(obj, filename) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'resonance-data-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.download = filename;
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 200);
-  toast('Data exported', 'ok');
+}
+document.getElementById('setExportBtn').addEventListener('click', () => {
+  _downloadJson(_buildExportEnvelope(), 'resonance-data-' + new Date().toISOString().slice(0, 10) + '.json');
+  if (typeof toast === 'function') toast('Data exported', 'ok');
 });
+
+let _importArmed = null;
+document.getElementById('setImportBtn').addEventListener('click', () => {
+  const fi = document.getElementById('setImportFile');
+  if (fi) fi.click();
+});
+document.getElementById('setImportFile').addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    let env;
+    try { env = JSON.parse(ev.target.result); }
+    catch (err) { if (typeof toast === 'function') toast('Invalid JSON', 'warn'); return; }
+    // Accept either the new envelope { app, schemaVersion, data } or the legacy flat
+    // shape (every resonance_* key at the top level — what we exported before).
+    let payload = null;
+    if (env && env.app === 'resonance' && env.data && typeof env.data === 'object') payload = env.data;
+    else if (env && typeof env === 'object') {
+      const flat = {};
+      Object.keys(env).forEach(k => { if (k.indexOf('resonance_') === 0) flat[k] = env[k]; });
+      if (Object.keys(flat).length) payload = flat;
+    }
+    if (!payload) { if (typeof toast === 'function') toast('Not a Resonance export', 'warn'); return; }
+    _importArmed = payload;
+    const btn = document.getElementById('setImportBtn');
+    btn.textContent = 'Tap to confirm import (' + Object.keys(payload).length + ' keys)';
+    btn.classList.add('danger');
+    setTimeout(() => { if (_importArmed) { _importArmed = null; btn.textContent = 'Import JSON'; btn.classList.remove('danger'); } }, 6000);
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+// Confirm-tap: actually do the import (snapshot first, then write each key, then reload).
+document.getElementById('setImportBtn').addEventListener('click', () => {
+  if (!_importArmed) return; // first click opens the picker; second click after a file is loaded confirms
+  const payload = _importArmed; _importArmed = null;
+  // Snapshot current state so the user can roll back if the import was wrong.
+  try { if (window.RState && RState.snapshot) RState.snapshot(); } catch (e) {}
+  // Clear existing resonance_* keys first, then write the imported ones.
+  const existing = (window.RState && RState.listKeys) ? RState.listKeys() : (function () {
+    const k = []; for (let i = 0; i < localStorage.length; i++) { const x = localStorage.key(i); if (x && x.indexOf('resonance_') === 0) k.push(x); } return k;
+  })();
+  existing.forEach(k => { if (k.indexOf('resonance__') !== 0) localStorage.removeItem(k); });
+  Object.keys(payload).forEach(k => {
+    if (k.indexOf('resonance_') !== 0) return;
+    const v = payload[k];
+    try { localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v)); } catch (err) {}
+  });
+  if (typeof toast === 'function') toast('Imported — reloading', 'ok');
+  setTimeout(() => location.reload(), 900);
+});
+
+// Restore-last-snapshot button: visible only if a snapshot exists.
+(function () {
+  const btn = document.getElementById('setRestoreSnapBtn');
+  if (!btn) return;
+  function _refresh() {
+    const snap = (window.RState && RState.lastSnapshot) ? RState.lastSnapshot() : null;
+    if (!snap) { btn.style.display = 'none'; return; }
+    btn.style.display = '';
+    btn.textContent = 'Restore last snapshot (' + new Date(snap.t || Date.now()).toLocaleString() + ')';
+  }
+  _refresh();
+  let armed = false, timer = null;
+  btn.addEventListener('click', () => {
+    if (!armed) { armed = true; btn.classList.add('danger'); const orig = btn.textContent; btn.textContent = 'Tap again to restore'; timer = setTimeout(() => { armed = false; btn.classList.remove('danger'); btn.textContent = orig; }, 4000); return; }
+    if (timer) clearTimeout(timer);
+    if (window.RState && RState.restoreSnapshot && RState.restoreSnapshot()) {
+      if (typeof toast === 'function') toast('Snapshot restored — reloading', 'ok');
+      setTimeout(() => location.reload(), 900);
+    } else if (typeof toast === 'function') toast('No snapshot to restore', 'warn');
+  });
+})();
+// =================== /DATA_AGENT ===================
 let _resetArmed = false, _resetTimer = null;
 document.getElementById('setResetBtn').addEventListener('click', () => {
   const btn = document.getElementById('setResetBtn');
@@ -9907,6 +10283,8 @@ document.getElementById('setResetBtn').addEventListener('click', () => {
     return;
   }
   if (_resetTimer) clearTimeout(_resetTimer);
+  // DATA_AGENT: snapshot before destructive reset so the user can recover.
+  try { if (window.RState && RState.snapshot) RState.snapshot(); } catch (e) {}
   const keys = [];
   for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf('resonance_') === 0) keys.push(k); }
   keys.forEach(k => localStorage.removeItem(k));
@@ -12900,6 +13278,289 @@ function renderCouncil() {
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
 renderLobby();
+
+
+// =================== DATA_AGENT · IDENTITY HOOKS ===================
+// Wrap applyFrequency one more time so the user's freq is saved every time it changes.
+(function () {
+  if (typeof applyFrequency !== 'function') return;
+  const _af = applyFrequency;
+  applyFrequency = function (hz, fromSlider) {
+    _af(hz, fromSlider);
+    try { if (typeof saveIdentity === 'function') saveIdentity(); } catch (e) {}
+  };
+})();
+// Save identity on gate completion (both paths). These run AFTER the existing handlers
+// because addEventListener stacks listeners — the original handlers fire first and set
+// userProfile/userFreq/userAlignment, then we persist.
+(function () {
+  function _persist() { try { if (typeof saveIdentity === 'function') saveIdentity(); } catch (e) {} }
+  const eb = document.getElementById('enterInnerBtn'); if (eb) eb.addEventListener('click', _persist);
+  const db = document.getElementById('devSkipBtn');  if (db) db.addEventListener('click', _persist);
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · STATS EXTENSIONS ===================
+// The existing appStats tracks { sessions, syncedMs } where syncedMs is the time a
+// manual tone was held. This adds:
+//   - totalMs       — total time the app has been open (any tab, any activity).
+//   - songCounts    — { [songId]: playCount } for most-played-song.
+//   - freqCounts is already covered by _freqLocker (per-Hz visit log) — that's the
+//     source of truth for favorite frequency.
+// We extend appStats in-place; saveStats() persists the whole object so additions
+// just ride along the existing key.
+(function () {
+  if (typeof appStats !== 'object' || appStats == null) return;
+  if (typeof appStats.totalMs !== 'number') appStats.totalMs = 0;
+  if (!appStats.songCounts || typeof appStats.songCounts !== 'object') appStats.songCounts = {};
+  if (typeof saveStats === 'function') saveStats();
+
+  // Heartbeat: while the app is visible, accumulate elapsed time. Saving every
+  // ~30s of accumulation keeps writes cheap but the data fresh enough to be useful.
+  let _lastTick = Date.now();
+  let _dirty = false;
+  function _tick() {
+    const now = Date.now();
+    const dt = now - _lastTick;
+    _lastTick = now;
+    if (document.visibilityState !== 'hidden' && dt > 0 && dt < 5 * 60 * 1000) {
+      appStats.totalMs = (appStats.totalMs || 0) + dt;
+      _dirty = true;
+    }
+    if (_dirty) { try { if (typeof saveStats === 'function') saveStats(); } catch (e) {} _dirty = false; }
+  }
+  setInterval(_tick, 30000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') _tick();
+    else _lastTick = Date.now();
+  });
+  window.addEventListener('beforeunload', _tick);
+})();
+
+// Wrap playSong to count plays (defines source-of-truth for "most-used soundscape").
+(function () {
+  function _wrapPlaySong() {
+    if (typeof playSong !== 'function') return false;
+    const _orig = playSong;
+    playSong = function (id) {
+      try {
+        if (id && appStats && appStats.songCounts) {
+          appStats.songCounts[id] = (appStats.songCounts[id] || 0) + 1;
+          if (typeof saveStats === 'function') saveStats();
+        }
+      } catch (e) {}
+      return _orig.apply(this, arguments);
+    };
+    return true;
+  }
+  // playSong is defined later in the script — defer one tick so it exists.
+  if (!_wrapPlaySong()) setTimeout(_wrapPlaySong, 0);
+})();
+
+// Public helpers used by the Stats page (UI in a separate commit).
+window.statsTopSong = function () {
+  const c = (appStats && appStats.songCounts) || {};
+  let best = null, n = 0;
+  Object.keys(c).forEach(k => { if (c[k] > n) { n = c[k]; best = k; } });
+  return best ? { id: best, count: n } : null;
+};
+window.statsTopFreq = function () {
+  try {
+    const locker = (typeof _freqLocker === 'object' && _freqLocker) || {};
+    const v = Object.values(locker);
+    if (!v.length) return null;
+    v.sort((a, b) => (b.count || 0) - (a.count || 0));
+    return v[0] || null;
+  } catch (e) { return null; }
+};
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · STATS RENDER ===================
+function _fmtTimeLong(ms) {
+  ms = Math.max(0, ms || 0);
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1)   return 'just started';
+  if (mins < 60)  return mins + ' min';
+  const hrs = mins / 60;
+  if (hrs < 24)   return (hrs < 10 ? hrs.toFixed(1) : Math.round(hrs)) + 'h';
+  const days = hrs / 24;
+  return (days < 10 ? days.toFixed(1) : Math.round(days)) + ' days';
+}
+function renderStatsPage() {
+  if (!document.getElementById('depthStatsSection')) return;
+  const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+  setText('statTotalTime', _fmtTimeLong((appStats && appStats.totalMs) || 0));
+  setText('statSessionsCount', quiet ? (((appStats && appStats.sessions) || 0) >= 30 ? 'many' : ((appStats && appStats.sessions) || 0) >= 5 ? 'some' : ((appStats && appStats.sessions) || 0) >= 1 ? 'a few' : 'none') : ((appStats && appStats.sessions) || 0));
+  setText('statSyncedTime', _fmtTimeLong((appStats && appStats.syncedMs) || 0));
+
+  const sc = (typeof streakData === 'object' && streakData) ? streakData : { count: 0 };
+  setText('statStreakNow', sc.count || 0);
+
+  // Favorite frequency (from the locker)
+  const top = (typeof statsTopFreq === 'function') ? statsTopFreq() : null;
+  if (top && top.hz) {
+    setText('statFavFreq', Math.round(top.hz) + ' Hz');
+    setText('statFavFreqSub', (top.count || 0) + ' visit' + ((top.count || 0) === 1 ? '' : 's'));
+  } else {
+    setText('statFavFreq', '—');
+    setText('statFavFreqSub', 'no skin yet');
+  }
+
+  // Most-played song
+  const ts = (typeof statsTopSong === 'function') ? statsTopSong() : null;
+  if (ts && ts.id) {
+    let name = ts.id;
+    try {
+      const all = (typeof SONG_PRESETS !== 'undefined' ? SONG_PRESETS : []).concat(window._userSongs || []);
+      const s = all.find(x => x && x.id === ts.id);
+      if (s && s.name) name = s.name;
+    } catch (e) {}
+    setText('statTopSong', name);
+    setText('statTopSongSub', ts.count + ' play' + (ts.count === 1 ? '' : 's'));
+  } else {
+    setText('statTopSong', '—');
+    setText('statTopSongSub', 'tap a song in Create to start counting');
+  }
+
+  // Awakenings
+  let aw = 0, awTotal = 0;
+  try { aw = (typeof awakenedCount === 'function') ? awakenedCount() : 0; awTotal = (typeof AWAKENINGS !== 'undefined') ? AWAKENINGS.length : 0; } catch (e) {}
+  setText('statAwakenings', awTotal ? (aw + ' / ' + awTotal) : aw);
+
+  // Memories
+  let mem = 0; try { mem = (typeof memories !== 'undefined' && Array.isArray(memories)) ? memories.length : 0; } catch (e) {}
+  setText('statMemoriesCount', mem);
+}
+// Re-render on Depth open
+(function () {
+  if (typeof renderDepth === 'function') {
+    const _rd = renderDepth;
+    renderDepth = function () { _rd.apply(this, arguments); try { renderStatsPage(); } catch (e) {} };
+  }
+})();
+// Initial paint
+renderStatsPage();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · DATED-KEY SWEEP + HEALTH CHECK ===================
+// Daily keys (resonance_tx_<day>, resonance_gratitude_<day>, resonance_wave_<day>,
+// resonance_soulnote_<day>, resonance_reading_seen_<day>) accumulate forever, one per
+// day. After ~90 days they're junk. Sweep them.
+(function () {
+  if (!window.RState) return;
+
+  function _parseDayKey(k) {
+    // Matches resonance_<prefix>_YYYY-MM-DD
+    const m = /^resonance_[a-z_]+_(\d{4}-\d{2}-\d{2})$/.exec(k);
+    if (!m) return null;
+    const ms = Date.parse(m[1]);
+    return isNaN(ms) ? null : ms;
+  }
+
+  RState.cleanupDatedKeys = function (keepDays) {
+    const cutoff = Date.now() - (keepDays || 90) * 86400000;
+    const removed = [];
+    RState.listKeys().forEach(k => {
+      const t = _parseDayKey(k);
+      if (t != null && t < cutoff) { RState.remove(k); removed.push(k); }
+    });
+    return removed;
+  };
+
+  RState.healthCheck = function () {
+    const keys = RState.listKeys();
+    let bytes = 0;
+    keys.forEach(k => { try { const v = RState._raw.getRaw(k); if (v) bytes += v.length; } catch (e) {} });
+    const snap = RState.lastSnapshot();
+    return {
+      schemaVersion: RState.VERSION,
+      keyCount: keys.length,
+      approxBytes: bytes,
+      lastSnapshot: snap ? snap.t : null
+    };
+  };
+
+  // Throttle: once per day. Tracked in RState so it survives reload.
+  function _todayKey() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  const lastSweep = RState.get('housekeeping') || {};
+  if (lastSweep.sweptOn !== _todayKey()) {
+    try { RState.cleanupDatedKeys(90); } catch (e) {}
+    RState.set('housekeeping', { sweptOn: _todayKey() });
+  }
+
+  // Register a v0 → v1 migration. For older installs that pre-date the schema-version
+  // stamp, this is the first migration to run: just a no-op cleanup pass that gets us
+  // onto the versioned track.
+  RState.migration(0, function (api) { try { api.cleanupDatedKeys(120); } catch (e) {} });
+})();
+
+// Surface a small "Health" footer on the Stats page so the user can see how much
+// they've got stored, the schema version, and whether a snapshot is available.
+(function () {
+  if (typeof renderStatsPage !== 'function') return;
+  const _orig = renderStatsPage;
+  renderStatsPage = function () {
+    _orig.apply(this, arguments);
+    if (!window.RState || !RState.healthCheck) return;
+    const sec = document.getElementById('depthStatsSection'); if (!sec) return;
+    let footer = sec.querySelector('.stats-health-footer');
+    if (!footer) {
+      footer = document.createElement('div');
+      footer.className = 'stats-health-footer';
+      sec.appendChild(footer);
+    }
+    const h = RState.healthCheck();
+    const kb = Math.max(1, Math.round(h.approxBytes / 1024));
+    const snapStr = h.lastSnapshot ? ('snapshot · ' + new Date(h.lastSnapshot).toLocaleDateString()) : 'no snapshot yet';
+    footer.innerHTML =
+      '<span>' + h.keyCount + ' keys</span>' +
+      '<span class="shf-dot">·</span>' +
+      '<span>' + kb + ' KB</span>' +
+      '<span class="shf-dot">·</span>' +
+      '<span>schema v' + h.schemaVersion + '</span>' +
+      '<span class="shf-dot">·</span>' +
+      '<span>' + snapStr + '</span>';
+  };
+})();
+// =================== /DATA_AGENT ===================
+// =================== DATA_AGENT · CROSS-TAB SYNC ===================
+// If the user opens Resonance in two tabs (or a PWA + a browser tab), changes
+// in one currently don't reach the other. Listen for the `storage` event and
+// re-hydrate the in-memory mirrors of the keys that actually drive live UI.
+//
+// We deliberately only re-hydrate a small allowlist (the keys whose loaders
+// exist and whose UI updates on change). Other keys still update on next
+// reload — safer than calling arbitrary re-renders for keys whose handlers
+// might not be defined yet at the moment the event fires.
+(function () {
+  if (!window.RState) return;
+  const handlers = {
+    resonance_settings:   () => { if (typeof loadSettings === 'function') loadSettings(); if (typeof applyTheme === 'function') applyTheme(appSettings.theme); if (document.body) document.body.classList.toggle('quiet-metrics', !!appSettings.quietMetrics); if (typeof applyVolume === 'function') applyVolume(); },
+    resonance_streak:     () => { if (typeof loadStreak === 'function') loadStreak(); if (typeof updateStreakUI === 'function') updateStreakUI(); },
+    resonance_stats:      () => { if (typeof loadStats === 'function') loadStats(); if (typeof updateStatsUI === 'function') updateStatsUI(); if (typeof renderStatsPage === 'function') renderStatsPage(); },
+    resonance_closeness:  () => { if (typeof loadCloseness === 'function') loadCloseness(); if (typeof renderTrueSelfCard === 'function') renderTrueSelfCard(); if (typeof renderTrueSelfYou === 'function') renderTrueSelfYou(); if (typeof renderKindred === 'function') renderKindred(); },
+    resonance_memories:   () => { try { const v = RState.get('memories'); if (Array.isArray(v) && typeof memories !== 'undefined') { memories.length = 0; v.forEach(x => memories.push(x)); if (typeof renderMemories === 'function') renderMemories(); } } catch (e) {} },
+    resonance_awakenings: () => { if (typeof loadAwakenings === 'function') loadAwakenings(); if (typeof renderAwakenings === 'function') renderAwakenings(); if (typeof updateAwakeningsBadge === 'function') updateAwakeningsBadge(); },
+    resonance_identity:   () => { if (typeof loadIdentity === 'function') loadIdentity(); if (typeof applyUserProfileToApp === 'function') applyUserProfileToApp(); if (typeof renderStatsPage === 'function') renderStatsPage(); },
+    resonance_plates:     () => { if (typeof renderPlateShelf === 'function') renderPlateShelf(); if (typeof updatePlateMark === 'function') updatePlateMark(); },
+    resonance_freq_locker: () => { try { const v = RState.get('freq_locker'); if (v && typeof v === 'object' && typeof _freqLocker !== 'undefined') { Object.keys(_freqLocker).forEach(k => delete _freqLocker[k]); Object.assign(_freqLocker, v); if (typeof renderLocker === 'function') renderLocker(); } } catch (e) {} },
+    resonance_install_meta: () => { try { window.__installMeta = RState.get('install_meta') || window.__installMeta; } catch (e) {} }
+  };
+  let _hydrating = false; // re-entrancy guard
+  window.addEventListener('storage', e => {
+    if (!e.key || _hydrating) return;
+    const h = handlers[e.key];
+    if (!h) return;
+    _hydrating = true;
+    try { h(); } catch (err) { console.warn('[cross-tab sync]', e.key, err); }
+    _hydrating = false;
+  });
+  // Quietly publish a "tab is alive" beacon so future tabs can detect activity.
+  // (Useful for the upcoming Convergence multi-tab presence logic.)
+  function _heartbeat() { try { RState.set('tab_heartbeat', { t: Date.now(), client: (window.__installMeta && window.__installMeta.clientId) || null }); } catch (e) {} }
+  _heartbeat();
+  setInterval(_heartbeat, 30000);
+})();
+// =================== /DATA_AGENT ===================
 
 renderLadder();
 </script>
