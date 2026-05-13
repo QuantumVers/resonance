@@ -611,19 +611,77 @@ input[type="date"].signup-input {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 32px 24px 60px;
-  animation: gateIn 0.7s var(--ease);
 }
 .gate-step.active {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  animation: gateIn 0.85s cubic-bezier(.16,.84,.32,1);
 }
 .gate-step .gate-content { margin: auto 0; }
 @keyframes gateIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  0%   { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(8px); }
+  55%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
+/* ============ UX_AGENT · GATE-STEP STAGGER + SACRED CTA ============ */
+/* On every step-switch, the inner content settles in on a soft stagger:
+   glyph → label → title → text → buttons. Each step feels intentional. */
+.gate-step.active .gate-content > * { opacity: 0; transform: translateY(10px); animation: gateContentIn 0.7s cubic-bezier(.16,.84,.32,1) forwards; }
+.gate-step.active .gate-content > *:nth-child(1) { animation-delay: 0.12s; }
+.gate-step.active .gate-content > *:nth-child(2) { animation-delay: 0.22s; }
+.gate-step.active .gate-content > *:nth-child(3) { animation-delay: 0.32s; }
+.gate-step.active .gate-content > *:nth-child(4) { animation-delay: 0.42s; }
+.gate-step.active .gate-content > *:nth-child(5) { animation-delay: 0.52s; }
+.gate-step.active .gate-content > *:nth-child(6) { animation-delay: 0.62s; }
+.gate-step.active .gate-content > *:nth-child(7) { animation-delay: 0.70s; }
+.gate-step.active .gate-content > *:nth-child(n+8) { animation-delay: 0.78s; }
+@keyframes gateContentIn { to { opacity: 1; transform: translateY(0); } }
+
+/* a one-shot edge-sweep across the active step — the same ritual signal the tab bar uses */
+.gate-step.active::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(167,139,250,0.65), rgba(255,184,0,0.55), rgba(110,231,183,0.6), transparent);
+  pointer-events: none;
+  animation: gateEdgeSweep 1.05s cubic-bezier(.2,.7,.2,1) forwards;
+}
+@keyframes gateEdgeSweep {
+  from { opacity: 0; transform: translateX(-100%); }
+  35%  { opacity: 1; }
+  to   { opacity: 0; transform: translateX(100%); }
+}
+
+/* the primary CTAs (every "Continue" / "Begin" / "I'm Ready") breathe a soft gold→violet sheen
+   so the eye knows where to land. ghosts stay quiet. */
+.gate-btn:not(.ghost) {
+  position: relative; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(255,255,255,0.1), 0 0 0 rgba(255,184,0,0);
+  animation: gateBtnBreath 4.5s ease-in-out infinite;
+}
+.gate-btn:not(.ghost)::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,184,0,0.30) 45%, rgba(167,139,250,0.32) 55%, transparent 70%);
+  transform: translateX(-110%);
+  animation: gateBtnSheen 3.6s ease-in-out 0.4s infinite;
+}
+@keyframes gateBtnBreath {
+  0%,100% { box-shadow: 0 8px 32px rgba(255,255,255,0.1), 0 0 0 rgba(255,184,0,0); }
+  50%     { box-shadow: 0 12px 40px rgba(255,255,255,0.18), 0 0 32px rgba(255,184,0,0.18); }
+}
+@keyframes gateBtnSheen {
+  0%   { transform: translateX(-110%); }
+  60%  { transform: translateX(110%); }
+  100% { transform: translateX(110%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gate-step.active { animation: none; }
+  .gate-step.active .gate-content > * { opacity: 1; transform: none; animation: none; }
+  .gate-step.active::before { display: none; }
+  .gate-btn:not(.ghost) { animation: none; }
+  .gate-btn:not(.ghost)::after { display: none; }
+}
+/* ============ /UX_AGENT ============ */
 .gate-content {
   max-width: 460px;
   width: 100%;
