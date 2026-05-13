@@ -2372,6 +2372,15 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
   padding: 18px 24px 0; gap: 0; position: relative;
 }
 .lobby-greet { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 18px; color: var(--text); margin-top: 4px; opacity: 0.92; text-align: center; }
+/* ============ COORD · SIGIL ============ */
+.lobby-sigil { width: 64px; height: 64px; margin: 12px auto -4px; opacity: 0.78; filter: drop-shadow(0 0 12px var(--sigil-c, var(--violet))); transition: opacity .3s, filter .3s; }
+.lobby-sigil:hover { opacity: 1; filter: drop-shadow(0 0 18px var(--sigil-c, var(--violet))); }
+.lobby-sigil svg { width: 100%; height: 100%; display: block; color: var(--sigil-c, var(--violet)); }
+.lobby-sigil svg .sg-rotor-slow { transform-origin: 0 0; animation: sigilRotate 120s linear infinite; }
+.lobby-sigil svg .sg-rotor-fast { transform-origin: 0 0; animation: sigilRotateRev 80s linear infinite; }
+@keyframes sigilRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes sigilRotateRev { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+/* ============ /COORD ============ */
 .lobby-orb {
   margin: 32px auto 28px; width: min(72vw, 320px); aspect-ratio: 1; position: relative;
   background: transparent; border: 0; padding: 0; cursor: pointer;
@@ -4141,6 +4150,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <!-- ============ LOBBY ============ -->
     <div class="lobby" id="lobby">
       <div class="lobby-greet" id="lobbyGreet">Welcome</div>
+      <!-- COORD · the user's personal Sigil — deterministic from name num + birth + tradition -->
+      <div class="lobby-sigil" id="lobbySigil" title="Your sigil — yours alone"></div>
       <button class="lobby-orb" id="lobbyOrb" aria-label="Begin Sync">
         <div class="lo-ring lo-ring-a"></div>
         <div class="lo-ring lo-ring-b"></div>
@@ -12771,7 +12782,85 @@ function renderLobby() {
   if (typeof _renderFieldNow === 'function') _renderFieldNow();
   // COORD: daily orb mood — subtle hue + breath-rate shift by hour-of-day and day-of-week
   if (typeof _applyOrbMood === 'function') _applyOrbMood();
+  // COORD: the user's personal sigil
+  if (typeof _renderSigil === 'function') _renderSigil();
 }
+// ============ COORD · SIGIL ============
+// A unique geometric sigil per user — deterministically generated from their name's
+// numerology, birth date, and tradition. SVG, no images. Lives on the lobby (small) and is
+// designed to be reused on Council / share cards / Depth.
+function _userSigil(opts) {
+  opts = opts || {};
+  const name = (typeof userProfile !== 'undefined' && userProfile.name) ? userProfile.name : 'Soul';
+  const birth = (typeof userProfile !== 'undefined' && userProfile.birth) ? userProfile.birth : '2000-04-14';
+  const trad = (typeof userProfile !== 'undefined' && userProfile.tradition) ? userProfile.tradition : 'universal';
+  const nameNum = (typeof computeNumerology === 'function') ? computeNumerology(name) : 7;
+  const zod = (typeof userProfile !== 'undefined' && userProfile.zodiac) ? userProfile.zodiac : null;
+  // derive a few deterministic values
+  const digits = String(birth).replace(/\D/g, '').split('').map(Number);
+  const birthSum = digits.reduce((a, b) => a + (isNaN(b) ? 0 : b), 0);
+  let lmap = { a:1,b:2,c:3,d:4,e:5,f:6,g:7,h:8,i:9, j:1,k:2,l:3,m:4,n:5,o:6,p:7,q:8,r:9, s:1,t:2,u:3,v:4,w:5,x:6,y:7,z:8 };
+  let nameLetterSum = 0; for (const ch of String(name).toLowerCase()) if (lmap[ch]) nameLetterSum += lmap[ch];
+  const spokes = Math.max(3, Math.min(12, (nameNum % 9) + 3));     // 3–12 spokes
+  const rings  = Math.max(2, Math.min(5, (birthSum % 4) + 2));     // 2–5 rings
+  const innerR = 8, ringStep = 5;
+  const outerR = innerR + rings * ringStep;
+  const cap = innerR + (rings - 1) * ringStep;
+  // tradition glyph in the center
+  const T = (typeof traditions !== 'undefined') ? traditions[trad] : null;
+  const glyph = T ? (T.glyph || '◎') : '◎';
+  // sigil accent color: tradition's accent if any, else mapped from nameNum
+  const NUMCOLORS = ['#9d5cff','#00f5d4','#ffb800','#fb7185','#60a5fa','#a78bfa','#34d399','#fde68a','#e879f9','#9d5cff','#00f5d4','#ffb800'];
+  const color = (T && T.accent) ? T.accent : NUMCOLORS[(nameNum - 1) % NUMCOLORS.length];
+  // build spokes (radial lines from inside to outer)
+  let spokeSvg = '';
+  for (let i = 0; i < spokes; i++) {
+    const ang = (i / spokes) * Math.PI * 2 - Math.PI / 2;
+    const x1 = (innerR + 2) * Math.cos(ang), y1 = (innerR + 2) * Math.sin(ang);
+    const x2 = cap * Math.cos(ang), y2 = cap * Math.sin(ang);
+    spokeSvg += '<line x1="' + x1.toFixed(2) + '" y1="' + y1.toFixed(2) + '" x2="' + x2.toFixed(2) + '" y2="' + y2.toFixed(2) + '" stroke="currentColor" stroke-width="0.7" stroke-linecap="round" opacity="0.7"/>';
+  }
+  // tips at spoke ends — small circles, count modulated by zodiac index if available
+  const zIdx = zod ? (typeof zodiacData !== 'undefined' ? zodiacData.findIndex(z => z.sign === zod.sign) : 0) : 0;
+  let tips = '';
+  for (let i = 0; i < spokes; i++) {
+    const ang = (i / spokes) * Math.PI * 2 - Math.PI / 2;
+    const x = outerR * Math.cos(ang), y = outerR * Math.sin(ang);
+    tips += '<circle cx="' + x.toFixed(2) + '" cy="' + y.toFixed(2) + '" r="' + (i === (zIdx % spokes) ? '1.4' : '0.9') + '" fill="currentColor" opacity="' + (i === (zIdx % spokes) ? '1' : '0.65') + '"/>';
+  }
+  // rings (concentric)
+  let ringSvg = '';
+  for (let r = 0; r < rings; r++) {
+    const rad = innerR + r * ringStep;
+    const dasharray = (r % 2 === 0) ? 'none' : '1.5 2';
+    ringSvg += '<circle cx="0" cy="0" r="' + rad + '" fill="none" stroke="currentColor" stroke-width="0.5" stroke-dasharray="' + dasharray + '" opacity="' + (0.4 + 0.13 * r) + '"/>';
+  }
+  // a slow-rotating outer hexagram if nameLetterSum is "high vibration" (> 80) — extra flourish
+  let outerFlourish = '';
+  if (nameLetterSum > 80) {
+    const pts = [];
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2 - Math.PI / 2; pts.push((outerR + 3) * Math.cos(a) + ',' + (outerR + 3) * Math.sin(a)); }
+    outerFlourish = '<polygon points="' + pts.join(' ') + '" fill="none" stroke="currentColor" stroke-width="0.4" opacity="0.4"/>';
+  }
+  const glyphSize = 7.5;
+  return {
+    color,
+    svg:
+      '<svg viewBox="-36 -36 72 72" xmlns="http://www.w3.org/2000/svg">' +
+        '<g class="sg-rotor-slow">' + ringSvg + tips + outerFlourish + '</g>' +
+        '<g class="sg-rotor-fast">' + spokeSvg + '</g>' +
+        '<text x="0" y="' + (glyphSize/2 + 0.5) + '" text-anchor="middle" font-size="' + glyphSize + '" fill="currentColor" font-weight="100">' + glyph + '</text>' +
+      '</svg>'
+  };
+}
+function _renderSigil() {
+  const host = document.getElementById('lobbySigil'); if (!host) return;
+  const s = _userSigil();
+  host.innerHTML = s.svg;
+  host.style.setProperty('--sigil-c', s.color);
+}
+// ============ /COORD ============
+
 // ============ COORD · DAILY ORB MOOD ============
 // The lobby orb subtly shifts hue + breath speed based on the user's local time + day. So
 // Tuesday-morning orb feels different from Saturday-night orb — the app meets you where you are.
