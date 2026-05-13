@@ -2432,6 +2432,10 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
   padding: 18px 24px 0; gap: 0; position: relative;
 }
 .lobby-greet { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 18px; color: var(--text); margin-top: 4px; opacity: 0.92; text-align: center; }
+/* ============ COORD · DAY-N ============ */
+.lobby-day-n { margin: 6px auto 0; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-family: ui-monospace, 'SF Mono', monospace; font-weight: 600; }
+.lobby-day-n #lobbyDayNValue { color: var(--mint); }
+/* ============ /COORD ============ */
 /* ============ COORD · SIGIL ============ */
 .lobby-sigil { width: 64px; height: 64px; margin: 12px auto -4px; opacity: 0.78; filter: drop-shadow(0 0 12px var(--sigil-c, var(--violet))); transition: opacity .3s, filter .3s; }
 .lobby-sigil:hover { opacity: 1; filter: drop-shadow(0 0 18px var(--sigil-c, var(--violet))); }
@@ -4216,6 +4220,8 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
       <div class="lobby-greet" id="lobbyGreet">Welcome</div>
       <!-- COORD · the user's personal Sigil — deterministic from name num + birth + tradition -->
       <div class="lobby-sigil" id="lobbySigil" title="Your sigil — yours alone"></div>
+      <!-- COORD · Day N of your walk — surfaces only when meaningful (≥ 2 days) -->
+      <div class="lobby-day-n" id="lobbyDayN" style="display:none;">Day <span id="lobbyDayNValue">—</span> of your walk</div>
       <button class="lobby-orb" id="lobbyOrb" aria-label="Begin Sync">
         <div class="lo-ring lo-ring-a"></div>
         <div class="lo-ring lo-ring-b"></div>
@@ -12908,6 +12914,18 @@ function renderLobby() {
   if (typeof _applyOrbMood === 'function') _applyOrbMood();
   // COORD: the user's personal sigil
   if (typeof _renderSigil === 'function') _renderSigil();
+  // COORD: Day N of your walk — quiet, respects Quiet Metrics
+  const dayNEl = document.getElementById('lobbyDayN');
+  if (dayNEl && typeof window.dayNOfWalk === 'function') {
+    const n = window.dayNOfWalk();
+    const quiet = (typeof appSettings !== 'undefined' && appSettings.quietMetrics);
+    if (n >= 2 && !quiet) {
+      document.getElementById('lobbyDayNValue').textContent = n;
+      dayNEl.style.display = '';
+    } else {
+      dayNEl.style.display = 'none';
+    }
+  }
   // COORD: letter button visibility
   if (typeof _renderLetterBtn === 'function') _renderLetterBtn();
   // COORD: tomorrow's frequency hint — show only in evenings/late night
