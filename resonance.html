@@ -1921,6 +1921,10 @@ input[type="date"].signup-input {
 .sync-mode-toggle button.active { background: rgba(255,255,255,0.12); color: var(--text); }
 .orb-stage { position: relative; width: 300px; height: 300px; margin: 20px auto 0; }
 .spectrum-canvas { position: absolute; top: -40px; left: -40px; width: 380px; height: 380px; z-index: 1; pointer-events: none; }
+/* ============ COORD · SILENCE BETWEEN (after a tone ends) ============ */
+.silence-between { margin: 16px auto 0; max-width: 340px; padding: 12px 16px; font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 15px; line-height: 1.55; color: var(--text); text-align: center; opacity: 0; transform: translateY(6px); transition: opacity .5s ease, transform .5s var(--ease); pointer-events: none; }
+.silence-between.show { opacity: 0.85; transform: translateY(0); }
+/* ============ /COORD ============ */
 /* ============ COORD · CYMATIC RIPPLES (when a manual tone plays) ============ */
 .orb-ripples { position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: 0; transition: opacity .8s ease; }
 .orb-stage.ringing .orb-ripples { opacity: 1; }
@@ -13780,25 +13784,53 @@ function renderCouncil() {
 // COORD: sacred-geometry tint follows the current frequency
 (function(){ if (typeof applyFrequency === 'function') { const _af = applyFrequency; applyFrequency = function(hz, fromSlider){ _af(hz, fromSlider); const sg = document.getElementById('sacredGeom'); if (sg && typeof hzToColor === 'function') { const [, , a] = hzToColor(hz); sg.style.color = a || 'var(--violet)'; } }; } })();
 // COORD: cymatic ripples — count active manual tones; orb-stage.ringing while > 0
+// AND: when the count drops back to zero on Sync, surface a quiet "silence between" line.
 (function(){
   let _manualCount = 0;
+  const SILENCE_LINES = [
+    'What’s left when the tone goes — that’s the practice.',
+    'The silence underneath was the point.',
+    'Don’t fill the quiet. Let it be louder for a second.',
+    'The note ended. You didn’t.',
+    'Hold what just happened in your chest.',
+    'Listen to what your body kept.',
+    'This is the part nobody talks about. This is the part.'
+  ];
+  function _showSilenceLine() {
+    const stage = document.querySelector('.orb-stage'); if (!stage) return;
+    let el = document.getElementById('silenceBetween');
+    if (!el) { el = document.createElement('div'); el.id = 'silenceBetween'; el.className = 'silence-between'; stage.parentNode.insertBefore(el, stage.nextSibling); }
+    const line = (typeof _dayPick === 'function') ? _dayPick(SILENCE_LINES, 'silence') : SILENCE_LINES[0];
+    el.textContent = line;
+    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+    setTimeout(() => { el.classList.remove('show'); }, 4800);
+  }
   function _setRippleColor(hz) { const stage = document.querySelector('.orb-stage'); if (!stage || typeof hzToColor !== 'function') return; const [, , a] = hzToColor(hz); stage.style.setProperty('--ripple-c', a || 'var(--mint)'); }
-  function _updateRinging() { const stage = document.querySelector('.orb-stage'); if (!stage) return; stage.classList.toggle('ringing', _manualCount > 0); }
+  function _updateRinging(wasRinging) {
+    const stage = document.querySelector('.orb-stage'); if (!stage) return;
+    const ringing = _manualCount > 0;
+    stage.classList.toggle('ringing', ringing);
+    // tone just ended → drop in the silence line (only on Sync)
+    if (wasRinging && !ringing) {
+      const sync = document.getElementById('page-sync');
+      if (sync && sync.classList.contains('active')) _showSilenceLine();
+    }
+  }
   if (typeof startTone === 'function') {
     const _st = startTone;
     startTone = function(hz, label) {
       const before = (typeof activeTones !== 'undefined' && activeTones.has) ? activeTones.has(hz) : false;
       _st(hz, label);
-      if (label === 'manual' && !before) { _manualCount++; _setRippleColor(hz); _updateRinging(); }
+      if (label === 'manual' && !before) { const wasR = _manualCount > 0; _manualCount++; _setRippleColor(hz); _updateRinging(wasR); }
     };
   }
   if (typeof stopTone === 'function') {
     const _sp = stopTone;
-    stopTone = function(hz) { const was = (typeof activeTones !== 'undefined' && activeTones.has) ? activeTones.has(hz) : false; _sp(hz); if (was) { _manualCount = Math.max(0, _manualCount - 1); _updateRinging(); } };
+    stopTone = function(hz) { const was = (typeof activeTones !== 'undefined' && activeTones.has) ? activeTones.has(hz) : false; const wasR = _manualCount > 0; _sp(hz); if (was) { _manualCount = Math.max(0, _manualCount - 1); _updateRinging(wasR); } };
   }
   if (typeof stopAllTones === 'function') {
     const _sa = stopAllTones;
-    stopAllTones = function() { _sa(); _manualCount = 0; _updateRinging(); };
+    stopAllTones = function() { const wasR = _manualCount > 0; _sa(); _manualCount = 0; _updateRinging(wasR); };
   }
 })();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(renderLobby, 2500));
