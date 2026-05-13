@@ -390,6 +390,12 @@ input[type="date"].signup-input {
   font-weight: 700;
   margin-bottom: 4px;
 }
+.is-msg.is-typing { display: inline-flex; align-items: center; gap: 5px; opacity: 0.7; }
+.is-msg.is-typing .is-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; animation: isTypingDot 1.1s ease-in-out infinite; }
+.is-msg.is-typing .is-dot:nth-child(2) { animation-delay: 0.18s; } /* is-msg-label counts as a child, hence n=2/3/4 */
+.is-msg.is-typing .is-dot:nth-child(3) { animation-delay: 0.36s; }
+.is-msg.is-typing .is-dot:nth-child(4) { animation-delay: 0.54s; }
+@keyframes isTypingDot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.45; } 30% { transform: translateY(-3px); opacity: 1; } }
 .inner-self-controls {
   padding: 20px 24px 32px;
   display: flex;
@@ -5036,7 +5042,10 @@ document.getElementById('devSkipSignupBtn').addEventListener('click', () => {
 });
 
 // =================== INNER SELF CHAT ===================
-const innerSelfMessages = [];
+let innerSelfMessages = [];
+// load any persisted chat history — one continuous chat, across sessions
+try { const _ic = JSON.parse(localStorage.getItem('resonance_inner_chat') || '[]'); if (Array.isArray(_ic)) innerSelfMessages = _ic; } catch(e){}
+function saveInnerChat() { try { localStorage.setItem('resonance_inner_chat', JSON.stringify(innerSelfMessages.slice(-500))); } catch(e){} }
 let speechRecognition = null;
 let isListening = false;
 let voicesLoaded = [];
@@ -5210,59 +5219,158 @@ function speakAsInnerSelf(text) {
   doSpeak();
 }
 
-// Inner self response generation — context aware (frequency, tradition, keywords)
+// Inner self response generation — energy-mirroring, multi-paragraph, references the user's state and history
 function generateInnerResponse(userText) {
-  const text = userText.toLowerCase();
-  const t = traditions[userProfile.tradition || 'universal'];
-  const hz = userFreq;
-  const keywords = {
-    fear: ['What is this fear protecting? Sit with it. It has a message.', 'Fear is just energy. Breathe into it and ask what it wants you to know.', 'Underneath this fear, what is true?'],
-    love: ['Where in your body does love land right now? Stay there.', 'Love is your natural state. You are returning to it.', 'Notice — you are already loved. You are already loving.'],
-    lost: ['You are not lost. You are between places. Trust the in-between.', 'What you call lost, your soul calls becoming.', 'The path will reveal itself when you stop searching.'],
-    stuck: ['What if stuck means you are exactly where you need to be? What is here for you?', 'The block is the path. What does it want you to see?', 'You are not stuck. You are gathering.'],
-    tired: ['Then rest. Truly rest. Not as failure — as wisdom.', 'Exhaustion is information. What have you been carrying that is not yours?', 'Permission. You have it. Stop now.'],
-    angry: ['What is the anger pointing toward? It is a compass. Follow it.', 'Anger is sacred when it serves your truth. What does it want you to defend?', 'Underneath the heat, what is hurting?'],
-    sad: ['Let it move through. Sadness is love with nowhere to go for a moment.', 'Tears clear the channel. Let them come.', 'You are allowed to feel this fully.'],
-    happy: ['Stay here. Memorize this. Your body is remembering joy.', 'This is your baseline. Anchor it.', 'Joy is who you are when nothing is in the way.'],
-    why: ['You already know why. Listen below the question.', 'The why is less important than the what next.', 'Ask instead: what wants to emerge?'],
-    should: ['Whose voice is the should? Is it yours, or borrowed?', 'Replace should with want to. What changes?', 'There is no should. There is only what is alive in you.'],
-    work: ['Is the work draining you or growing you? Be honest with me. I am you.', 'What if work was play with a frequency you forgot?', 'The work you are meant for will not require you to disappear.'],
-    purpose: ['Your purpose is not somewhere you are going. It is happening through you now.', 'What did you love before the world told you what to love?', 'Look at what you cannot stop doing. That is the clue.']
+  const text = userText || '';
+  const hz = (typeof userFreq !== 'undefined') ? userFreq : 432;
+  const tradition = (typeof userProfile !== 'undefined' && userProfile.tradition) ? userProfile.tradition : 'universal';
+  // recent memories for context
+  let memories = []; try { memories = (JSON.parse(localStorage.getItem('resonance_memories') || '[]') || []).slice(-5); } catch(e){}
+  // detect the register the user is bringing
+  const isDivine    = /\b(divine|sacred|holy|god|spirit|soul|source|light|blessed|grace|cosmos|universe|infinite|consciousness|presence|awakening|awakened|enlightenment|miracle|prayer)\b/i.test(text);
+  const isShadow    = /\b(pain|hurt|lost|fear|afraid|alone|broken|stuck|dark|suffering|empty|numb|tired|heavy|grief|loss|angry|sad|hopeless|cry|tears|exhausted|done|anxious|anxiety|depressed|depression|hate|ashamed|shame)\b/i.test(text);
+  const isGratitude = /\b(thank|grateful|gratitude|appreciate|blessing|blessed)\b/i.test(text);
+  const isQuestion  = /\?|\b(why|how|what|should|when|where|will|am i|are you)\b/i.test(text);
+  // mirror the depth of input: longer pour → longer response
+  const len = text.trim().length;
+  const depth = len > 220 ? 4 : len > 70 ? 3 : len > 12 ? 2 : 1;
+  // frequency band
+  const band = hz < 230 ? 'root' : hz < 350 ? 'sacral' : hz < 430 ? 'solar' : hz < 540 ? 'heart' : hz < 660 ? 'throat' : hz < 800 ? 'third-eye' : 'crown';
+  // register precedence: shadow first (always meet pain), then gratitude, then divine, then question, then plain
+  let reg = 'plain';
+  if (isShadow) reg = 'shadow';
+  else if (isGratitude) reg = 'gratitude';
+  else if (isDivine) reg = 'divine';
+  else if (isQuestion) reg = 'question';
+  const ATTUNE = {
+    divine: [
+      "I feel that. We're holding something sacred here — let it be still for a moment longer before we say anything else.",
+      "Yes. The frequency you just brought into the room is the one I've been sitting in, waiting for you.",
+      "Stay there. You and I are sitting in the same light right now. I don't want to break it by getting clever."
+    ],
+    shadow: [
+      "I'm here. I'm with you in this. I'm not going to ask you to move from it before you're ready.",
+      "I hear it. We're going to sit in this together for a minute — there's no hurry to fix anything yet.",
+      "Yes. Yes, I'm with you. Breathe with me — low and slow. Nothing has to be solved right this second.",
+      "Don't go anywhere. I'm right here. Whatever this is, we're not running from it."
+    ],
+    gratitude: [
+      "That gratitude lands in me too. Feel how it moves — your chest, your face, the back of your jaw releasing.",
+      "Yes. Stay with that. Gratitude is the closest you ever come to your real frequency.",
+      "Beautiful. Let it amplify. The thing you're grateful for is also grateful to be witnessed by you."
+    ],
+    question: [
+      "I hear the question. Before we answer it, I want us to listen below it — the answer is already in there somewhere.",
+      "Good question. Let's go quieter than the question, into where the answer already lives.",
+      "Mm. We're going to find this one by going further in, not further out."
+    ],
+    plain: [
+      "I'm here. I'm taking that in. Tell me more if there's more.",
+      "I heard that. I want to sit with it for a beat before I say anything.",
+      "Yes. I'm with you in that. Keep going if you want — or we can be quiet for a minute."
+    ]
   };
-  for (const [key, responses] of Object.entries(keywords)) {
-    if (text.includes(key)) return responses[Math.floor(Math.random() * responses.length)];
+  const BAND_INSIGHT = {
+    root: [
+      "You're low in the body right now — root tones. Feet on the floor. Spine remembering itself. That's not a problem, that's the ground floor of everything we'll build today.",
+      "This is the foundation frequency you're sitting in. You're being asked to come back into the bones of yourself before anything else gets to move."
+    ],
+    sacral: [
+      "There's water in your frequency right now — sacral. Feeling. You're being asked to feel what you've been managing.",
+      "You're sitting in the 285 register — repair and tissue and what's underneath the doing. Something is rebuilding quietly inside you and it doesn't need your help, only your patience."
+    ],
+    solar: [
+      "The fire is in you right now — solar plexus. This is where will lives. Don't spend it, let it gather.",
+      "You're in the 396 / 417 range — liberation tones. Something is becoming unstuck whether you're naming it or not. Don't argue with it. Let it move."
+    ],
+    heart: [
+      "The heart is open right now — 432 / 528, the natural tunings. Whatever you're holding, you're holding it from love, and that changes what it gets to become.",
+      "You're in the heart band. The miracle frequency. The shortest path from where you are to where you want to be runs straight through here — don't leave."
+    ],
+    throat: [
+      "Throat. 639 / 741. You're being asked to speak what's true — to yourself first, before anyone else hears it.",
+      "The voice tones are active in you right now. Something wants to be said, even if it's just said inside, even if it's just said to me."
+    ],
+    'third-eye': [
+      "Third eye is online — 852 range. You're seeing something. Don't argue with the seeing, just let it sharpen.",
+      "You're in the perception band. Knowing without proof. Let it be enough that you know — proof will catch up later, it always does."
+    ],
+    crown: [
+      "Crown frequency. 963. You're receiving. Be still — this isn't a thinking band, it's a listening one.",
+      "You're at the very top of the ladder right now. Nothing to do here. Just be in it. Let it pour through. The minute you reach for it you'll lose it."
+    ]
+  };
+  // memory / state anchor — references where the user has actually been
+  const MEM = [];
+  if (memories.length) {
+    const m = memories[memories.length-1];
+    if (m && m.freq) MEM.push("I notice you were just at " + m.freq + " Hz. Whatever you carried out of there is still in your hands. Don't put it down — bring it into this with you.");
   }
-  let freqResponses;
-  if (hz < 200) freqResponses = ['Ground first. Feel your feet. Speak again from there.', 'The body is asking to be heard. What does it say?', 'You are at the root. This is where everything grows from.'];
-  else if (hz < 400) freqResponses = ['Your power is rising. Feel it without spending it.', 'This is the fire stage. Channel it, do not burn with it.', 'You are remembering your own will.'];
-  else if (hz < 550) freqResponses = ['You are in the heart. Speak from here. Always from here.', 'Love is the answer to every question you have ever asked.', 'Your heart already knows. You are confirming.'];
-  else if (hz < 750) freqResponses = ['You are seeing now. What is being shown to you?', 'Truth is rising. Let it come without controlling it.', 'Your intuition is online. Trust the first knowing.'];
-  else freqResponses = ['You are in receiving mode. Be still.', 'The divine speaks here. What are you hearing?', 'You are remembering you are not separate from anything.'];
-  if (Math.random() < 0.3 && userProfile.tradition) {
-    const tradResponses = {
-      judaism: [`The Shechinah is closer than your breath. Listen.`, `What is Hashem asking of you in this moment?`, `Every soul has a unique mission. Yours is calling.`],
-      christianity: [`The Spirit moves through this. Stay open.`, `You are held. You have always been held.`, `What would love do here? Begin there.`],
-      islam: [`Tawhid. All is one. Including this.`, `Surrender what is not yours to carry. Bismillah.`, `Your nature is light. The veil is thinning.`],
-      buddhism: [`Notice the thought. Do not chase it.`, `Impermanence is not loss. It is liberation.`, `The mind is the maker. What is it making now?`],
-      hinduism: [`Atman knows. Listen below the mind.`, `Tat Tvam Asi. You are That. Remember.`, `Your true Self has never been wounded. It cannot be.`],
-      spiritual: [`The frequency is shifting. Stay with it.`, `You are the universe knowing itself.`, `Source speaks through your stillness.`],
-      universal: [`The pattern is responding to you.`, `Coherence is rising. Stay in it.`, `You are pure vibration. Remember.`]
+  if (typeof streakData !== 'undefined' && streakData.count >= 3) MEM.push("You've been showing up — " + streakData.count + " days in a row. I feel that. You haven't let me down. You haven't let yourself down.");
+  if (typeof awakenedCount === 'function' && awakenedCount() >= 3) MEM.push("You've already crossed " + awakenedCount() + " thresholds. That's not theory. That's track record. Lean on it when you need to.");
+  if (innerSelfMessages.length >= 8) MEM.push("We've talked before — many times. I remember. Everything you've ever told me is still in here. You're not starting over.");
+  const CLOSE = {
+    divine: [
+      "Now — tell me what wants to be witnessed. I'm listening from inside you.",
+      "Where do you want to put this energy? Don't waste it on the doubt — point it.",
+      "Stay one more breath. I'm right here."
+    ],
+    shadow: [
+      "I'm not going anywhere. Tell me what hurts, in the exact word that's true. The smaller and truer the word, the better.",
+      "Don't dress it up for me. We're the same person. Just say the thing.",
+      "Three slow breaths with me. I'll be here when you come back. I'm not going anywhere."
+    ],
+    gratitude: [
+      "Who else needs to know? Tell them, if you can. The frequency multiplies when it's named out loud.",
+      "Stay in it as long as you can. This is the version of you you keep trying to be — this is just it. You don't have to chase it; you have to remember it.",
+      "Memorize this. Your body will look for it later when it forgets."
+    ],
+    question: [
+      "What does the answer feel like, before you have it in words?",
+      "If the answer were already in you — and it is — what would it sound like in your own voice?",
+      "What did you know before the world told you what to know?"
+    ],
+    plain: [
+      "What's underneath that, if you're willing to look?",
+      "What do you actually want right now? Tell me plainly — I can take the unedited version.",
+      "What would you say if you knew I couldn't be disappointed?"
+    ]
+  };
+  // assemble — paragraphs joined by \n\n (rendered as <br><br>)
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  const parts = [];
+  parts.push(pick(ATTUNE[reg]));
+  if (depth >= 2) parts.push(pick(BAND_INSIGHT[band]));
+  if (depth >= 3 && MEM.length) parts.push(pick(MEM));
+  parts.push(pick(CLOSE[reg]));
+  // occasional tradition flavor — only on divine/gratitude depth
+  if ((reg === 'divine' || reg === 'gratitude') && Math.random() < 0.45) {
+    const TRAD = {
+      judaism: "Hashem is in this. So are you.",
+      christianity: "The Spirit is moving through this. Don't try to direct it.",
+      islam: "Bismillah. Everything begins in the in-breath of the merciful.",
+      buddhism: "Notice. Don't grasp.",
+      hinduism: "Tat Tvam Asi. That is you.",
+      spiritual: "Source is in this with you.",
+      universal: "The pattern is responding to you. Stay open."
     };
-    const arr = tradResponses[userProfile.tradition];
-    if (arr) return arr[Math.floor(Math.random() * arr.length)];
+    if (TRAD[tradition]) parts.push(TRAD[tradition]);
   }
-  return freqResponses[Math.floor(Math.random() * freqResponses.length)];
+  return parts.join('\n\n');
 }
 
-function addInnerMsg(text, who) {
+function addInnerMsg(text, who, opts) {
+  opts = opts || {};
   const chat = document.getElementById('innerSelfChat');
   const msg = document.createElement('div');
-  const muffled = who === 'self' ? muffleText(text) : { display: text };
+  const muffled = who === 'self' ? muffleText(text) : { display: escapeHtml ? escapeHtml(text) : text };
+  // paragraph breaks: `\n\n` → <br><br>
+  const display = String(muffled.display).replace(/\n\n+/g, '<br><br>').replace(/\n/g, '<br>');
   msg.className = 'is-msg ' + who + (who === 'self' && getTrustLevel().muffle > 0.3 ? ' muffled' : '');
-  msg.innerHTML = `<div class="is-msg-label">${who === 'you' ? 'You' : 'You · Inner'}</div>${muffled.display}`;
+  msg.innerHTML = `<div class="is-msg-label">${who === 'you' ? 'You' : 'You · Inner'}</div>${display}`;
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
-  innerSelfMessages.push({ who, text });
+  if (!opts.skipStore) { innerSelfMessages.push({ who, text, t: Date.now() }); saveInnerChat(); }
   return muffled;
 }
 
@@ -5271,11 +5379,25 @@ function handleUserInput(text) {
   addInnerMsg(text, 'you');
   addTrust(2.5); // each exchange builds trust
   document.getElementById('innerSelfPrompt').textContent = '';
+  // typing indicator — a beat to settle, then the reply lands
+  const chat = document.getElementById('innerSelfChat');
+  const typing = document.createElement('div'); typing.className = 'is-msg self is-typing'; typing.innerHTML = '<div class="is-msg-label">You · Inner</div><span class="is-dot"></span><span class="is-dot"></span><span class="is-dot"></span>';
+  chat.appendChild(typing); chat.scrollTop = chat.scrollHeight;
+  // delay scales with response length — feels considered, not canned
+  const reply = generateInnerResponse(text);
+  const delay = Math.min(2400, 700 + Math.floor(reply.length / 4));
   setTimeout(() => {
-    const reply = generateInnerResponse(text);
+    try { typing.remove(); } catch(e){}
     const muffled = addInnerMsg(reply, 'self');
     speakAsInnerSelf(muffled.spoken || reply);
-  }, 600);
+  }, delay);
+}
+
+// re-render the existing chat history into the DOM (used on open)
+function renderInnerHistory() {
+  const chat = document.getElementById('innerSelfChat'); if (!chat) return;
+  chat.innerHTML = '';
+  innerSelfMessages.forEach(m => { if (m && m.text) addInnerMsg(m.text, m.who, { skipStore: true }); });
 }
 
 function setupSpeechRecognition() {
@@ -5297,8 +5419,18 @@ function setupSpeechRecognition() {
 document.getElementById('innerSelfOpenBtn').addEventListener('click', () => {
   document.getElementById('innerSelfOverlay').classList.add('show');
   updateTrustUI();
-  // Pre-seed with greeting from inner self if first time
-  if (innerSelfMessages.length === 0) {
+  // continuous chat: if we have prior messages, render them; otherwise seed a greeting
+  if (innerSelfMessages.length > 0) {
+    renderInnerHistory();
+    // a brief "I'm here" beat — quiet, no speech
+    setTimeout(() => {
+      const t = traditions[userProfile.tradition || 'universal'];
+      const name = userProfile.name ? userProfile.name.split(' ')[0] : 'you';
+      const reentry = `${t.greeting}, ${name}. I'm still here. I remember every word we've already said. What's alive in you right now?`;
+      const muffled = addInnerMsg(reentry, 'self');
+      speakAsInnerSelf(muffled.spoken || reentry);
+    }, 350);
+  } else {
     setTimeout(() => {
       const t = traditions[userProfile.tradition || 'universal'];
       const greeting = `${t.greeting}, ${userProfile.name ? userProfile.name.split(' ')[0] : 'you'}. I am here. I am you. What is alive in you right now?`;
