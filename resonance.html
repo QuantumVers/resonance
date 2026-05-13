@@ -3031,9 +3031,23 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .tab-btn.active { color: var(--text); transform: translateY(-1px); }
 .tab-btn:active { transform: scale(0.94); }
 .tab-btn.active:active { transform: scale(0.94) translateY(-1px); }
-.tab-btn svg { width: 22px; height: 22px; transition: filter 0.25s var(--ease); }
-.tab-btn.active svg { filter: drop-shadow(0 0 8px rgba(167,139,250,0.55)); }
-.tab-btn span { font-size: 9px; letter-spacing: 0.8px; font-weight: 600; text-transform: uppercase; }
+.tab-btn svg { width: 22px; height: 22px; transition: filter 0.25s var(--ease), transform 0.25s var(--ease); }
+.tab-btn.active svg { filter: drop-shadow(0 0 8px rgba(167,139,250,0.55)); transform: translateY(-1px); }
+/* Labels: inactive tabs show icon only — the bar is quieter. Active tab speaks
+   its name with a slide-up. Sync (sync-tab) always shows its label so the
+   hero never goes silent. */
+.tab-btn span {
+  font-size: 9px; letter-spacing: 0.8px; font-weight: 600; text-transform: uppercase;
+  max-height: 0; opacity: 0; transform: translateY(4px);
+  overflow: hidden;
+  transition: max-height 0.32s var(--ease), opacity 0.32s var(--ease), transform 0.32s var(--pop), color 0.25s var(--ease);
+}
+.tab-btn.active span, .tab-btn.sync-tab span {
+  max-height: 14px; opacity: 1; transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-btn span { transition: none; }
+}
 /* Sync = the primary action: lift it slightly out of the bar like a Pokémon GO / Fortnite "drop" button */
 .tab-btn.sync-tab { flex: 0 0 auto; margin: 0 -2px; transform: translateY(-6px); }
 .tab-btn.sync-tab:active { transform: translateY(-6px) scale(0.94); }
