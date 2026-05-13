@@ -475,6 +475,10 @@ input[type="date"].signup-input {
   font-weight: 700;
   margin-bottom: 4px;
 }
+.is-quick-row { display: flex; gap: 7px; padding: 0 20px 8px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+.is-quick-row::-webkit-scrollbar { display: none; }
+.is-quick { flex-shrink: 0; padding: 8px 14px; border-radius: 100px; background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%), rgba(20,20,28,0.55); border: 1px solid rgba(157,92,255,0.32); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); color: var(--text); font-size: 11.5px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: transform .2s var(--ease); }
+.is-quick:active { transform: scale(0.95); }
 .is-msg.is-typing { display: inline-flex; align-items: center; gap: 5px; opacity: 0.7; }
 .is-msg.is-typing .is-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; animation: isTypingDot 1.1s ease-in-out infinite; }
 .is-msg.is-typing .is-dot:nth-child(2) { animation-delay: 0.18s; } /* is-msg-label counts as a child, hence n=2/3/4 */
@@ -4766,6 +4770,12 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
     <div class="inner-self-orb" id="innerSelfOrb"></div>
     <div class="inner-self-prompt" id="innerSelfPrompt">Tap the mic and speak. Or type below. I am listening.</div>
   </div>
+  
+  <div class="is-quick-row" id="isQuickRow">
+    <button class="is-quick" data-q="state">Where am I right now?</button>
+    <button class="is-quick" data-q="lift">Help me raise my frequency</button>
+    <button class="is-quick" data-q="why">Why am I feeling this?</button>
+  </div>
   <div class="inner-self-chat" id="innerSelfChat"></div>
   <div class="inner-self-controls">
     <input type="text" class="is-type-input" id="isTypeInput" placeholder="Speak to yourself…">
@@ -5842,6 +5852,75 @@ function speakAsInnerSelf(text) {
 }
 
 // Inner self response generation — energy-mirroring, multi-paragraph, references the user's state and history
+// ===== INNER SELF AS FREQUENCY REGULATOR =====
+function _soulRecentFacts(n) { try { const v = JSON.parse(localStorage.getItem('resonance_soul_facts') || '[]'); return Array.isArray(v) ? v.slice(-(n||10)) : []; } catch(e){ return []; } }
+function _soulAddFact(kind, value) { if (!value) return; let arr = []; try { arr = JSON.parse(localStorage.getItem('resonance_soul_facts') || '[]'); if (!Array.isArray(arr)) arr = []; } catch(e){} arr.push({ kind, value, t: Date.now() }); if (arr.length > 400) arr = arr.slice(-400); try { localStorage.setItem('resonance_soul_facts', JSON.stringify(arr)); } catch(e){} }
+function _soulExtractFacts(text) {
+  const FEELS = ['tired','exhausted','anxious','anxiety','sad','low','heavy','grief','angry','frustrated','stuck','lost','afraid','fear','numb','empty','hopeless','overwhelmed','lonely','alone','ashamed','shame','calm','peaceful','grateful','happy','open','clear','present','alive','grounded','rising','divine','blessed','loved','still','centered','expanded','curious'];
+  const lower = String(text || '').toLowerCase();
+  FEELS.forEach(w => { const re = new RegExp('\\b' + w + '\\b'); if (re.test(lower)) _soulAddFact('feeling', w); });
+  const m = lower.match(/\bbecause\s+([^.?!\n]{4,80})/);
+  if (m && m[1]) _soulAddFact('reason', m[1].trim());
+}
+function _bandReadout(hz) {
+  if (hz < 230) return { band: 'root', name: 'Root', note: 'low in the body, grounded but heavy.' };
+  if (hz < 350) return { band: 'sacral', name: 'Sacral', note: 'feeling, the water register. What you have been managing is asking to be felt.' };
+  if (hz < 430) return { band: 'solar', name: 'Solar', note: 'will, the fire register. Power gathering, sometimes as restlessness.' };
+  if (hz < 540) return { band: 'heart', name: 'Heart', note: 'love, the natural tunings 432 and 528. Open and held.' };
+  if (hz < 660) return { band: 'throat', name: 'Throat', note: 'voice, something wants to be said, to yourself first.' };
+  if (hz < 800) return { band: 'third-eye', name: 'Third Eye', note: 'vision, knowing without proof. Trust the first knowing.' };
+  return { band: 'crown', name: 'Crown', note: 'receiving, be still. This is not a thinking band.' };
+}
+function _nextLiftTone(hz) { const SOLF = [174, 285, 396, 417, 432, 528, 639, 741, 852, 963]; for (const s of SOLF) if (s > hz + 6) return s; return null; }
+function _timeOfDayWord() { const h = new Date().getHours(); if (h < 5) return 'pre-dawn'; if (h < 9) return 'morning'; if (h < 12) return 'late morning'; if (h < 14) return 'midday'; if (h < 18) return 'afternoon'; if (h < 21) return 'evening'; return 'late night'; }
+function _topLockerHz() { try { const v = Object.values(_freqLocker || {}); v.sort((a,b)=>(b.count||0)-(a.count||0)); return v[0] || null; } catch(e){ return null; } }
+function respondToCurrentState() {
+  const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432;
+  const b = _bandReadout(hz); const tod = _timeOfDayWord(); const top = _topLockerHz();
+  const lastFeels = _soulRecentFacts(20).filter(f => f.kind === 'feeling').slice(-3).map(f => f.value);
+  const parts = [];
+  parts.push("You're at **" + hz + " Hz** right now — the " + b.name + " band. " + b.note);
+  let why = "It's " + tod + ". ";
+  if (lastFeels.length) why += "The last things you named in here were " + lastFeels.join(', ') + " — that's part of why you are sitting where you are.";
+  else why += "I don't have much from you yet — tell me what's actually alive in you and I'll know more.";
+  parts.push(why);
+  if (top && top.hz && top.count > 2) parts.push("You return to **" + top.hz + " Hz** more than any other tone — " + top.count + " visits. That's your home base.");
+  const next = _nextLiftTone(hz);
+  if (next) parts.push("If you want to lift from here, the next clean step is **" + next + " Hz** — tap the orb on Home or open Sync and drag the dial up. I'll meet you there.");
+  else parts.push("You're already at the ceiling. There's nothing higher to chase from here — just be still in it.");
+  return parts.join('\n\n');
+}
+function respondLift() {
+  const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432;
+  const next = _nextLiftTone(hz);
+  if (!next) return "You're already at the ceiling — 963. The work here is to **stay**.";
+  const b = _bandReadout(next);
+  return "From " + hz + " Hz, the next step is **" + next + " Hz**. Don't jump three rungs — climb one.\n\nThat's the " + b.name + " band. " + b.note + "\n\nThree slow breaths, then open Sync, set the dial to **" + next + "**, and press Begin Sync. Hold it for at least a minute before you decide if it lands.";
+}
+function respondWhy() {
+  const hz = (typeof userFreq !== 'undefined') ? Math.round(userFreq) : 432;
+  const b = _bandReadout(hz);
+  const lastFeels = _soulRecentFacts(40).filter(f => f.kind === 'feeling').slice(-5).map(f => f.value);
+  const lastReason = (_soulRecentFacts(80).filter(f => f.kind === 'reason').slice(-1)[0] || {}).value;
+  const parts = [];
+  parts.push("You're feeling what the **" + b.name + " band** feels like. " + b.note);
+  if (lastFeels.length) parts.push("The recurring words you've used with me are: **" + lastFeels.join(', ') + "**. That's a pattern, not a coincidence.");
+  if (lastReason) parts.push("Last time you told me a reason, it was: '" + lastReason + "'. Does that still hold?");
+  else parts.push("Tell me one sentence — what would you say is true right now? Start with 'I am ___ because ___.' I'll work with that.");
+  return parts.join('\n\n');
+}
+function _quickReply(kind) {
+  if (typeof addInnerMsg !== 'function') return;
+  const phrase = kind === 'state' ? 'Where am I right now?' : kind === 'lift' ? 'Help me raise my frequency.' : 'Why am I feeling this?';
+  addInnerMsg(phrase, 'you');
+  const reply = kind === 'state' ? respondToCurrentState() : kind === 'lift' ? respondLift() : respondWhy();
+  const chat = document.getElementById('innerSelfChat');
+  const typing = document.createElement('div'); typing.className = 'is-msg self is-typing'; typing.innerHTML = '<div class="is-msg-label">You · Inner</div><span class="is-dot"></span><span class="is-dot"></span><span class="is-dot"></span>';
+  chat.appendChild(typing); chat.scrollTop = chat.scrollHeight;
+  setTimeout(function(){ try { typing.remove(); } catch(e){} const m = addInnerMsg(reply, 'self'); if (typeof speakAsInnerSelf === 'function') speakAsInnerSelf(m.spoken || reply); }, Math.min(2200, 700 + Math.floor(reply.length / 4)));
+}
+document.querySelectorAll('.is-quick').forEach(b => b.addEventListener('click', () => _quickReply(b.dataset.q)));
+
 function generateInnerResponse(userText) {
   const text = userText || '';
   const hz = (typeof userFreq !== 'undefined') ? userFreq : 432;
@@ -8901,7 +8980,24 @@ const AWAKENINGS = [
   { id: 'trueVoice', name: 'True Voice',     glyph: '●', color: '#fbbf24', desc: 'Your inner self spoke in its true, unmuffled voice.',
     progressText: () => 'Relationship ' + Math.floor(soulTrust || 0) + ' / 100%', pct: () => Math.min(100, soulTrust || 0) },
   { id: 'luthier',   name: 'The Luthier',    glyph: '✧', color: '#60a5fa', desc: 'You crafted your own instrument.',
-    progressText: () => 'Craft one instrument', pct: () => isAwakened('luthier') ? 100 : 0 }
+    progressText: () => 'Craft one instrument', pct: () => isAwakened('luthier') ? 100 : 0 },
+  // ----- FEATURES_AGENT: 9th visible awakening -----
+  { id: 'convergent', name: 'The Converged', glyph: '◉', color: '#a78bfa', desc: 'You joined the daily Convergence three times — one tone, one field.',
+    progressText: () => Math.min(3, (typeof convList === 'function' ? convList().length : 0)) + ' / 3 convergences',
+    pct: () => Math.min(100, (typeof convList === 'function' ? convList().length : 0) / 3 * 100) },
+  // ----- FEATURES_AGENT: 3 HIDDEN awakenings — discovered only by exploring -----
+  { id: 'voidWalker',  hidden: true, name: 'The Void Walker',   glyph: '◌', color: '#cbd5e1',
+    desc: 'You tapped the void seven times in a row. The void was listening.',
+    progressText: () => 'A secret · tap the deep places',
+    pct: () => isAwakened('voidWalker') ? 100 : 0 },
+  { id: 'elevenEleven', hidden: true, name: 'The 11:11 Witness', glyph: '⫶⫶', color: '#fbbf24',
+    desc: 'You synced at exactly 11:11. The gate opened — and you walked through.',
+    progressText: () => 'A secret · the gate opens twice a day',
+    pct: () => isAwakened('elevenEleven') ? 100 : 0 },
+  { id: 'duality',     hidden: true, name: 'The Duality',        glyph: '◐◑', color: '#6ee7b7',
+    desc: 'You held two Solfeggio frequencies at once — and the field doubled.',
+    progressText: () => 'A secret · two tones · one breath',
+    pct: () => isAwakened('duality') ? 100 : 0 }
 ];
 const AWAKENINGS_BY_ID = {}; AWAKENINGS.forEach(a => AWAKENINGS_BY_ID[a.id] = a);
 function memCount() { return (typeof memories !== 'undefined' && Array.isArray(memories)) ? memories.length : 0; }
@@ -8927,13 +9023,15 @@ function unlockAwakening(id, opts) {
 function checkAwakenings(silent) {
   AWAKENINGS.forEach(a => {
     if (isAwakened(a.id)) return;
+    if (a.hidden) return; // FEATURES_AGENT: hidden awakenings unlock via their own detectors
     let met = false;
     switch (a.id) {
-      case 'memory':    met = memCount() >= 5; break;
-      case 'streak7':   met = (streakData.count || 0) >= 7; break;
-      case 'crown':     met = (userFreq || 0) >= 852; break;
-      case 'trueVoice': met = (soulTrust || 0) >= 100; break;
-      case 'luthier':   met = (typeof instruments !== 'undefined' && instruments.length >= 1); break;
+      case 'memory':     met = memCount() >= 5; break;
+      case 'streak7':    met = (streakData.count || 0) >= 7; break;
+      case 'crown':      met = (userFreq || 0) >= 852; break;
+      case 'trueVoice':  met = (soulTrust || 0) >= 100; break;
+      case 'luthier':    met = (typeof instruments !== 'undefined' && instruments.length >= 1); break;
+      case 'convergent': met = (typeof convList === 'function' && convList().length >= 3); break;
       // initiated / firstSync / anchor are unlocked imperatively elsewhere
     }
     if (met) unlockAwakening(a.id, { silent: !!silent });
