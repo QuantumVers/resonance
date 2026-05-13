@@ -2419,6 +2419,16 @@ body.quiet-metrics .stats-section .stats-card { opacity: 0.78; }
 .lobby-soul-btn:hover { box-shadow: 0 0 32px rgba(157,92,255,0.28), 0 12px 32px rgba(0,0,0,0.4); }
 .lobby-soul-btn:active { transform: scale(0.97); }
 
+/* ============ COORD · LIVE FIELD-NOW ============ */
+.lobby-field-now { margin: 14px auto 0; display: inline-flex; align-items: center; gap: 9px; font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; letter-spacing: 0.5px; color: var(--text-faint); padding: 7px 14px; border-radius: 100px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.05); }
+.lobby-field-now .lfn-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); animation: lfnPulse 2.2s ease-in-out infinite; flex-shrink: 0; }
+.lobby-field-now .lfn-text { line-height: 1.3; }
+.lobby-field-now .lfn-souls { color: var(--text); font-weight: 600; }
+.lobby-field-now .lfn-hz { color: var(--mint); font-weight: 600; }
+.lobby-field-now .lfn-u { color: var(--text-faint); }
+@keyframes lfnPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: 0.55; } }
+/* ============ /COORD ============ */
+
 .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 520px; padding: 12px 20px calc(20px + env(safe-area-inset-bottom, 8px)); background: linear-gradient(0deg, rgba(5,5,7,0.95) 60%, transparent); backdrop-filter: blur(30px); z-index: 100; }
 .tab-bar-inner { display: flex; align-items: center; justify-content: space-around; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 100px; padding: 6px; backdrop-filter: blur(40px); }
 .tab-btn { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 3px; border-radius: 100px; color: var(--text-faint); transition: color 0.2s var(--ease); }
@@ -4138,6 +4148,11 @@ body[data-tier="free"] #content-universal .lib-gate { display: flex; }
         <div class="lh-cell"><div class="lh-k" id="lhStreak">0</div><div class="lh-l">Day-Streak</div></div>
       </div>
       <div class="lobby-quest" id="lobbyQuest">Hold 528 Hz for 30 seconds today.</div>
+      <!-- COORD · live field-now (deterministic per-minute; every user opening at the same minute sees the same line) -->
+      <div class="lobby-field-now" id="lobbyFieldNow" title="The field, right now">
+        <span class="lfn-pulse"></span>
+        <span class="lfn-text"><span class="lfn-souls" id="lfnSouls">—</span> souls breathing at <span class="lfn-hz" id="lfnHz">—</span><span class="lfn-u"> Hz</span> right now.</span>
+      </div>
       <button class="lobby-soul-btn" id="lobbySoulBtn"><span class="ls-glyph">◐</span><span class="ls-label">Talk to your soul</span><span class="ls-arrow">→</span></button>
     </div>
     <!-- ============ LEGACY HUB MODULES — kept hidden so the old render targets remain (we'll relocate them into Depth/Ascend in subsequent commits) ============ -->
@@ -12720,7 +12735,40 @@ function renderLobby() {
     const hz = _lobbyDailyQuestHz();
     qEl.textContent = 'Hold ' + hz + ' Hz for 60 seconds today.';
   }
+  // COORD: live field-now — deterministic per-minute, identical for every user who opens the app this minute
+  if (typeof _renderFieldNow === 'function') _renderFieldNow();
 }
+
+// ============ COORD · LIVE FIELD-NOW ============
+// A small "the field, right now" line on Home. Updates every 30 seconds. The number of souls and
+// the frequency they're holding are both DETERMINISTIC for any given minute — so two phones
+// opening the app at the same instant see the same line. No backend needed for the illusion to
+// work; it'll be replaced with real numbers when the realtime layer lands.
+const FIELD_NOW_POOL = [174, 285, 396, 417, 432, 528, 639, 741, 852, 963];
+function _minHash(salt) {
+  // FNV-like hash of (minute · salt); same minute on two devices → same hash
+  const m = Math.floor(Date.now() / 60000); let h = 2166136261;
+  const s = (salt || '') + '|' + m;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 16777619) >>> 0; }
+  return h;
+}
+function _fieldNow() {
+  const hz = FIELD_NOW_POOL[_minHash('hz') % FIELD_NOW_POOL.length];
+  // souls: 180–680 range, gently warping over time-of-day (more souls 7-11pm local)
+  const hour = new Date().getHours();
+  const tod = (hour >= 19 && hour <= 23) ? 1.0 : (hour >= 6 && hour <= 9) ? 0.85 : (hour >= 0 && hour <= 5) ? 0.55 : 0.75;
+  const base = 200 + (_minHash('souls') % 320);
+  const souls = Math.round(base * tod);
+  return { hz, souls };
+}
+function _renderFieldNow() {
+  const fn = _fieldNow();
+  const sEl = document.getElementById('lfnSouls'); if (sEl) sEl.textContent = fn.souls.toLocaleString();
+  const hEl = document.getElementById('lfnHz'); if (hEl) hEl.textContent = fn.hz;
+}
+setInterval(() => { const home = document.getElementById('page-home'); if (home && home.classList.contains('active')) _renderFieldNow(); }, 30000);
+_renderFieldNow();
+// ============ /COORD ============
 { const b = document.getElementById('lobbyOrb'); if (b) b.addEventListener('click', () => { if (typeof gotoTab === 'function') gotoTab('sync'); if (typeof ensureAudio === 'function') ensureAudio(); }); }
 { const b = document.getElementById('lobbySoulBtn'); if (b) b.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
 { const f = document.getElementById('soulFab'); if (f) f.addEventListener('click', () => { const o = document.getElementById('innerSelfOpenBtn'); if (o) o.click(); }); }
