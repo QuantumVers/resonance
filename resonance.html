@@ -9298,6 +9298,67 @@ updateAwakeningsBadge();
 document.getElementById('enterInnerBtn').addEventListener('click', () => setTimeout(() => unlockAwakening('initiated'), 1400));
 document.getElementById('devSkipBtn').addEventListener('click', () => setTimeout(() => unlockAwakening('initiated'), 1400));
 
+// =================== FEATURES_AGENT · HIDDEN AWAKENING DETECTORS ===================
+// Three secret unlocks. The reward is finding them; never write them in copy.
+//   voidWalker   — tap the lobby orb 7 times in a row, inside an 8s window
+//   elevenEleven — sync at exactly 11:11 (a.m. or p.m., the user's local clock)
+//   duality      — hold two Solfeggio frequencies layered together for >= 6s
+(function () {
+  let _voidTaps = 0, _voidFirstAt = 0;
+  function _voidTap() {
+    if (typeof isAwakened === 'function' && isAwakened('voidWalker')) return;
+    const now = Date.now();
+    if (now - _voidFirstAt > 8000) { _voidTaps = 0; _voidFirstAt = now; }
+    _voidTaps++;
+    if (_voidTaps >= 7) {
+      _voidTaps = 0;
+      if (typeof unlockAwakening === 'function') unlockAwakening('voidWalker');
+    }
+  }
+  ['lobbyOrb', 'lobbyOrbCore'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', _voidTap);
+  });
+
+  function _check1111() {
+    if (typeof isAwakened === 'function' && isAwakened('elevenEleven')) return;
+    const d = new Date();
+    if (d.getMinutes() === 11 && (d.getHours() === 11 || d.getHours() === 23)) {
+      if (typeof unlockAwakening === 'function') unlockAwakening('elevenEleven');
+    }
+  }
+  ['enterInnerBtn', 'devSkipBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => setTimeout(_check1111, 1500));
+  });
+  setInterval(_check1111, 60 * 1000);
+  setTimeout(_check1111, 4000);
+
+  const _SOLF_LIST = [174, 285, 396, 417, 528, 639, 741, 852, 963];
+  function _isSolfHz(hz) { return _SOLF_LIST.some(s => Math.abs(s - hz) < 3); }
+  let _dualStart = 0;
+  function _dualityTick() {
+    if (typeof isAwakened === 'function' && isAwakened('duality')) return;
+    let solfCount = 0;
+    try {
+      if (typeof activeTones !== 'undefined' && activeTones && typeof activeTones.forEach === 'function') {
+        activeTones.forEach((_t, hz) => { if (_isSolfHz(hz)) solfCount++; });
+      }
+    } catch (e) {}
+    if (solfCount >= 2) {
+      if (!_dualStart) _dualStart = Date.now();
+      if (Date.now() - _dualStart >= 6000) {
+        _dualStart = 0;
+        if (typeof unlockAwakening === 'function') unlockAwakening('duality');
+      }
+    } else {
+      _dualStart = 0;
+    }
+  }
+  setInterval(_dualityTick, 500);
+})();
+// =================== /FEATURES_AGENT ===================
+
 // =================== SETTINGS (UI) ===================
 function applyVolume() {
   const mul = volumeMul();
