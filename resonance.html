@@ -9614,8 +9614,21 @@ document.getElementById('setImportFile').addEventListener('change', e => {
     }
     if (!payload) { if (typeof toast === 'function') toast('Not a Resonance export', 'warn'); return; }
     _importArmed = payload;
+    // Preflight — validate each key against its schema; surface OK / quarantine counts.
+    let ok = 0, sus = 0;
+    try {
+      const schemas = (window.RState && RState.schemas) || {};
+      Object.keys(payload).forEach(k => {
+        const bare = k.replace(/^resonance_+/, '');
+        const sch = schemas[bare];
+        if (!sch) { ok++; return; }
+        if (sch.ok(payload[k])) ok++; else sus++;
+      });
+    } catch (er) {}
     const btn = document.getElementById('setImportBtn');
-    btn.textContent = 'Tap to confirm import (' + Object.keys(payload).length + ' keys)';
+    btn.textContent = sus > 0
+      ? 'Tap to import (' + ok + ' ok · ' + sus + ' suspect)'
+      : 'Tap to confirm import (' + ok + ' keys)';
     btn.classList.add('danger');
     setTimeout(() => { if (_importArmed) { _importArmed = null; btn.textContent = 'Import JSON'; btn.classList.remove('danger'); } }, 6000);
     e.target.value = '';
