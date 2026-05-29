@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RESONANCE · The Field — a society of souls living by the laws</title>
+<style>
+  :root {
+    --bg: #050507; --bg-deep: #020203;
+    --text: #ffffff; --text-dim: rgba(255,255,255,0.66); --text-faint: rgba(255,255,255,0.40);
+    --violet: #a78bfa; --mint: #6ee7b7; --gold: #fbbf24; --rose: #fb7185; --blue: #60a5fa; --pink: #f0abfc; --green: #34d399;
+    --card: rgba(20,20,28,0.6); --border: rgba(255,255,255,0.10); --border-hi: rgba(255,255,255,0.20);
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  html, body { background: var(--bg); color: var(--text); height: 100%; overflow: hidden; }
+  body {
+    background:
+      radial-gradient(circle at 18% 12%, rgba(167,139,250,0.10), transparent 45%),
+      radial-gradient(circle at 82% 88%, rgba(110,231,183,0.06), transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(96,165,250,0.04), transparent 60%),
+      var(--bg);
+    display: grid;
+    grid-template-rows: 56px 1fr;
+    grid-template-columns: 1fr;
+  }
+  /* ===== TOP BAR ===== */
+  .topbar {
+    grid-row: 1; padding: 0 18px; display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border-bottom: 1px solid var(--border); backdrop-filter: blur(40px) saturate(180%);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .lotus { width: 22px; height: 22px; color: var(--gold); filter: drop-shadow(0 0 8px var(--gold)); animation: breathe 5s ease-in-out infinite; }
+  .brand .lotus path { fill: currentColor; }
+  .brand .lotus .lp-back { opacity: 0.45; } .brand .lotus .lp-mid { opacity: 0.75; }
+  .brand-title { font-size: 13px; font-weight: 200; letter-spacing: -0.01em; }
+  .brand-title b { font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+  .brand-sub { font-family: Georgia, serif; font-style: italic; font-size: 11px; color: var(--text-faint); }
+  .spacer { flex: 1; }
+  .time { font-family: ui-monospace, 'SF Mono', monospace; font-size: 12px; color: var(--text-dim); letter-spacing: 0.5px; padding: 6px 12px; border-radius: 100px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
+  .time b { color: var(--gold); }
+  .speeds { display: flex; gap: 4px; padding: 4px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 100px; }
+  .speeds button {
+    padding: 6px 11px; border-radius: 100px; border: 0; background: transparent;
+    color: var(--text-faint); font-size: 11px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer;
+    transition: all .2s var(--ease);
+  }
+  .speeds button.on { background: var(--text); color: var(--bg-deep); }
+  .speeds button:hover { color: var(--text); }
+  @keyframes breathe { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
+
+  /* ===== MAIN GRID ===== */
+  .main { grid-row: 2; display: grid; grid-template-columns: 280px 1fr 320px; gap: 12px; padding: 12px; overflow: hidden; min-height: 0; }
+  .panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+    overflow-y: auto; padding: 16px;
+  }
+  .panel::-webkit-scrollbar { width: 6px; }
+  .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 100px; }
+  .panel h3 { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; margin-bottom: 10px; }
+  .panel h3:not(:first-child) { margin-top: 18px; }
+  .stage {
+    position: relative; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.10));
+    border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+  .stage-overlay {
+    position: absolute; left: 16px; top: 14px; right: 16px; pointer-events: none;
+    display: flex; justify-content: space-between; font-family: ui-monospace, monospace; font-size: 10px; color: var(--text-faint); letter-spacing: 1px;
+  }
+  .stage-overlay .axis-y { writing-mode: vertical-rl; transform: rotate(180deg); position: absolute; left: 4px; top: 50%; }
+
+  /* ===== STAT ROW ===== */
+  .stat-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .stat-row:last-child { border-bottom: 0; }
+  .stat-row .k { font-size: 11px; color: var(--text-dim); }
+  .stat-row .v { font-family: ui-monospace, monospace; font-size: 12.5px; color: var(--text); font-weight: 600; }
+  .stat-row .v.up { color: var(--mint); }
+  .stat-row .v.dn { color: var(--rose); }
+
+  /* ===== EVENTS ===== */
+  .events { padding-top: 4px; }
+  .event {
+    padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 12px; line-height: 1.5; color: var(--text-dim);
+    animation: evIn 0.4s var(--ease);
+  }
+  .event b { color: var(--text); font-weight: 600; }
+  .event .ev-t { display: block; font-family: ui-monospace, monospace; font-size: 9px; color: var(--text-faint); letter-spacing: 0.5px; margin-top: 2px; }
+  .event.kind { border-left: 2px solid var(--violet); padding-left: 8px; }
+  .event.note { border-left: 2px solid var(--gold); padding-left: 8px; }
+  .event.conv { border-left: 2px solid var(--mint); padding-left: 8px; }
+  .event.kindred { border-left: 2px solid var(--pink); padding-left: 8px; }
+  .event.thresh { border-left: 2px solid var(--blue); padding-left: 8px; }
+  @keyframes evIn { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* ===== SOUL DETAIL ===== */
+  .soul-detail { display: none; }
+  .soul-detail.show { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .soul-orb {
+    width: 70px; height: 70px; border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.6), var(--sd-c, var(--violet)) 40%, rgba(15,5,40,0.95));
+    box-shadow: 0 0 40px var(--sd-c, var(--violet));
+    margin: 0 auto 10px; animation: orbPulse 3.6s ease-in-out infinite;
+  }
+  @keyframes orbPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);} }
+  .soul-name { text-align: center; font-size: 19px; font-weight: 300; letter-spacing: -0.01em; }
+  .soul-meta { text-align: center; font-family: ui-monospace, monospace; font-size: 10px; color: var(--text-faint); margin-top: 4px; letter-spacing: 0.5px; }
+  .soul-bars { margin-top: 14px; }
+  .soul-bar { margin-top: 8px; }
+  .soul-bar .lbl { display: flex; justify-content: space-between; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; color: var(--text-faint); margin-bottom: 3px; }
+  .soul-bar .lbl .v { color: var(--text); font-family: ui-monospace, monospace; }
+  .soul-bar .bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+  .soul-bar .fill { height: 100%; background: var(--sd-c, var(--mint)); border-radius: 100px; transition: width 0.4s ease; }
+  .soul-list { margin-top: 8px; max-height: 200px; overflow-y: auto; }
+  .soul-list .item { padding: 6px 0; font-size: 11px; color: var(--text-dim); border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .soul-list .item .h { color: var(--text-faint); font-family: ui-monospace, monospace; font-size: 9px; margin-right: 6px; }
+  .soul-list-empty { color: var(--text-faint); font-style: italic; font-family: Georgia, serif; padding: 10px 0; font-size: 11.5px; }
+  .hint { font-size: 11px; color: var(--text-faint); font-style: italic; padding: 12px 0; text-align: center; }
+
+  /* ===== TOP NOTES ===== */
+  .top-note { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 11.5px; line-height: 1.5; color: var(--text); font-family: Georgia, serif; font-style: italic; }
+  .top-note .who { display: block; font-family: ui-monospace, monospace; font-size: 9px; color: var(--text-faint); margin-top: 4px; font-style: normal; letter-spacing: 0.5px; }
+  .top-note .who b { color: var(--gold); }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <svg class="lotus" viewBox="0 0 64 64" aria-hidden="true">
+        <path class="lp-back" d="M32 8c-6 6-12 16-12 28h6c0-10 2-18 6-28z"/>
+        <path class="lp-back" d="M32 8c6 6 12 16 12 28h-6c0-10-2-18-6-28z"/>
+        <path class="lp-mid" d="M8 32c4-6 12-12 24-12v6c-8 0-16 2-24 6z"/>
+        <path class="lp-mid" d="M56 32c-4-6-12-12-24-12v6c8 0 16 2 24 6z"/>
+        <path class="lp-front" d="M32 18c-4 6-6 14-6 24h12c0-10-2-18-6-24z"/>
+        <circle class="lp-front" cx="32" cy="42" r="4"/>
+      </svg>
+      <div>
+        <div class="brand-title"><b>Resonance</b> · The Field</div>
+        <div class="brand-sub">a society of souls living by the laws</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="time" id="timeReadout"><b id="timeDay">day 1</b> · <span id="timeHM">06:00</span> · <span id="timePop">300 souls</span></div>
+    <div class="speeds" id="speedCtrl">
+      <button data-spd="0">PAUSE</button>
+      <button data-spd="1" class="on">1×</button>
+      <button data-spd="10">10×</button>
+      <button data-spd="100">100×</button>
+      <button data-spd="1000">1000×</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- LEFT: SOUL DETAIL -->
+    <div class="panel">
+      <h3>Soul</h3>
+      <div class="hint" id="soulHint">Click any soul in the field to spotlight them. The whole history is read out.</div>
+      <div class="soul-detail" id="soulDetail">
+        <div class="soul-orb" id="sdOrb"></div>
+        <div class="soul-name" id="sdName">—</div>
+        <div class="soul-meta" id="sdMeta">—</div>
+        <div class="soul-bars">
+          <div class="soul-bar"><div class="lbl"><span>Light</span><span class="v" id="sdLightV">—</span></div><div class="bar"><div class="fill" id="sdLight" style="width:0%"></div></div></div>
+          <div class="soul-bar"><div class="lbl"><span>Devotion</span><span class="v" id="sdDevV">—</span></div><div class="bar"><div class="fill" id="sdDev" style="width:0%"></div></div></div>
+          <div class="soul-bar"><div class="lbl"><span>Voice</span><span class="v" id="sdVoiceV">—</span></div><div class="bar"><div class="fill" id="sdVoice" style="width:0%"></div></div></div>
+          <div class="soul-bar"><div class="lbl"><span>Openness</span><span class="v" id="sdOpenV">—</span></div><div class="bar"><div class="fill" id="sdOpen" style="width:0%"></div></div></div>
+        </div>
+        <h3>Kindred (<span id="sdKinN">0</span>)</h3>
+        <div class="soul-list" id="sdKin"></div>
+        <h3>Recent moves</h3>
+        <div class="soul-list" id="sdHistory"></div>
+      </div>
+    </div>
+
+    <!-- CENTER: STAGE -->
+    <div class="stage">
+      <canvas id="stage"></canvas>
+      <div class="stage-overlay">
+        <span>← root · sacral · solar · heart · throat · third-eye · crown →</span>
+        <span id="stageStat">avg light · —</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: STATS + EVENTS + TOP NOTES -->
+    <div class="panel">
+      <h3>The Field</h3>
+      <div class="stat-row"><span class="k">Souls</span><span class="v" id="statSouls">—</span></div>
+      <div class="stat-row"><span class="k">Average light</span><span class="v" id="statLight">—</span></div>
+      <div class="stat-row"><span class="k">Top wavelength</span><span class="v" id="statTopHz">—</span></div>
+      <div class="stat-row"><span class="k">Kindred bonds</span><span class="v" id="statKindred">—</span></div>
+      <div class="stat-row"><span class="k">Notes today</span><span class="v" id="statNotes">—</span></div>
+      <div class="stat-row"><span class="k">Gratitudes today</span><span class="v" id="statGrat">—</span></div>
+      <div class="stat-row"><span class="k">Convergence</span><span class="v" id="statConv">—</span></div>
+      <div class="stat-row"><span class="k">Days lived</span><span class="v" id="statDays">—</span></div>
+
+      <h3>Recent events</h3>
+      <div class="events" id="events"></div>
+
+      <h3>What the field believes today</h3>
+      <div id="topNotes"></div>
+    </div>
+  </div>
+
+<script>
+// =====================================================================
+// RESONANCE · THE FIELD — a self-running society of souls living by the laws
+// =====================================================================
+//
+// Each soul has a zodiac sign, a numerology number, a base wavelength they
+// rest at, a current wavelength they're holding, a light index, four trait
+// scales (openness, devotion, voice, restfulness), and a memory.
+//
+// Every sim minute, each soul might take an action — meditate, speak (post
+// a soul note), reach (send a wave), thank (post a gratitude), rest, or
+// drift. Actions cost energy and shift light.
+//
+// Souls form kindred bonds when their wavelengths and numerology align.
+// Once a day, the whole field converges on a daily-picked wavelength for
+// 30 minutes. Notes propagate to souls near the author's wavelength.
+// Light is contagious — high-light neighbors lift everyone near them.
+//
+// You watch. You can speed it up to 1000×. You can click any soul to read
+// their whole life.
+// =====================================================================
+
+// ============ data ============
+const NAMES = ['Mira','River','Sage','Luna','Asa','Indigo','Wren','Solenne','Cy','Aria','Juno','Vega','Ronan','Iris','Hollis','Saoirse','Aurelio','Nima','Theo','Selah','Caspian','Niamh','Kestrel','Otis','Anouk','Linnea','Bodhi','Yara','Bowie','Calla','Roan','Briar','Marlow','Lior','Nox','Etta','Cyrus','Lark','Eos','Ilya','Auden','Naya','Sable','Pax','Liora','Zephyr','Aki','Esme','Felix','Reya','Tama','Solen','Beck','Soren','Wren','Halo','Ren','Theia','Asa','Ash','Atlas','Lev','Bowen','Sasha','Ren','Quinn','Sky','Ember','Bay','Wolfe','Indra','Soraya','Mira','Joaquin','Avi','Tasha','Lyra','Hira','Cosmo','Vesper','Niko','Sephora','Tobias','Maren','Lev','Hex','Onya','Tarka','Sela','Yves','Senna','Talin','Levi','Inara','Cal','Anders','Noor','Una','Loa','Eero','Tabor','Astrid','Yuna','Faye','Heath','Caro','Asha','Linus','Mira','Sky','Wren','Avery','Sahel','Ren','Ines','Beren','Lior','Joa','Cyrene','Tova','Wim','Eira','Asra','Quinn','Sage','Rhea','Aine','Cael','Dara','Sora','Eden','Ozan','Indi'];
+const ZODIAC = [
+  { sign:'Aries',       el:'Fire',  glyph:'♈' }, { sign:'Taurus', el:'Earth', glyph:'♉' },
+  { sign:'Gemini',      el:'Air',   glyph:'♊' }, { sign:'Cancer', el:'Water', glyph:'♋' },
+  { sign:'Leo',         el:'Fire',  glyph:'♌' }, { sign:'Virgo',  el:'Earth', glyph:'♍' },
+  { sign:'Libra',       el:'Air',   glyph:'♎' }, { sign:'Scorpio',el:'Water', glyph:'♏' },
+  { sign:'Sagittarius', el:'Fire',  glyph:'♐' }, { sign:'Capricorn',el:'Earth',glyph:'♑' },
+  { sign:'Aquarius',    el:'Air',   glyph:'♒' }, { sign:'Pisces', el:'Water', glyph:'♓' }
+];
+const ELEMENT_COLOR = { Fire:'#fb7185', Earth:'#c4a07a', Air:'#60a5fa', Water:'#34d399' };
+const SOLFEGGIO = [174, 285, 396, 417, 432, 528, 639, 741, 852, 963];
+const BANDS = [
+  { name:'Root',      lo: 60, hi: 230, col:'#fb7185' },
+  { name:'Sacral',    lo:230, hi: 350, col:'#fbbf24' },
+  { name:'Solar',     lo:350, hi: 430, col:'#fde68a' },
+  { name:'Heart',     lo:430, hi: 540, col:'#6ee7b7' },
+  { name:'Throat',    lo:540, hi: 660, col:'#34d399' },
+  { name:'Third Eye', lo:660, hi: 800, col:'#60a5fa' },
+  { name:'Crown',     lo:800, hi:1000, col:'#e0e7ff' }
+];
+function bandFor(hz) { return BANDS.find(b => hz >= b.lo && hz < b.hi) || BANDS[3]; }
+function rand(n) { return Math.random() * n; }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// Numerology — small integer per soul
+function pythagNum(s) {
+  const map = 'abcdefghijklmnopqrstuvwxyz';
+  let sum = 0; for (const c of String(s).toLowerCase()) { const i = map.indexOf(c); if (i >= 0) sum += (i % 9) + 1; }
+  while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) sum = String(sum).split('').reduce((a,b)=>a+ +b, 0);
+  return sum || 1;
+}
+
+// ============ Note lines — the things souls say to each other ============
+const NOTE_POOL_OPEN = [
+  "I am the field, not the seeker.",
+  "What I want, wants me.",
+  "The frequency I carry today is already the answer.",
+  "I am not building. I am remembering.",
+  "Stay one more breath.",
+  "It is done. It was always done.",
+  "The light is on. I am the one who turned it on by arriving.",
+  "I am that. I am.",
+  "What I notice grows. I notice my own light.",
+  "I have already arrived."
+];
+const NOTE_POOL_HEART = [
+  "My chest is open. I am letting it be open.",
+  "Love is the only door that doesn't ask why.",
+  "Whoever needed this — I'm thinking of you. The room is warm.",
+  "I am not chasing. I am being walked toward.",
+  "The heart is the shortest distance home.",
+  "Held. That's all I have to say today: held.",
+  "Today I forgive what I was going to forgive eventually anyway."
+];
+const NOTE_POOL_SHADOW = [
+  "I'm tired and I'm staying. Both are true.",
+  "I don't have to fix it tonight. It just gets to be here.",
+  "Breath, then breath, then breath.",
+  "The tide is doing the work. I am letting it.",
+  "Not forcing the light. Just keeping the wick dry.",
+  "Whatever this is, I'm with it for one more minute."
+];
+const NOTE_POOL_CROWN = [
+  "Receiving. No more chasing.",
+  "Quiet. Quiet. Quiet.",
+  "I am not thinking. I am being thought.",
+  "The mountain has come to me.",
+  "Nothing to add. Nothing to subtract."
+];
+const GRAT_POOL = [
+  "the morning light.",
+  "the body for waking up again.",
+  "the friend who didn't disappear.",
+  "the song that found me.",
+  "the breath I didn't have to remember.",
+  "the silence at 6am.",
+  "the love I almost missed.",
+  "the way the kitchen smells now.",
+  "the second chance no one asked me to take.",
+  "the kid I used to be.",
+  "the part of me that kept going.",
+  "the rain at the right hour.",
+  "the people who said yes.",
+  "the question that opened up.",
+  "the fact that today happened."
+];
+
+// ============ SIM STATE ============
+const state = {
+  souls: [],
+  tick: 0,        // sim minutes since boot
+  day: 1,
+  events: [],     // recent events
+  notesToday: [], // soul notes posted today
+  gratsToday: [], // gratitudes posted today
+  topNotes: [],   // most-heard notes today
+  kindredBonds: 0,
+  convergence: { hz: 528, openAt: 18 * 60, closeAt: 18 * 60 + 30 }, // sim 18:00 to 18:30 today
+  spd: 1,         // speed multiplier
+  selectedId: null
+};
+
+// Build N souls
+function spawn(n) {
+  state.souls = [];
+  for (let i = 0; i < n; i++) {
+    const z = pick(ZODIAC);
+    const name = pick(NAMES);
+    const num = pythagNum(name + i);
+    const baseHz = clamp(80 + Math.pow(Math.random(), 1.4) * 880, 80, 970);
+    const soul = {
+      id: i,
+      name,
+      sign: z.sign, element: z.el, glyph: z.glyph,
+      color: ELEMENT_COLOR[z.el],
+      num,
+      baseHz,
+      hz: baseHz,
+      light: 24 + Math.random() * 26,
+      mood: 'tuning',
+      // traits 0..1
+      openness: 0.3 + Math.random() * 0.55,
+      devotion: 0.2 + Math.random() * 0.6,
+      voice: 0.15 + Math.random() * 0.55,
+      restfulness: 0.2 + Math.random() * 0.5,
+      // social
+      kindred: new Set(),
+      // history
+      history: [],
+      // recent
+      lastNote: '',
+      lastNoteAt: -1e9,
+      lastGratAt: -1e9,
+      lastWaveAt: -1e9,
+      // counters
+      notesPosted: 0,
+      waveSent: 0,
+      kindredFormed: 0,
+      convergedOn: -1
+    };
+    state.souls.push(soul);
+  }
+}
+
+// ============ events ============
+function logEvent(text, cls) {
+  state.events.unshift({ text, cls, t: state.tick });
+  if (state.events.length > 80) state.events.pop();
+}
+function fmtClock(min) {
+  const h = Math.floor(min / 60) % 24, m = min % 60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+
+// ============ ACTIONS ============
+function actMeditate(s) {
+  // drift toward base, light slowly rises
+  s.hz = s.hz * 0.92 + s.baseHz * 0.08;
+  s.light = clamp(s.light + 0.18 + s.devotion * 0.3, 0, 100);
+}
+function actDrift(s) {
+  // light wanders gently
+  s.hz += (Math.random() - 0.5) * 8;
+  s.hz = clamp(s.hz, 60, 980);
+  s.light = clamp(s.light - 0.05, 0, 100);
+}
+function actRest(s) {
+  s.hz = s.hz * 0.95 + s.baseHz * 0.05;
+  s.light = clamp(s.light + 0.05, 0, 100);
+}
+function actSpeak(s) {
+  // pick a note pool by where they are
+  const b = bandFor(s.hz);
+  let pool;
+  if (s.light > 75) pool = NOTE_POOL_OPEN.concat(NOTE_POOL_CROWN);
+  else if (s.light < 35) pool = NOTE_POOL_SHADOW;
+  else if (b.name === 'Heart') pool = NOTE_POOL_HEART;
+  else if (b.name === 'Crown' || b.name === 'Third Eye') pool = NOTE_POOL_CROWN;
+  else pool = NOTE_POOL_OPEN;
+  const text = pick(pool);
+  s.lastNote = text;
+  s.lastNoteAt = state.tick;
+  s.notesPosted++;
+  s.light = clamp(s.light + 0.6 + s.voice * 0.8, 0, 100);
+  // propagation: souls within ±35 Hz of the author hear it (count of heard)
+  let heard = 0;
+  for (const o of state.souls) {
+    if (o === s) continue;
+    if (Math.abs(o.hz - s.hz) < 35) {
+      heard++;
+      // slight lift to listeners proportional to author's light
+      if (Math.random() < 0.4) o.light = clamp(o.light + (s.light - o.light) * 0.005, 0, 100);
+    }
+  }
+  state.notesToday.push({ author: s.id, text, hz: Math.round(s.hz), heard, t: state.tick });
+  if (heard >= 18 || s.light > 80) logEvent('<b>' + s.name + '</b> spoke at ' + Math.round(s.hz) + ' Hz: <i>' + text + '</i> — ' + heard + ' heard.', 'note');
+  s.history.push({ t: state.tick, kind: 'spoke', hz: Math.round(s.hz), text, heard });
+}
+function actThank(s) {
+  const thing = pick(GRAT_POOL);
+  state.gratsToday.push({ author: s.id, text: thing, t: state.tick });
+  s.lastGratAt = state.tick;
+  s.light = clamp(s.light + 1.2, 0, 100);
+  // lift kindred too
+  s.kindred.forEach(k => { const o = state.souls[k]; if (o) o.light = clamp(o.light + 0.15, 0, 100); });
+  s.history.push({ t: state.tick, kind: 'thanked', text: thing });
+}
+function actReach(s) {
+  // send a wave to a kindred or nearby soul
+  const candidates = (s.kindred.size > 0)
+    ? [...s.kindred].map(i => state.souls[i]).filter(Boolean)
+    : state.souls.filter(o => o !== s && Math.abs(o.hz - s.hz) < 25).slice(0, 12);
+  if (!candidates.length) return;
+  const target = pick(candidates);
+  s.waveSent++;
+  s.lastWaveAt = state.tick;
+  // target receives a small lift if compatible
+  const sum = (s.num + target.num) % 9;
+  if (sum === 0 || sum === 3 || sum === 6) target.light = clamp(target.light + 0.4, 0, 100);
+  s.history.push({ t: state.tick, kind: 'reached', to: target.name });
+}
+function tryFormKindred(s) {
+  // pair with one nearby soul if numerology compatible
+  if (s.kindred.size >= 6) return;
+  for (const o of state.souls) {
+    if (o === s || s.kindred.has(o.id)) continue;
+    if (Math.abs(o.hz - s.hz) > 18) continue;
+    const sum = (s.num + o.num) % 9;
+    const compat = (sum === 0 || sum === 3 || sum === 6);
+    const close = s.element === o.element ? 0.0035 : 0.0012;
+    if (Math.random() < (compat ? 0.0085 : close)) {
+      s.kindred.add(o.id); o.kindred.add(s.id);
+      s.kindredFormed++; o.kindredFormed++;
+      state.kindredBonds++;
+      s.light = clamp(s.light + 0.7, 0, 100); o.light = clamp(o.light + 0.7, 0, 100);
+      logEvent('<b>' + s.name + '</b> and <b>' + o.name + '</b> became kindred at ' + Math.round((s.hz + o.hz)/2) + ' Hz.', 'kindred');
+      s.history.push({ t: state.tick, kind: 'kindred', name: o.name });
+      o.history.push({ t: state.tick, kind: 'kindred', name: s.name });
+      break;
+    }
+  }
+}
+
+// ============ daily routines + convergence ============
+function pickDailyConvergence() {
+  const hz = pick(SOLFEGGIO);
+  state.convergence = { hz, openAt: 18 * 60, closeAt: 18 * 60 + 30, announced: false };
+}
+
+function tickSim() {
+  state.tick++;
+  const dayMin = state.tick % 1440;
+  // rollover day
+  if (dayMin === 0) {
+    state.day++;
+    // log top notes of the day
+    if (state.notesToday.length) {
+      state.notesToday.sort((a,b) => b.heard - a.heard);
+      state.topNotes = state.notesToday.slice(0, 3).map(n => ({
+        text: n.text, hz: n.hz, heard: n.heard,
+        author: state.souls[n.author] ? state.souls[n.author].name : 'soul'
+      }));
+    }
+    state.notesToday = [];
+    state.gratsToday = [];
+    pickDailyConvergence();
+    state.souls.forEach(s => s.convergedOn = -1);
+    logEvent('A new day. The field rolls into <b>day ' + state.day + '</b>.', 'thresh');
+  }
+  // convergence window
+  if (dayMin === state.convergence.openAt) {
+    logEvent('<b>The Convergence is opening at ' + state.convergence.hz + ' Hz.</b> 30 minutes.', 'conv');
+  }
+  const inConvergence = dayMin >= state.convergence.openAt && dayMin < state.convergence.closeAt;
+
+  let avgHzNum = 0, lightSum = 0;
+
+  for (let i = 0; i < state.souls.length; i++) {
+    const s = state.souls[i];
+    // gentle homeostasis back toward base
+    s.hz = s.hz * 0.997 + s.baseHz * 0.003;
+    // tiny light decay each tick — kept honest
+    s.light = clamp(s.light - 0.012, 0, 100);
+
+    // convergence — willing souls drift toward today's tone
+    if (inConvergence && s.devotion + Math.random() * 0.3 > 0.4) {
+      s.hz = s.hz * 0.85 + state.convergence.hz * 0.15;
+      s.light = clamp(s.light + 0.18, 0, 100);
+      if (s.convergedOn !== state.day) { s.convergedOn = state.day; s.history.push({ t: state.tick, kind: 'converged', hz: state.convergence.hz }); }
+    }
+    // act with some probability based on traits — most ticks are quiet
+    const roll = Math.random();
+    if (roll < 0.0006 * s.voice) actSpeak(s);
+    else if (roll < 0.0009 * s.devotion) actMeditate(s);
+    else if (roll < 0.0014 * s.openness) actReach(s);
+    else if (roll < 0.0017) actThank(s);
+    else if (roll < 0.0024) actRest(s);
+    else if (roll < 0.003) actDrift(s);
+    // try to form kindred (cheap probability gate inside)
+    if (Math.random() < 0.0025) tryFormKindred(s);
+
+    avgHzNum += s.hz;
+    lightSum += s.light;
+  }
+  // averages
+  state.avgHz = avgHzNum / state.souls.length;
+  state.avgLight = lightSum / state.souls.length;
+  // population-level emergence: if avg light > 78, occasionally log a "the field is luminous"
+  if (state.avgLight > 78 && Math.random() < 0.002) logEvent('The field passed <b>luminous</b>. Hold.', 'thresh');
+}
+
+// ============ RENDER ============
+const canvas = document.getElementById('stage');
+const ctx = canvas.getContext('2d');
+let dpr = window.devicePixelRatio || 1;
+function resize() {
+  const r = canvas.getBoundingClientRect(); dpr = window.devicePixelRatio || 1;
+  canvas.width = r.width * dpr; canvas.height = r.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize);
+
+function hzToX(hz, w) {
+  // log scale 80..1000 → 0..w with 10% padding each side
+  const lo = Math.log(80), hi = Math.log(1000);
+  const t = (Math.log(clamp(hz, 80, 1000)) - lo) / (hi - lo);
+  return 32 + t * (w - 64);
+}
+function lightToY(light, h) {
+  // top of canvas = high light. invert
+  return 24 + (1 - light/100) * (h - 64);
+}
+
+function draw() {
+  const w = canvas.width / dpr, h = canvas.height / dpr;
+  ctx.clearRect(0, 0, w, h);
+  // background: faint band lanes
+  BANDS.forEach((b, i) => {
+    const x0 = hzToX(b.lo, w), x1 = hzToX(b.hi, w);
+    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, b.col + '08'); g.addColorStop(0.5, b.col + '12'); g.addColorStop(1, b.col + '08');
+    ctx.fillStyle = g; ctx.fillRect(x0, 0, x1 - x0, h);
+    ctx.fillStyle = b.col + '55';
+    ctx.font = '9px ui-monospace, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(b.name.toUpperCase(), (x0 + x1) / 2, h - 8);
+  });
+  // y-axis label
+  ctx.save(); ctx.translate(14, h / 2); ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.30)'; ctx.font = '9px ui-monospace, monospace'; ctx.textAlign = 'center';
+  ctx.fillText('LIGHT  ↑  TUNING IN', 0, 0);
+  ctx.restore();
+  // kindred lines (cap to keep perf — render N random bonds per frame)
+  ctx.strokeStyle = 'rgba(167,139,250,0.10)'; ctx.lineWidth = 1;
+  const linesPerFrame = Math.min(800, state.kindredBonds);
+  let drawn = 0;
+  for (let i = 0; i < state.souls.length && drawn < linesPerFrame; i++) {
+    const s = state.souls[i];
+    if (!s.kindred.size) continue;
+    s.kindred.forEach(k => {
+      if (k <= s.id) return; // each pair once
+      if (drawn >= linesPerFrame) return;
+      const o = state.souls[k]; if (!o) return;
+      const x1 = hzToX(s.hz, w), y1 = lightToY(s.light, h);
+      const x2 = hzToX(o.hz, w), y2 = lightToY(o.light, h);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      drawn++;
+    });
+  }
+  // dots
+  for (let i = 0; i < state.souls.length; i++) {
+    const s = state.souls[i];
+    const x = hzToX(s.hz, w), y = lightToY(s.light, h);
+    const r = 2 + s.light / 22;
+    const isSelected = state.selectedId === s.id;
+    // halo for selected
+    if (isSelected) {
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.beginPath(); ctx.arc(x, y, r + 14, 0, Math.PI*2); ctx.fill();
+    }
+    // light core
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r * 2.5);
+    g.addColorStop(0, 'rgba(255,255,255,0.85)'); g.addColorStop(0.4, s.color + 'cc'); g.addColorStop(1, s.color + '00');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 2.5, 0, Math.PI*2); ctx.fill();
+    // hard dot
+    ctx.fillStyle = s.color;
+    ctx.beginPath(); ctx.arc(x, y, r * 0.5, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+// ============ HUD / sidebars update ============
+function topHzBand() {
+  const buckets = new Array(BANDS.length).fill(0);
+  state.souls.forEach(s => { const i = BANDS.findIndex(b => s.hz >= b.lo && s.hz < b.hi); if (i >= 0) buckets[i]++; });
+  let best = 0; for (let i = 1; i < buckets.length; i++) if (buckets[i] > buckets[best]) best = i;
+  return BANDS[best];
+}
+function updateHud() {
+  const t = state.tick;
+  document.getElementById('timeDay').textContent = 'day ' + state.day;
+  document.getElementById('timeHM').textContent = fmtClock(t);
+  document.getElementById('timePop').textContent = state.souls.length + ' souls';
+  document.getElementById('statSouls').textContent = state.souls.length;
+  document.getElementById('statLight').textContent = state.avgLight ? state.avgLight.toFixed(1) : '—';
+  const tb = topHzBand();
+  document.getElementById('statTopHz').textContent = tb.name + ' (' + Math.round(state.avgHz) + ' Hz)';
+  document.getElementById('statKindred').textContent = state.kindredBonds;
+  document.getElementById('statNotes').textContent = state.notesToday.length;
+  document.getElementById('statGrat').textContent = state.gratsToday.length;
+  const dayMin = state.tick % 1440;
+  const cv = state.convergence;
+  let convText;
+  if (dayMin < cv.openAt) { const inN = cv.openAt - dayMin; convText = 'in ' + fmtClock(inN) + ' · ' + cv.hz + ' Hz'; }
+  else if (dayMin < cv.closeAt) { convText = 'LIVE · ' + cv.hz + ' Hz · ' + (cv.closeAt - dayMin) + 'm'; }
+  else { convText = 'closed for the day'; }
+  document.getElementById('statConv').textContent = convText;
+  document.getElementById('statDays').textContent = state.day;
+  document.getElementById('stageStat').textContent = 'avg light · ' + (state.avgLight || 0).toFixed(1);
+}
+function renderEvents() {
+  const host = document.getElementById('events');
+  host.innerHTML = '';
+  state.events.slice(0, 14).forEach(ev => {
+    const el = document.createElement('div');
+    el.className = 'event ' + (ev.cls || '');
+    el.innerHTML = ev.text + '<span class="ev-t">day ' + (Math.floor(ev.t / 1440) + 1) + ' · ' + fmtClock(ev.t) + '</span>';
+    host.appendChild(el);
+  });
+}
+function renderTopNotes() {
+  const host = document.getElementById('topNotes'); host.innerHTML = '';
+  if (!state.topNotes.length) {
+    const tip = document.createElement('div'); tip.className = 'hint'; tip.textContent = 'No belief has crystallized yet. Speed it up.';
+    host.appendChild(tip); return;
+  }
+  state.topNotes.forEach(n => {
+    const el = document.createElement('div'); el.className = 'top-note';
+    el.innerHTML = '"' + n.text + '"<span class="who"><b>' + n.author + '</b> · ' + n.hz + ' Hz · heard by ' + n.heard + '</span>';
+    host.appendChild(el);
+  });
+}
+function renderSoulDetail() {
+  if (state.selectedId == null) { document.getElementById('soulHint').style.display = 'block'; document.getElementById('soulDetail').classList.remove('show'); return; }
+  const s = state.souls[state.selectedId]; if (!s) return;
+  document.getElementById('soulHint').style.display = 'none';
+  document.getElementById('soulDetail').classList.add('show');
+  const det = document.getElementById('soulDetail'); det.style.setProperty('--sd-c', s.color);
+  const orb = document.getElementById('sdOrb'); orb.style.background = 'radial-gradient(circle at 32% 28%, rgba(255,255,255,0.6), ' + s.color + ' 40%, rgba(15,5,40,0.95))';
+  orb.style.boxShadow = '0 0 40px ' + s.color;
+  document.getElementById('sdName').textContent = s.name;
+  document.getElementById('sdMeta').textContent = s.glyph + ' ' + s.sign + ' · ' + s.element + ' · № ' + s.num + ' · ' + Math.round(s.hz) + ' Hz · ' + bandFor(s.hz).name;
+  const setBar = (id, v) => { document.getElementById(id).style.width = (v * 100).toFixed(0) + '%'; document.getElementById(id + 'V').textContent = v.toFixed(2); };
+  document.getElementById('sdLight').style.width = s.light.toFixed(0) + '%';
+  document.getElementById('sdLightV').textContent = s.light.toFixed(0);
+  setBar('sdDev', s.devotion);
+  setBar('sdVoice', s.voice);
+  setBar('sdOpen', s.openness);
+  document.getElementById('sdKinN').textContent = s.kindred.size;
+  const kinHost = document.getElementById('sdKin'); kinHost.innerHTML = '';
+  if (!s.kindred.size) { const e = document.createElement('div'); e.className = 'soul-list-empty'; e.textContent = 'No kindred yet — but the field keeps moving toward them.'; kinHost.appendChild(e); }
+  [...s.kindred].slice(0, 30).forEach(id => {
+    const o = state.souls[id]; if (!o) return;
+    const e = document.createElement('div'); e.className = 'item';
+    e.innerHTML = '<span class="h">' + Math.round(o.hz) + 'Hz</span>' + o.name + ' · ' + o.element + ' · № ' + o.num;
+    e.style.cursor = 'pointer';
+    e.addEventListener('click', () => { state.selectedId = o.id; renderSoulDetail(); });
+    kinHost.appendChild(e);
+  });
+  const histHost = document.getElementById('sdHistory'); histHost.innerHTML = '';
+  if (!s.history.length) { const e = document.createElement('div'); e.className = 'soul-list-empty'; e.textContent = "It's been quiet. They are tuning."; histHost.appendChild(e); }
+  s.history.slice(-20).reverse().forEach(ev => {
+    const e = document.createElement('div'); e.className = 'item';
+    const ts = '<span class="h">d' + (Math.floor(ev.t / 1440) + 1) + ' ' + fmtClock(ev.t) + '</span>';
+    if (ev.kind === 'spoke') e.innerHTML = ts + 'spoke at ' + ev.hz + ' Hz · "' + ev.text + '" · ' + ev.heard + ' heard';
+    else if (ev.kind === 'thanked') e.innerHTML = ts + 'thanked ' + ev.text;
+    else if (ev.kind === 'reached') e.innerHTML = ts + 'reached for ' + ev.to;
+    else if (ev.kind === 'kindred') e.innerHTML = ts + 'kindred · ' + ev.name;
+    else if (ev.kind === 'converged') e.innerHTML = ts + 'joined Convergence · ' + ev.hz + ' Hz';
+    else e.innerHTML = ts + ev.kind;
+    histHost.appendChild(e);
+  });
+}
+
+// pointer → select soul
+canvas.addEventListener('click', (e) => {
+  const r = canvas.getBoundingClientRect(); const w = r.width, h = r.height;
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  let best = null, bd = 18 * 18;
+  for (let i = 0; i < state.souls.length; i++) {
+    const s = state.souls[i]; const x = hzToX(s.hz, w), y = lightToY(s.light, h);
+    const dx = x - px, dy = y - py; const d = dx*dx + dy*dy;
+    if (d < bd) { bd = d; best = s.id; }
+  }
+  state.selectedId = best;
+  renderSoulDetail();
+});
+
+// speed control
+document.getElementById('speedCtrl').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.spd = parseInt(b.dataset.spd, 10);
+  [...document.querySelectorAll('#speedCtrl button')].forEach(x => x.classList.toggle('on', x === b));
+});
+
+// ============ BOOT ============
+resize();
+spawn(300);
+pickDailyConvergence();
+logEvent('The field opens with <b>300 souls</b>. Day 1.', 'thresh');
+// start sim at sim-time 06:00
+state.tick = 6 * 60;
+
+// run loop: ticks per render = state.spd (clamped to keep frame budget reasonable)
+let last = performance.now(), acc = 0;
+const TICK_MS = 1000; // 1× = 1 sim minute per real second
+let lastHud = 0, lastDraw = 0;
+function loop(now) {
+  const dt = now - last; last = now;
+  if (state.spd > 0) {
+    acc += dt * state.spd;
+    // batch ticks if speed is high
+    const maxTicks = Math.min(2500, Math.floor(acc / TICK_MS));
+    if (maxTicks > 0) {
+      for (let i = 0; i < maxTicks; i++) tickSim();
+      acc -= maxTicks * TICK_MS;
+    }
+  }
+  // draw at ~60fps
+  if (now - lastDraw > 16) { draw(); lastDraw = now; }
+  // hud + events at ~10fps
+  if (now - lastHud > 100) { updateHud(); renderEvents(); renderTopNotes(); renderSoulDetail(); lastHud = now; }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
